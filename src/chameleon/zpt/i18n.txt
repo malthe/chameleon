@@ -1,0 +1,495 @@
+Internationalization
+--------------------
+
+Page templates support the i18n attribute language. The implementation
+is based on this document:
+
+  * http://wiki.zope.org/zope3/ZPTInternationalizationSupport
+
+With the exception of i18n:data and i18n:source, the implementation is
+complete.
+
+To get set started, let's provide German mock translations for all
+msgids:
+
+  >>> from zope import component
+  >>> from zope import interface
+  >>> from chameleon.core import utils
+
+  >>> from zope.i18n.interfaces import ITranslationDomain
+  >>> class MockTranslationDomain(object):
+  ...     interface.implements(ITranslationDomain)
+  ...
+  ...     def translate(self, msgid, mapping=None, context=None,
+  ...                   target_language=None, default=None):
+  ...         if target_language != 'de':
+  ...             return default
+  ...
+  ...         mock ="Mock translation of '%s'" % \
+  ...             utils.htmlescape(msgid)
+  ...         if mapping:
+  ...             mock += ' mapping=%s' % mapping
+  ...         return mock + '.'
+
+  >>> td = MockTranslationDomain()
+  >>> component.provideUtility(td, ITranslationDomain, name="test")
+
+Translation of tag contents
+---------------------------
+
+First, a simple example:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="test_msgid">
+  ...     Default
+  ...   </span>
+  ... </div>"""
+
+First we need to turn the template into a callable:
+
+  >>> from chameleon.zpt.template import PageTemplate
+  >>> template = PageTemplate(body)
+
+Let's try rendering this template without passing a target language.
+    
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      Default
+    </span>
+  </div>
+
+Now we'll render the template again---passing German as the language.
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Mock translation of 'test_msgid'.</span>
+  </div>
+
+Let's try infering the translation message id from the tag body.
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="">
+  ...     Default
+  ...   </span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      Default
+    </span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Mock translation of 'Default'.</span>
+  </div>
+
+We could also add a named block inside the tag.
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <p i18n:domain="test" i18n:translate="">
+  ...     <span i18n:name="count">18</span> bananas.
+  ...   </p>
+  ...   <p>
+  ...     <span i18n:name="count">18</span> bananas.
+  ...   </p>
+  ... </div>"""
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <p>
+      <span>18</span> bananas.
+    </p>
+    <p>
+      <span>18</span> bananas.
+    </p>
+  </div>
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <p>Mock translation of '${count} bananas.'
+       mapping={'count': u'<span>18</span>'}.</p>
+    <p>
+      <span>18</span> bananas.
+    </p>
+  </div>
+
+Or two:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="">
+  ...     I want <span i18n:name="bananas">12</span> bananas and
+  ...     <span i18n:name="apples">8</span> apples.
+  ...   </span>
+  ... </div>"""
+
+Without a language this gives:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+       I want <span>12</span> bananas and
+       <span>8</span> apples.
+    </span>
+  </div>
+
+In German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Mock translation of 'I want ${bananas} bananas and ${apples} apples.'
+      mapping={'bananas': u'<span>12</span>', 'apples': u'<span>8</span>'}.</span>
+  </div>
+
+Here's an example from a template for a calendar widget:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <div i18n:translate="" tal:omit-tag="">
+  ...       <span i18n:name="monthname"
+  ...             i18n:translate=""
+  ...             tal:content="monthname"
+  ...             tal:omit-tag="">monthname</span>
+  ...       <span i18n:name="year"
+  ...             i18n:translate=""
+  ...             tal:content="year"
+  ...             tal:omit-tag="">year</span>
+  ...   </div>
+  ... </div>"""
+
+We'll set up the tests such that pass in an i18n message for the month
+name.
+  
+  >>> from zope.i18nmessageid import Message
+  
+  >>> year = 2008
+  >>> monthname = Message(u'month_nov', domain="test", default=u"November")
+
+Without passing a language.
+
+  >>> template = PageTemplate(body)
+  >>> print template.render(year=year, monthname=monthname)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+      November
+      2008
+  </div>
+
+Passing German:
+  
+  >>> print template.render(year=year, monthname=monthname, target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+      Mock translation of 'month_nov'.
+      2008
+  </div>
+  
+Entities and dynamic translation strings:
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="">
+  ...     <sup>&reg;</sup> &gt;
+  ...     <sup>&lt;</sup>
+  ...   </span>
+  ... </div>"""
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      <sup>&reg;</sup> &gt;
+      <sup>&lt;</sup>
+    </span>
+  </div>
+
+Translating entities:
+  
+  >>> template = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span tal:omit-tag="" i18n:domain="test" i18n:translate="">
+  ...     &reg;
+  ...     &lt;
+  ...   </span>
+  ... </div>""")
+
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    &reg;
+    &lt;
+  </div>
+  
+  >>> print template.render(year=year, monthname=monthname, target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Mock translation of '&reg;  &lt;'.
+  </div>
+  
+If  we're  replacing  or   inserting  content  dynamically,  and  this
+evaluates to ``None``, omit the tag even if we're translating.
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" tal:content="None" i18n:translate="">
+  ...     Will appear as an empty tag.
+  ...   </span>
+  ...   <span i18n:domain="test" tal:replace="None" i18n:translate="">
+  ...     Won't appear.
+  ...   </span>
+  ... </div>"""
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span></span>
+  </div>
+
+If we have dynamic content in a translation, and it doesn't match a
+specific message id, it is left untouched:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="">
+  ...     The book is on the <span tal:content="string:desk">table</span>.
+  ...   </span>
+  ... </div>"""
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      The book is on the <span>desk</span>.
+    </span>
+  </div>
+
+If a message id is supplied, unnamed blocks are rendered as-is.
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="msg_id" tal:omit-tag="">
+  ...     The book is on the <span>table</span>.
+  ...   </span>
+  ... </div>"""
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+      The book is on the <span>table</span>
+  </div>
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Mock translation of 'msg_id'.
+  </div>
+  
+Translation of tag attributes
+-----------------------------
+
+A simple example to start with.
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" title="Simple Title" i18n:attributes="title">
+  ...     Default
+  ...   </span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Simple Title">
+      Default
+    </span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Mock translation of 'Simple Title'.">
+      Default
+    </span>
+  </div>
+
+Use an explicit msgid:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" title="Simple Title"
+  ...         i18n:attributes="title title_simple">
+  ...     Default
+  ...   </span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Simple Title">
+      Default
+    </span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Mock translation of 'title_simple'.">
+      Default
+    </span>
+  </div>
+
+Use an explicit msgid with a trailing semicolon.
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" title="Simple Title"
+  ...         i18n:attributes="title title_simple;">
+  ...     Default
+  ...   </span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Simple Title">
+      Default
+    </span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Mock translation of 'title_simple'.">
+      Default
+    </span>
+  </div>
+
+Use multiple attributes on the same tag.
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" title="Simple Title"
+  ...         longdesc="A not so short description."
+  ...         i18n:attributes="title title_simple; longdesc desc_short">
+  ...     Default
+  ...   </span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Simple Title" longdesc="A not so short description.">
+      Default
+    </span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Mock translation of 'title_simple'."
+          longdesc="Mock translation of 'desc_short'.">
+      Default
+    </span>
+  </div>
+
+Translation of tag content and tag attributes
+---------------------------------------------
+
+A simple example to start with.
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span i18n:domain="test" i18n:translate="tid"
+  ...         title="Title" i18n:attributes="title aid">
+  ...     Default, "default", 'default'
+  ...   </span>
+  ...   <span i18n:domain="test" i18n:translate=""
+  ...         tal:content="string:tid">
+  ...     Default, "default", 'default'
+  ...   </span>
+  ...   <span i18n:domain="test" i18n:translate="">
+  ...     ${'tid'}
+  ...   </span>
+  ...   <span i18n:domain="test" i18n:translate="">
+  ...     t${'i'}${'d'}
+  ...   </span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Title">
+      Default, "default", 'default'
+    </span>
+    <span>tid</span>
+    <span>tid</span>
+    <span>tid</span>    
+  </div>
+
+Passing German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Mock translation of 'aid'.">Mock translation of 'tid'.</span>
+    <span>Mock translation of 'tid'.</span>
+    <span>Mock translation of 'tid'.</span>
+    <span>Mock translation of 'tid'.</span>
+  </div>
+
+Make sure translations play nice with loops.
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal" i18n:domain="test">
+  ...   <div tal:repeat="i range(1)">
+  ...     <span i18n:translate="tid">Default</span>
+  ...   </div>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> print PageTemplate(body).render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      <span>Default</span>
+    </div>
+  </div>

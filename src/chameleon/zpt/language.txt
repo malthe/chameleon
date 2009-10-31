@@ -1,0 +1,660 @@
+Zope Page Templates (ZPT)
+=========================
+
+This test demonstrates the compilation of TAL and METAL attribute
+languages.
+
+TAL
+---
+  
+:: Namespace elements
+
+  >>> print render("""\
+  ... <tal:block xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   Hello, world!
+  ... </tal:block>""")
+  <BLANKLINE>
+    Hello, world!
+  <BLANKLINE>
+
+tal:define, tal:attributes, tal:content, tal:replace
+  
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...  <span tal:define="a 'abc'" tal:content="a" />
+  ...  <span tal:define="b 'def'"><span tal:replace="b" /></span>
+  ...  <span tal:content="a|None" />
+  ...  <span tal:content="b|None" />
+  ...  <span tal:content="structure a/b/c|None" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+   <span>abc</span>
+   <span>def</span>
+   <span></span>
+   <span></span>
+   <span></span>
+  </div>
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span id="test"
+  ...         class="dummy"
+  ...         onclick=""
+  ...         tal:define="a 'abc'"
+  ...         tal:attributes="class 'def' + a + default; style 'hij'; onClick 'alert();'"
+  ...         tal:content="a + 'ghi'" />
+  ...   <span tal:replace="'Hello World!'">Hello <b>Universe</b>!</span>
+  ...   <span tal:replace="'Hello World!'"><b>Hello Universe!</b></span>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span id="test" class="defabcdummy" onclick="alert();" style="hij">abcghi</span>
+    Hello World!
+    Hello World!
+  </div>
+
+tal:attributes default
+  
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...    <span tal:content="1">0</span>
+  ...    <span tal:attributes="class default">2</span>
+  ...    <span tal:attributes="class default or 'not-default'">3</span>
+  ...    <span class="default" tal:attributes="class default">4</span>
+  ...    <span tal:attributes="class default">5</span>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+     <span>1</span>
+     <span>2</span>
+     <span>3</span>
+     <span class="default">4</span>
+     <span>5</span>
+  </div>
+
+tal:attributes 'checked' and 'selected' toggles
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <option tal:attributes="selected True"></option>
+  ...   <option tal:attributes="selected None"></option>
+  ...   <input tal:attributes="checked True" />
+  ...   <input tal:attributes="checked False" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+     <option selected="True"></option>
+     <option></option>
+     <input checked="True" />
+     <input />
+  </div>
+
+tal:attributes keeps original attributes ordering
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <a rel="self" href="http://repoze.org" id="link-id"
+  ...      tal:attributes="href 'http://python.org'" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <a rel="self" href="http://python.org" id="link-id" />
+  </div>
+
+tal:attributes on a TAL-namespace element fails
+
+  >>> print render("""\
+  ... <tal:dummy attributes="dummy 'dummy'" />
+  ... """)
+  Traceback (most recent call last):
+   ...
+  TypeError: Dynamic attributes not allowed on elements with TAL-namespace.
+  
+tal:repeat
+    
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <ul>
+  ...     <li tal:repeat="i range(5)"><span tal:replace="'Item ' + str(i) + ')'" /></li>
+  ...   </ul>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <ul>
+      <li>Item 0)</li>
+      <li>Item 1)</li>
+      <li>Item 2)</li>
+      <li>Item 3)</li>
+      <li>Item 4)</li>
+    </ul>
+  </div>
+
+tal:repeat using builtin name as repeat var
+    
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <ul>
+  ...     <li tal:repeat="type range(2)"><span tal:replace="type"/></li>
+  ...   </ul>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <ul>
+      <li>0</li>
+      <li>1</li>
+    </ul>
+  </div>
+
+tal:repeat (tuples)
+
+  >>> print render("""\
+  ... <ul xmlns="http://www.w3.org/1999/xhtml">
+  ...   <li tal:repeat="(key,value) sorted(dict(one=1,two=2,three=3).items(), key=lambda (k,v): (v,k))">${key}=$value</li>
+  ... </ul>""")
+  <ul xmlns="http://www.w3.org/1999/xhtml">
+  <li>one=1</li>
+  <li>two=2</li>
+  <li>three=3</li>
+  </ul>
+
+tal:repeat (repeat-variable)
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <ul>
+  ...     <li tal:repeat="i range(3)"><span tal:replace="str(i) + ' ' + str(repeat['i'].even())" /></li>
+  ...   </ul>
+  ... </div>""")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <ul>
+        <li>0 True</li>
+        <li>1 False</li>
+        <li>2 True</li>
+      </ul>
+    </div>
+
+tal:repeat (nested, with same variable)
+    
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      tal:define="i 5">
+  ...   <ul>
+  ...     <li tal:repeat="i range(1, 3)">
+  ...        <li tal:repeat="i range(i)"><span tal:replace="i" /></li>
+  ...     </li>
+  ...   </ul>
+  ...   <span tal:content="i" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <ul>
+      <li>
+         <li>0</li>
+      </li>
+      <li>
+         <li>0</li>
+         <li>1</li>
+      </li>
+    </ul>
+    <span>5</span>
+  </div>
+
+tal:repeat (omited tag doesn't generate too many blank lines)
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ... <tal:count>
+  ...   <tal:count_loop repeat="count range(1, 10)">
+  ...     <span tal:replace="count"
+  ...       /><tal:comma condition="not repeat['count'].end">,</tal:comma>
+  ...   </tal:count_loop>
+  ... </tal:count>.
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+     1, 2, 3, 4, 5, 6, 7, 8, 9.
+  </div>
+
+tal:condition
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <div tal:condition="True">
+  ...     Show me!
+  ...   </div>
+  ...   <div tal:condition="False">
+  ...     Do not show me!
+  ...   </div>
+  ...   <div tal:condition="invalid_value|None">
+  ...     Do not show me!
+  ...   </div>
+  ...   <tal:empty condition="True" />
+  ... </div>""")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <div>
+        Show me!
+      </div>
+    </div>
+
+:: TAL elements with namespace prefix
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <tal:example replace="'Hello World!'" />
+  ...   <tal:example tal:replace="'Hello World!'" />
+  ...   <tal:div content="'Hello World!'" />
+  ...   <tal:multiple repeat="i range(3)" replace="i" />
+  ...   <tal:div condition="True">True</tal:div>
+  ... </div>""")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      Hello World!
+      Hello World!
+      Hello World!
+      0
+      1
+      2
+      True
+    </div>
+
+tal:omit-tag
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <p tal:omit-tag="">No paragraph here.</p>
+  ...   <p tal:omit-tag="True">No paragraph here either.</p>
+  ...   <p tal:omit-tag="False">A paragraph here.</p>
+  ... </div>""")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      No paragraph here.
+      No paragraph here either.
+      <p>A paragraph here.</p>
+    </div>
+
+:: Unicode with dynamic attributes and content
+    
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <img tal:attributes="title '%sHello%s' % (chr(60), chr(62))" />
+  ...   <span tal:replace="structure '%sbr /%s' % (chr(60), chr(62))" />
+  ...   <span tal:replace="'%sbr /%s' % (chr(60), chr(62))" />
+  ...   <span tal:content="unicode('La Pe\xc3\xb1a', 'utf-8')" />
+  ... </div>""")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <img title="&lt;Hello&gt;" />
+      <br />
+      &lt;br /&gt;
+      <span>La Peña</span>
+    </div>
+
+:: Using the "string:" expression
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span tal:replace="string:${greeting}, world!" />
+  ...   <img tal:attributes="alt string:Leonardo da Vinci;; Musee du Louvre, 1503;
+  ...                        title string:Mona Lisa;" />
+  ... </div>""", request=object(), greeting=u'Hello')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello, world!
+    <img alt="Leonardo da Vinci; Musee du Louvre, 1503" title="Mona Lisa" />
+  </div>
+
+:: Using the "import:" expression
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span tal:define="ifaces import:chameleon.zpt.interfaces" tal:replace="ifaces.IExpressionTranslator"/>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+      &lt;InterfaceClass chameleon.zpt.interfaces.IExpressionTranslator&gt;
+  </div>
+
+:: Using different expressions with try-except operator (|)
+  
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...      <span tal:replace="abc|1" />
+  ...      <span tal:replace="2|abc" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+       1
+       2
+  </div>
+
+:: Using the "structure" TAL pragma.
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span tal:replace="structure dir" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <built-in function dir>
+  </div>
+
+Using 'default' means whatever the the literal HTML contains will be
+output if the condition is not met.
+
+Printing default attribute value:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   <span tal:attributes="class default"
+  ...         class="blue">i'm blue</span>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span class="blue">i'm blue</span>
+  </div>
+
+Print default tag contents:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   <span tal:content="default"
+  ...         >default content</span>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>default content</span>
+  </div>
+
+Use default with 'tal:define':
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      tal:define="class_name invalid/variable|default">
+  ...   <span tal:attributes="class class_name"
+  ...         tal:content="class_name"
+  ...         class="blue">i'm blue</span>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span class="blue">i'm blue</span>
+  </div>
+
+METAL
+-----
+
+metal:define-macro, metal:use-macro
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <div class="greeting" metal:define-macro="greeting">
+  ...     Hello, <span tal:define="global earth 'earth'"
+  ...                  tal:replace="name|earth" />!
+  ...   </div>
+  ...   <div tal:define="name 'world'">
+  ...     <div metal:use-macro="template.macros['greeting']" />
+  ...     Hello, <span tal:replace="earth" />!
+  ...   </div>
+  ... </div>"""
+
+  >>> from chameleon.core.testing import MockTemplate
+  >>> from chameleon.zpt.language import Parser
+
+  >>> template = MockTemplate(body, Parser())
+  >>> print render(body, template=template)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div class="greeting">
+      Hello, earth!
+    </div>
+    <div>
+      <div class="greeting">
+      Hello, world!
+    </div>
+    Hello, earth!
+    </div>
+  </div>
+
+metal:define-slot, metal:fill-slot
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <div class="macro" metal:define-macro="greeting">
+  ...     Hey, <span class="name" metal:define-slot="name">
+  ...     a <em>stranger!</em></span>
+  ...   </div>
+  ...   <div metal:use-macro="template.macros['greeting']">
+  ...     This will be omitted
+  ...     <span class="filled" metal:fill-slot="name">earth!</span>
+  ...   </div>
+  ...   <div metal:use-macro="template.macros['greeting']">
+  ...     This will be omitted
+  ...     <span class="filled" metal:fill-slot="name" />
+  ...   </div>
+  ...   <div metal:use-macro="template.macros['greeting']">
+  ...     <input metal:fill-slot="name" type="hidden"
+  ...            tal:attributes="value 'hello'" />
+  ...   </div>
+  ...   <div metal:use-macro="template.macros['greeting']">
+  ...     <div>
+  ...       <metal:earth fill-slot="name">earth!</metal:earth>
+  ...     </div>
+  ...   </div>
+  ...   <div metal:use-macro="template.macros['greeting']">
+  ...     <!-- display fallback greeting -->
+  ...   </div>
+  ...   <div metal:use-macro="template.macros['greeting']">
+  ...     <span metal:fill-slot="dummy">dummy!</span>
+  ...   </div>
+  ... </div>"""
+
+  >>> template = MockTemplate(body, Parser())
+  >>> print render(body, template=template)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div class="macro">
+      Hey, <span class="name">
+      a <em>stranger!</em></span>
+    </div>
+    <div class="macro">
+      Hey, <span class="filled">earth!</span>
+    </div>
+    <div class="macro">
+      Hey, <span class="filled" />
+    </div>
+    <div class="macro">
+      Hey, <input type="hidden" value="hello" />
+    </div>
+    <div class="macro">
+      Hey, earth!
+    </div>
+    <div class="macro">
+      Hey, <span class="name">
+      a <em>stranger!</em></span>
+    </div>
+    <div class="macro">
+      Hey, <span class="name">
+      a <em>stranger!</em></span>
+    </div>
+  </div>
+
+Expression interpolation
+------------------------
+
+The ``chameleon.zpt`` parser supports Genshi interpolation
+expressions.
+
+Outside tags:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   Interpolation ${'expressions'} are ${'convenient'}.
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Interpolation expressions are convenient.
+  </div>
+
+Inside tags:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <img alt="Interpolation ${'expressions'} are ${'convenient'}" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <img alt="Interpolation expressions are convenient" />
+  </div>
+
+We can disable this feature using ``meta:interpolation``::
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:meta="http://xml.zope.org/namespaces/meta">
+  ...   <div meta:interpolation="false">
+  ...     ${'foo'}
+  ...   </div>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      ${'foo'}
+    </div>
+  </div>
+
+The ``tail`` of an element does get intepolated depending oon
+it's parent::
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:meta="http://xml.zope.org/namespaces/meta">
+  ...   <div meta:interpolation="false">
+  ...     ${nope}
+  ...   </div>
+  ...   ${'interpolation'}
+  ...   <div>
+  ...     ${'interpolation'}
+  ...     <span meta:interpolation="false">
+  ...       ${nope}
+  ...       <span meta:interpolation="true">
+  ...         ${'interpolation'}
+  ...       </span>
+  ...       ${'nope'}
+  ...     </span>
+  ...   </div>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      ${nope}
+    </div>
+    interpolation
+    <div>
+      interpolation
+      <span>
+        ${nope}
+        <span>
+          interpolation
+        </span>
+        ${'nope'}
+      </span>
+    </div>
+  </div>
+
+Escaping inserted data
+----------------------
+
+By default all inserted data is escaped. Content that's already
+encoded using numeric character representation should be left alone
+(note that currently attributes are always decoded due to the expat
+parser)::
+
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   ${welcome}
+  ... </html>""", welcome="“Karibuni”".decode('utf-8'))
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    “Karibuni”
+  </html>
+
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <body>
+  ...     <span tal:content="data">Data</span>
+  ...     <span tal:replace="data">Data</span>
+  ...     ${data}
+  ...     <span>&#8220;three&#8221; &mdash; can&#8217;t&#8230;</span>
+  ...     <span tal:content="string:&#8220;three&#8221; &mdash; can&#8217;t&#8230;"></span>
+  ...     <span tal:content="another">Data</span>
+  ...     <span tal:replace="another">Data</span>
+  ...     ${another}
+  ...   </body>
+  ... </html>""", data="one & two", another='a "quote" b')
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <span>one &amp; two</span>
+      one &amp; two
+      one &amp; two
+      <span>&#8220;three&#8221; &mdash; can&#8217;t&#8230;</span>
+      <span>“three” — can’t…</span>
+      <span>a "quote" b</span>
+      a "quote" b
+      a "quote" b
+    </body>
+  </html>
+
+If inserted data has a __html__ method it is called and the result is
+inserted without further escaping:
+
+  >>> class Markup(unicode):
+  ...     def __html__(self):
+  ...         return self
+  
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <body>
+  ...     <span tal:content="data">Data</span>
+  ...     <span tal:replace="data">Data</span>
+  ...     ${data}
+  ...   </body>
+  ... </html>""", data=Markup("<em>correct</em>"))
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <span><em>correct</em></span>
+      <em>correct</em>
+      <em>correct</em>
+    </body>
+  </html>
+
+If validation is enabled, markup inserted using ``__html__`` must
+validate
+
+  >>> from chameleon.core import config
+  >>> config.VALIDATION = True
+  
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <body>
+  ...     ${data}
+  ...   </body>
+  ... </html>""", data=Markup("<em>incorrect<em>"))
+  Traceback (most recent call last):
+   ...
+  ValidationError: Insertion of u'<em>incorrect<em>' is not allowed.
+  
+  >>> config.VALIDATION = False
+
+Parsing
+-------
+
+An issue was observed with ``lxml`` where there was a hard limit on
+the length of the namespace declarations. This test is present to
+verify that this issue does not occur.
+  
+  >>> len(render("""\
+  ... <?xml version="1.0" encoding="UTF-8"?>
+  ... <test xmlns="http://test" %s />""" % " ".join(
+  ...     'xmlns:ns%d="ns%d"' % (i, i) for i in range(100))))
+  1864

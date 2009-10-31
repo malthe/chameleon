@@ -1,0 +1,5 @@
+<configure xmlns="http://namespaces.repoze.org/bfg">
+
+  <!-- this file is present for backwards compatibility -->
+           
+</configure>

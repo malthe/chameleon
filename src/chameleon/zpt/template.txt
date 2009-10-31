@@ -1,0 +1,451 @@
+Template classes
+================
+
+The ``chameleon.zpt`` package provides the ``PageTemplate`` and
+``PageTemplateFile`` classes which allow easy usage of templates in
+your application.
+
+Usage
+-----
+
+  >>> from chameleon.zpt.template import PageTemplate
+  
+  >>> print PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </div>""", None)()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> from chameleon.zpt.template import PageTemplateFile
+  >>> from chameleon.zpt import tests
+  
+  >>> path = tests.__path__[0]
+  >>> t = PageTemplateFile(path+'/helloworld.pt', None)
+  >>> print t()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> import os
+  >>> t.filename.startswith(os.sep)
+  True
+
+  >>> from chameleon.zpt.template import PageTextTemplate
+  >>> print PageTextTemplate("Hello World!")()
+  Hello World!
+
+  >>> from chameleon.zpt.template import PageTextTemplateFile
+  >>> t = PageTextTemplateFile(path+'/helloworld.txt')
+  >>> print t()
+  Hello World!
+
+METAL template integration
+--------------------------
+
+Page templates expose macros in their ``macros`` attribute. A
+``macros`` global variable exposes the original (ie, source) template
+macros, while ``template`` is always the template being executed.
+
+  >>> main = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal"
+  ...       metal:define-macro="master"
+  ...       template-macros="${' '.join(template.macros.names)}"
+  ...       macros="${' '.join(macros.names)}">
+  ...     <metal:block tal:define="foo 'foo'">
+  ...       Who are you, ${foo}?
+  ...       <div metal:define-slot="content" tal:replace="None">
+  ...          I will be replaced
+  ...       </div>
+  ...       <span template-macros="${' '.join(template.macros.names)}"
+  ...             macros="${' '.join(macros.names)}">
+  ...          <!-- demonstrate difference between
+  ...               `template` and `macros` symbol -->
+  ...       </span>
+  ...     </metal:block>
+  ... </html>""")
+
+  >>> print main()
+  <html xmlns="http://www.w3.org/1999/xhtml"
+        template-macros="master" macros="master">
+     Who are you, foo?
+     <span template-macros="master" macros="master">
+        <!-- demonstrate difference between
+             `template` and `macros` symbol -->
+     </span>
+  </html>
+
+A template provides access to its macros through the ``macros``
+dictionary.
+  
+  >>> main.macros['master']
+  <chameleon.core.template.Macro object at ...>
+
+Only macros which exist in the template may be accessed.
+  
+  >>> main.macros['bad_macro']
+  Traceback (most recent call last):
+   ...
+  KeyError: 'bad_macro'
+  
+  >>> content = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:metal="http://xml.zope.org/namespaces/metal"
+  ...      metal:use-macro="main.macros['master']">
+  ...     <div metal:fill-slot="content">
+  ...         <tal:block tal:define="bar 'boo'" i18n:domain="bar">
+  ...           I replace you: ${dummy|foo} (${bar}).
+  ...         </tal:block>
+  ...     </div>
+  ...     <metal:block metal:define-macro="dummy" />
+  ... </div>""")
+
+  >>> print content(main=main, bar='bar')
+  <html xmlns="http://www.w3.org/1999/xhtml"
+        template-macros="dummy" macros="master">
+    Who are you, foo?
+    <div>
+       I replace you: foo (boo).
+    </div>
+    <span template-macros="dummy" macros="master">
+       <!-- demonstrate difference between
+            `template` and `macros` symbol -->
+    </span>
+  </html>
+
+It is possible to define a macro that re-uses a macro from a different
+template in it's definition, filling a slot of the re-used macro and
+re-defining this same slot:
+
+  >>> form = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <div metal:define-macro="form">
+  ...      <metal:block define-slot="extra_info" />
+  ...   </div>
+  ... </html>""")
+
+  >>> another = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal"
+  ...       metal:define-macro="body">
+  ...       <metal:block use-macro="form.macros['form']">
+  ...         <metal:block fill-slot="extra_info">
+  ...           Who are you?
+  ...             <metal:block define-slot="extra_info" />
+  ...         </metal:block>
+  ...      </metal:block>
+  ... </html>""")
+
+  >>> content = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:metal="http://xml.zope.org/namespaces/metal"
+  ...      metal:use-macro="another.macros['body']">
+  ...     <span metal:fill-slot="extra_info">
+  ...        Baz, you?
+  ...     </span>
+  ... </div>""")
+
+  >>> print content(another=another, form=form)
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      Who are you?
+      <span>
+         Baz, you?
+      </span>
+    </div>
+  </html>
+
+It is possible to extend a macro and re-define a slot within a
+fill-slot to add extra content, using the same name as the filled slot:
+
+  >>> form = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <div metal:define-macro="form">
+  ...     <p metal:define-slot="question">Who are you?</p>
+  ...     <metal:block define-slot="extra_info" />
+  ...   </div>
+  ... </html>""")
+
+  >>> another = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <metal:block define-macro="extra-form"
+  ...                extend-macro="form.macros['form']">
+  ...     <metal:block fill-slot="extra_info">
+  ...       <div>
+  ...         Who? Me?
+  ...         <metal:block define-slot="extra_info" />
+  ...         <metal:block define-slot="extra_extra_info" />
+  ...       </div>
+  ...     </metal:block>
+  ...   </metal:block>
+  ... </html>""")
+
+  >>> content = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <body>
+  ...     <div metal:use-macro="another.macros['extra-form']">
+  ...       <p metal:fill-slot="question">Tell me, who are you?</p>
+  ...       <span metal:fill-slot="extra_extra_info">
+  ...          Baz, you?
+  ...       </span>
+  ...       <p metal:use-macro="dummy">
+  ...          <span metal:fill-slot="dummy" />
+  ...       </p>
+  ...     </div>
+  ...   </body>
+  ... </html>""")
+
+  >>> print content(another=another, form=form)
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div>
+      <p>Tell me, who are you?</p>
+      <div>
+        Who? Me?
+        <span>
+         Baz, you?
+        </span>
+      </div>
+      </div>
+    </body>
+  </html>
+
+It is NOT possible to define a macro and use a macro at the same time.
+This is what extend-macro is meant for:
+
+  >>> form = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <div metal:define-macro="form">
+  ...      Form macro
+  ...   </div>
+  ... </html>""")
+
+  >>> another = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...    <metal:block define-macro="form" use-macro="form.macros['form']">
+  ...       Another macro
+  ...    </metal:block>
+  ... </html>""")
+
+  >>> content = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:metal="http://xml.zope.org/namespaces/metal"
+  ...      metal:use-macro="another.macros['form']">
+  ...      Use macro
+  ... </div>""")
+
+  >>> print content(another=another, form=form)
+  Traceback (most recent call last):
+   ...
+  RuntimeError: ...
+   ...
+  SyntaxError: Cannot use `define-macro` with `use-macro`; ...
+
+Redefining a macro with ``use-macro`` does not carry forward the inner
+slots (instead ``extend-macro`` should be used; this is tested
+elsewhere).
+  
+  >>> form = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <div metal:define-macro="form">
+  ...      <metal:block define-slot="question" />
+  ...      <metal:block define-slot="extra_info" />
+  ...   </div>
+  ... </html>""")
+
+  >>> another = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...       <metal:block define-macro="special-form">
+  ...         <metal:block use-macro="form.macros['form']">
+  ...           <p metal:define-slot="question">Who are you?</p>
+  ...         </metal:block>
+  ...      </metal:block>
+  ... </html>""")
+
+  >>> content = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:metal="http://xml.zope.org/namespaces/metal"
+  ...      metal:use-macro="another.macros['special-form']">
+  ...     <p metal:fill-slot="question">Tell me, who are you?</p>
+  ...     <span metal:fill-slot="extra_info">
+  ...        Baz, you?
+  ...     </span>
+  ... </div>""")
+
+  >>> print content(another=another, form=form)
+  Traceback (most recent call last):
+   ...
+  KeyError: 'extra_info'
+
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...      xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <div class="macro" metal:define-macro="greeting"
+  ...        tal:define="greeting greeting|'Hey'">
+  ...       <span tal:replace="greeting" />
+  ...   </div>
+  ...   <div tal:define="greeting 'Hello'">
+  ...	  <metal:block metal:use-macro="template.macros['greeting']" />
+  ...   </div>
+  ...   <div>
+  ...	  <metal:block metal:use-macro="template.macros['greeting']" />
+  ...   </div>
+  ... </div>"""
+  >>> print PageTemplate(body)()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div class="macro">
+        Hey
+    </div>
+    <div>
+      <div class="macro">
+        Hello
+    </div>
+  <BLANKLINE>
+  </div>
+    <div>
+      <div class="macro">
+        Hey
+    </div>
+  <BLANKLINE>
+  </div>
+  </div>
+
+  >>> template1 = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...    <ul tal:define="global dummy 1">
+  ...      <metal:block use-macro="macro">
+  ...         Another macro
+  ...      </metal:block>
+  ...    </ul>
+  ...    <span tal:content="dummy" />
+  ...    <ul>
+  ...      <metal:block use-macro="macro">
+  ...         Another macro
+  ...      </metal:block>
+  ...    </ul>
+  ... </html>""")
+
+  >>> template2 = PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
+  ...       xmlns:metal="http://xml.zope.org/namespaces/metal">
+  ...   <li metal:define-macro="macro"><span tal:replace="dummy" /></li>
+  ... </html>""")
+
+  >>> print template1(macro=template2.macros['macro'])
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <ul>
+      <li>1</li>
+    </ul>
+    <span>1</span>
+    <ul>
+      <li>1</li>
+    </ul>
+  </html>
+
+Error handling
+--------------
+
+When an exception is raised which does not expose a bug in the TAL
+translation machinery, we expect the exception to contain the part of
+the template source that caused the exception.
+
+Exception while evaluating expression:
+
+  >>> PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span tal:content="range()" />
+  ... </div>""").render()
+  Traceback (most recent call last):
+    ...
+  RuntimeError: Caught exception rendering template.
+    ...
+  TypeError: range expected at least 1 arguments, got 0
+
+Exception while evaluating definition:
+
+  >>> PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span tal:define="dummy range()" />
+  ... </div>""").render()
+  Traceback (most recent call last):
+    ...
+  TypeError: range expected at least 1 arguments, got 0
+
+Exception while evaluating interpolation:
+
+  >>> PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span>${range()}</span>
+  ... </div>""").render()
+  Traceback (most recent call last):
+    ...
+  RuntimeError: Caught exception rendering template.
+    ...
+  TypeError: range expected at least 1 arguments, got 0
+
+
+Output Encoding Handling
+------------------------
+
+All output is unicode. If a particular encoding is required, use
+Python's conversion utilities:
+
+  >>> print PageTemplate(u"""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body class="U Can\u2019t Touch This.">
+  ...      U Can\u2019t Touch This.
+  ...      <span tal:replace="test" />
+  ...      <span tal:attributes="test test" tal:content="test" />
+  ...      <span tal:content="string:U Can&#8217;t Touch This." />
+  ...  </body>
+  ... </html>""".encode("utf-8"), encoding="latin-1")(
+  ...     test=u"U Can\u2019t Touch This.").encode('latin-1', 'xmlcharrefreplace')
+  <html xmlns="http://www.w3.org/1999/xhtml">
+   <body class="U Can&rsquo;t Touch This.">
+       U Can&#8217;t Touch This.
+       U Can&#8217;t Touch This.
+       <span test="U Can&#8217;t Touch This.">U Can&#8217;t Touch This.</span>
+       <span>U Can&#8217;t Touch This.</span>
+   </body>
+  </html>
+
+Otherwise, it is output as-is:
+
+  >>> print PageTemplate(u"""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>U Can\u2019t Touch This.</body>
+  ... </html>""".encode("utf-8"))()
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>U Can’t Touch This.</body>
+  </html>
