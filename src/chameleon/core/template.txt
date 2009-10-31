@@ -1,0 +1,251 @@
+Template classes
+================
+
+chameleon.core.template.Template
+--------------------------------
+
+  >>> from chameleon.core.template import Template
+  >>> from chameleon.core.testing import mock_parser
+  
+  >>> print Template("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </div>""", mock_parser)()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+chameleon.core.template.TemplateFile
+------------------------------------
+
+  >>> from chameleon.core.template import TemplateFile
+  >>> from chameleon.core import tests
+  >>> path = tests.__path__[0]
+  >>> t = TemplateFile(path+'/helloworld.pt', mock_parser)
+  >>> print t()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> import os
+  >>> t.filename.startswith(os.sep)
+  True
+
+Macros
+------
+
+In this package, macros are supported only as a framework for actual
+language implementations.
+
+  >>> from chameleon.core.template import Macros
+  
+  >>> def render(name, slots={}, parameters={}):
+  ...     print (slots.items(), parameters.items())
+  
+  >>> Macros(render, "test").bind(test=u"Hello, world!")["test"].render({
+  ...    'slot': 'test'})
+  ([('slot', 'test')], [('test', u'Hello, world!')])
+  
+XInclude support
+----------------
+
+  >>> template = TemplateFile(path+"/xinclude1.pt", mock_parser)
+  >>> print template()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div xmlns:test="http://test/ns">
+      <span test:attr="test">Hello, world!</span>
+    </div>
+  </div>
+
+  >>> print template()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div xmlns:test="http://test/ns">
+      <span test:attr="test">Hello, world!</span>
+    </div>
+  </div>
+
+Encoding
+--------
+  
+  >>> print Template("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   “Karibuni”
+  ... </html>""", mock_parser)()
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    “Karibuni”
+  </html>
+
+  >>> print Template("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   “Karibuni”
+  ... </html>""", mock_parser, encoding='utf-8')()
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    “Karibuni”
+  </html>
+
+  >>> print Template("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   “Karibuni”
+  ... </html>""", mock_parser, encoding='latin-1')().encode(
+  ...   'latin-1', 'xmlcharrefreplace')
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    &#8220;Karibuni&#8221;
+  </html>
+  
+HTML entities
+-------------
+
+  >>> print Template("""
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   <span>
+  ...     <sup>&reg;</sup> &gt;
+  ...     <sup>&lt;</sup>
+  ...   </span>
+  ... </div>""", mock_parser)()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      <sup>&reg;</sup> &gt;
+      <sup>&lt;</sup>
+    </span>
+  </div>
+
+Fragmented documents
+--------------------
+  
+  >>> print Template("""
+  ... <div>
+  ...   Hello, world!
+  ... </div>
+  ...
+  ... Hello &amp; goodbye!
+  ...
+  ... <div>
+  ...   Hello, earth!
+  ... </div>""", mock_parser)()
+  <div>
+    Hello, world!
+  </div>
+  Hello &amp; goodbye!
+  <div>
+    Hello, earth!
+  </div>
+
+XML-support
+-----------
+  
+  >>> print Template("""\
+  ... <?xml version="1.0" ?>
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </div>""", mock_parser)()
+  <?xml version="1.0" encoding="..." standalone="no" ?>
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> print Template("""\
+  ... <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </div>""", mock_parser)()
+  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+Foreign attributes and elements are included as-is.
+  
+  >>> print Template("""\
+  ... <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  ... <info xmlns:xlink="http://www.w3.org/1999/xlink">
+  ...   <order xlink:href="./status" xlink:type="simple" />
+  ...   <xlink:description format="text">
+  ...       My order
+  ...   </xlink:description>
+  ... </info>""", mock_parser)()
+  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <info xmlns:xlink="http://www.w3.org/1999/xlink">
+    <order xlink:href="./status" xlink:type="simple" />
+    <xlink:description format="text">
+       My order
+    </xlink:description>
+  </info>
+
+For legacy-support, default attribute prefix may be included.
+  
+  >>> print Template("""\
+  ... <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  ... <info xmlns:xlink="http://www.w3.org/1999/xlink">
+  ...   <order xlink:href="./status" xlink:type="simple" />
+  ...   <xlink:description format="text">
+  ...       My order
+  ...   </xlink:description>
+  ... </info>""", mock_parser, omit_default_prefix=False)()
+  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <info xmlns:xlink="http://www.w3.org/1999/xlink">
+    <order xlink:href="./status" xlink:type="simple" />
+    <xlink:description xlink:format="text">
+       My order
+    </xlink:description>
+  </info>
+
+  
+Error handling
+--------------
+
+When an exception is raised during rendering, the exception is
+augmented with information useful for debugging.
+
+Note that the compiler must run in debug-mode to get this
+functionality.
+
+  >>> from chameleon.core import config
+  >>> config.DEBUG_MODE = True
+
+To test the error handler, we'll try to call a symbol `dummy`; for
+technical reasons, we must wrap this in an encoded pickle---this is
+due to our test setup.
+  
+  >>> from chameleon.core.types import value
+  >>> from base64 import encodestring
+  >>> from cPickle import dumps
+
+  >>> template = Template("""\
+  ... <div meta:replace="%s" />""" % encodestring(dumps(value('dummy()'))),
+  ... mock_parser)
+
+First, a simple example where a ``NameError`` exception is raised in a
+function which we'll call from inside the template.
+  
+  >>> def dummy():
+  ...     print i
+
+  >>> print template(dummy=dummy)
+  Traceback (most recent call last):
+    ...
+    print i
+    ...
+  RuntimeError: Caught exception rendering template.
+    ...
+    "dummy()"
+    ...
+  NameError: ...
+
+Note that the exception is a copy of the original exception, with a
+customized ``__str__`` method.
+
+  >>> class CustomException(Exception):
+  ...     def __init__(self, msg):
+  ...         Exception.__init__(self, msg)
+  ...         self.msg = msg
+  
+  >>> def dummy():
+  ...     raise CustomException("This is a custom error message.")
+
+  >>> try:
+  ...    print template(dummy=dummy)
+  ... except CustomException, exc:
+  ...    print exc
+  Caught exception rendering template.
+    ...
+  CustomException: This is a custom error message.

@@ -1,0 +1,70 @@
+File-cache
+==========
+
+Enable disk-caching for the duration of this test.
+
+  >>> class cache_enabler:
+  ...     def __init__(self):
+  ...         from chameleon.core import config
+  ...         self.config = config
+  ...         self.old_setting = config.DISK_CACHE
+  ...         config.DISK_CACHE = True
+  ...
+  ...     def __del__(self):
+  ...         self.config.DISK_CACHE = self.old_setting
+
+  >>> _ = cache_enabler()
+
+Write a template string to a temporary named file.
+  
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </div>"""
+
+  >>> from tempfile import NamedTemporaryFile
+  >>> f = NamedTemporaryFile('w')
+  >>> f.write(body)
+  >>> f.seek(0)
+  
+Instantiate template from file.
+
+  >>> from chameleon.core.template import TemplateFile
+  >>> from chameleon.core.testing import mock_parser
+  >>> template = TemplateFile(f.name, mock_parser)
+
+Verify that the disk-cache is enabled for this file.
+  
+  >>> template.registry
+  <chameleon.core.filecache.TemplateCache object at ...>
+
+Upon first rendering, the cache is written to.
+
+  >>> print template()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> len(template.registry)
+  1
+  
+Verify that the registry can be restored.
+
+  >>> template.registry.clear()
+  >>> template.registry.load()
+  >>> len(template.registry)
+  1
+
+Truncate the cache file and recover automatically.
+
+  >>> template.registry.purge()
+  >>> template.registry.load()
+  >>> len(template.registry)
+  0
+
+Cleanup
+-------
+  
+Close temporary file.
+  
+  >>> f.close()

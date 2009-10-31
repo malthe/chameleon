@@ -1,0 +1,40 @@
+Codegen
+=======
+
+The ``Codegen`` module is responsible for the low-level compilation
+of the page template.
+
+Suite
+-----
+
+The ``Suite`` class compiles a source code suite and makes a code
+object available.
+
+  >>> from chameleon.core.codegen import lookup_globals, Suite
+  >>> suite = Suite("""\
+  ... print 'Hello World!'
+  ... """)
+  >>> exec suite.source
+  Hello World!
+
+Syntax extension: Dictionary lookup using dot operator
+------------------------------------------------------
+  
+We allow attribute access to dictionary entries to minimize verbosity
+in templates. It works by wrapping the get attribute nodes in a method
+that tries a dictionary lookup if attribute lookup failed.
+
+  >>> suite = Suite("""\
+  ... a = {'b': 1}
+  ... assert a['b'] == a.b
+  ... """)
+  >>> exec suite.source in lookup_globals.copy()
+
+Syntax extension: Dynamic scoping
+---------------------------------
+
+  >>> suite = Suite("""\
+  ... econtext = {'a': 1}
+  ... assert a == 1
+  ... """)
+  >>> exec suite.source in lookup_globals.copy()

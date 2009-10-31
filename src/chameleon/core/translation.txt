@@ -1,0 +1,218 @@
+Translation
+===========
+
+This document contains functional template tests.
+
+  >>> from chameleon.core.testing import render_xhtml
+
+XHTML
+-----
+
+:: Plain HTML document
+
+  >>> print render_xhtml("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+:: Setting DOCTYPE
+
+  >>> print render_xhtml("""\
+  ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  ...    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </html>""")
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      Hello World!
+    </html>
+
+:: Setting XML language
+
+  >>> print render_xhtml("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  ...   Hello World!
+  ... </html>""")
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    Hello World!
+  </html>
+    
+:: Unicode 
+
+  >>> print render_xhtml("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   La Peña
+  ...   <img alt="La Peña" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    La Peña
+    <img alt="La Pe&ntilde;a" />
+  </div>
+
+:: CDATA blocks
+  >>> print render_xhtml("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   /* <![CDATA[ */
+  ...   This is protected
+  ...   /* ]]> */
+  ...   <span>Not protected</span> <![CDATA[ This is protected ]]>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    /* <![CDATA[ */
+    This is protected
+    /* ]]> */
+    <span>Not protected</span> <![CDATA[ This is protected ]]>
+  </div>
+
+Literals
+--------
+
+:: Named entities output literally
+
+  >>> print render_xhtml("""\
+  ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  ...    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello &nbsp; World!
+  ... </html>""")
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      Hello &nbsp; World!
+    </html>
+
+:: Although not XML-compliant, named entities are accepted even
+   without a document type declaration.
+    
+  >>> print render_xhtml("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello &nbsp; World!
+  ...   <a href="localhost" title="Singing &amp; Dancing"
+  ...   >&rarr;</a>
+  ...   <span class="&rarr;"></span>
+  ... </html>""")
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      Hello &nbsp; World!
+      <a href="localhost" title="Singing &amp; Dancing">&rarr;</a>
+      <span class="&rarr;"></span>
+    </html>
+
+:: Processing instructions output literally
+
+  >>> print render_xhtml("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <?xml-stylesheet href="classic.xsl" type="text/xml"?>
+  ...   Hello World!
+  ... </html>""")
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <?xml-stylesheet href="classic.xsl" type="text/xml"?>
+      Hello World!
+    </html>
+
+:: HTML comments
+
+  >>> print render_xhtml("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   <!-- a comment -->
+  ...   <!-- a multi-
+  ...        line comment -->
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <!-- a comment -->
+    <!-- a multi-
+         line comment -->
+  </div>
+
+:: Literal comments (without embedded expressions) output literally
+
+  >>> print render_xhtml("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <!-- hello world -->
+  ... </html>""")
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <!-- hello world -->
+  </html>
+  
+:: Comments outside a root element get ignored
+
+  >>> print render_xhtml("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ... </html>
+  ... <!-- hello world -->""")
+  <html xmlns="http://www.w3.org/1999/xhtml">
+  </html>
+
+XML with Default Namespaces
+---------------------------
+
+  >>> print render_xhtml("""\
+  ... <?xml version="1.0" encoding="UTF-8" ?>
+  ... <!DOCTYPE application [
+  ...  <!ENTITY nbsp "\&#160;">
+  ... ]>
+  ... <application xmlns="http://research.sun.com/wadl/2006/10"
+  ...    xsi:schemaLocation="http://research.sun.com/wadl/2006/10/wadl.xsd"
+  ...    xmlns:wadl="http://research.sun.com/wadl/2006/10"
+  ...    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  ...   <resources>
+  ...     <resource path="">ZZZ&nbsp;YYY&nbsp;XXX</resource>
+  ...   </resources>
+  ... </application>""")
+  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <!DOCTYPE application [
+    <!ENTITY nbsp "\&#160;">
+  ]>
+  <application xmlns="http://research.sun.com/wadl/2006/10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:wadl="http://research.sun.com/wadl/2006/10" xsi:schemaLocation="http://research.sun.com/wadl/2006/10/wadl.xsd">
+    <resources>
+      <resource path="">ZZZ&nbsp;YYY&nbsp;XXX</resource>
+    </resources>
+  </application>
+
+Text templates
+--------------
+
+  >>> from chameleon.core.testing import render_text
+
+An example with a CSS stylesheet document:
+  
+  >>> css = """\
+  ... #some-region {
+  ...    background: url(http://nohost/plone/logo.gif) no-repeat;
+  ... }"""
+
+  >>> print render_text(css)
+  #some-region {
+     background: url(http://nohost/plone/logo.gif) no-repeat;
+  }
+
+A javascript document that prints out HTML:
+
+  >>> js = """\
+  ... print '<div class="description">Hello, world!</div>';"""
+
+  >>> print render_text(js)
+  print '<div class="description">Hello, world!</div>';
+
+Error handling
+--------------
+
+This section demonstrates how the package handles templates that
+contain errors.
+
+:: Malformed syntax
+
+  >>> body = '<div xmlns="http://www.w3.org/1999/xhtml"'
+  >>> render_xhtml(body)
+  Traceback (most recent call last):
+    ...
+  ExpatError: unclosed token: line 1, column 1
+
+  >>> body = ' '
+  >>> render_xhtml(body)
+  Traceback (most recent call last):
+    ...
+  ExpatError: no element found: line 1, column 1
+
