@@ -3,5 +3,6 @@ Changes
 
 In next release...
 
-- Initial public release.
+Features:
 
+- HTML5 doctype is now supported.

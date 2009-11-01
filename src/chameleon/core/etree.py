@@ -229,9 +229,14 @@ class ExpatParser(object):
                         repl.encode("ascii", "xmlcharrefreplace")))
                 doctype.append("]>")
             elif self._doctype:
-                doctype.append(
-                    '<!DOCTYPE %(doctype_name)s PUBLIC "%(pubid)s" "%(sysid)s">' %
-                    self._doctype)
+                d = self._doctype
+                if d['pubid'] is None or d['sysid'] is None:
+                    doctype.append(
+                        '<!DOCTYPE %(doctype_name)s>' % d)
+                else:
+                    doctype.append(
+                        '<!DOCTYPE %(doctype_name)s PUBLIC '
+                        '"%(pubid)s" "%(sysid)s">' % d)
             self.doctype = "\n".join(doctype).encode("utf-8")
 
             tree = ElementTree(
@@ -243,7 +248,7 @@ class ExpatParser(object):
             self.root = element
         else:
             self.element.append(element)
-            
+
         # validate element
         self._validate(element)
 

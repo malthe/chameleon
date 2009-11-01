@@ -31,6 +31,20 @@ XHTML
       Hello World!
     </html>
 
+:: Setting HTML 5 DOCTYPE
+
+  >>> print render_xhtml("""\
+  ... <?xml version="1.0" encoding="UTF-8" ?>
+  ... <!DOCTYPE html>
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </html>""")
+  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <!DOCTYPE html>
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </html>
+
 :: Setting XML language
 
   >>> print render_xhtml("""\
