@@ -886,10 +886,10 @@ class Repeat(object):
         else:
             stream.out(' ')
         stream.outdent()
-            
+
         self.assign.end(stream)
         self.define.end(stream)
-        
+
 class Write(object):
     """
     >>> from chameleon.core import testing, etree
@@ -931,8 +931,8 @@ class Write(object):
     >>> write.end(stream)
     >>> exec stream.getvalue()
     >>> val = _out.getvalue()
-    >>> print val
-    La Peña
+    >>> val == u'La Pe\xf1a'
+    True
     >>> isinstance(val, unicode)
     True
 

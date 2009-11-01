@@ -73,6 +73,10 @@ class Node(object):
         return tag
 
     @property
+    def stream(self):
+        return self.element.stream
+
+    @property
     def text(self):
         if self.element.text is None:
             return ()
@@ -157,7 +161,7 @@ class Node(object):
 
         for key in self.element.attrib:
             name = utils.format_attribute(self.element, key)
-            
+
             if name in static:
                 names.append(name)
 
@@ -166,17 +170,13 @@ class Node(object):
 
         return names
 
-    @property
-    def stream(self):
-        return self.element.stream
-    
     def update(self):
         self.element.update()
-    
+
     def begin(self):
         self.stream.scope.append(set())
         self.stream.begin(self.serialize())
-        
+
     def end(self):
         self.stream.end(self.serialize())
         self.stream.scope.pop()
@@ -190,7 +190,7 @@ class Node(object):
                 condition.begin(self.stream)
         elif self.skip:
             return
-        
+
         for element in self.element:
             element.node.update()
 
@@ -753,20 +753,30 @@ class Element(etree.ElementBase):
 
     def update(self):
         pass
-    
+
+    @property
+    def root(self):
+        tree = self.getroottree()
+        root = tree.getroot()
+
+        while root is not None:
+            parent = root.getparent()
+            if parent is None:
+                break
+            root = parent
+
+        return root
+
     @property
     def stream(self):
-        while self is not None:
-            try:
-                return self._stream
-            except AttributeError:
-                self = self.getparent()
-
-        raise AttributeError("Can't locate stream object.")
+        try:
+            return self.root._stream
+        except AttributeError:
+            raise AttributeError("Can't locate stream object.")
 
     meta_cdata = etree.Annotation(
         utils.meta_attr('cdata'))
-    
+
     meta_omit = etree.Annotation(
         utils.meta_attr('omit-tag'))
 
@@ -784,7 +794,7 @@ class Element(etree.ElementBase):
 
 class MetaElement(Element):
     meta_cdata = etree.Annotation('cdata')
-    
+
     meta_omit = True
 
     meta_structure = True

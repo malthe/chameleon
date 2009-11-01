@@ -13,30 +13,30 @@ class LoadTests:
 
     def test_load_relative(self):
         import os
-        here = os.path.dirname(__file__)
+        here = os.path.join(os.path.dirname(__file__), "templates")
         loader = self._makeOne(search_path = [here])
-        
+
         result = self._load(loader, 'helloworld.pt')
         self.assertEqual(result.filename, os.path.join(here, 'helloworld.pt'))
 
     def test_consecutive_loads(self):
         import os
-        here = os.path.dirname(__file__)
+        here = os.path.join(os.path.dirname(__file__), "templates")
         loader = self._makeOne(search_path = [here])
-        
+
         self.assertTrue(
             self._load(loader, 'helloworld.pt') is self._load(loader, 'helloworld.pt'))
 
     def test_load_relative_badpath_in_searchpath(self):
         import os
-        here = os.path.dirname(__file__)
+        here = os.path.join(os.path.dirname(__file__), "templates")
         loader = self._makeOne(search_path = [os.path.join(here, 'none'), here])
         result = self._load(loader, 'helloworld.pt')
         self.assertEqual(result.filename, os.path.join(here, 'helloworld.pt'))
 
     def test_load_abs(self):
         import os
-        here = os.path.dirname(__file__)
+        here = os.path.join(os.path.dirname(__file__), "templates")
         loader = self._makeOne()
         abs = os.path.join(here, 'helloworld.pt')
         result = self._load(loader, abs)

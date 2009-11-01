@@ -4,9 +4,17 @@ Zope Page Templates (ZPT)
 This test demonstrates the compilation of TAL and METAL attribute
 languages.
 
+  >>> from chameleon.zpt.language import Parser
+  >>> from chameleon.core.testing import compile_template
+
+  >>> def render(body, **kwargs):
+  ...     parser = Parser()
+  ...     func = compile_template(parser, parser, body, **kwargs)
+  ...     return func(**kwargs)
+
 TAL
 ---
-  
+
 :: Namespace elements
 
   >>> print render("""\
@@ -18,7 +26,7 @@ TAL
   <BLANKLINE>
 
 tal:define, tal:attributes, tal:content, tal:replace
-  
+
   >>> print render("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">

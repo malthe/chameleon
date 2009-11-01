@@ -262,7 +262,7 @@ This is what extend-macro is meant for:
 Redefining a macro with ``use-macro`` does not carry forward the inner
 slots (instead ``extend-macro`` should be used; this is tested
 elsewhere).
-  
+
   >>> form = PageTemplate("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml"
   ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
@@ -299,7 +299,6 @@ elsewhere).
   Traceback (most recent call last):
    ...
   KeyError: 'extra_info'
-
 
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"

@@ -1,6 +1,10 @@
-from zope import interface
+try:
+    from zope.interface import Interface
+except ImportError:
+    class Interface(object):
+        pass
 
-class ITALIterator(interface.Interface):
+class ITALIterator(Interface):
     """A TAL iterator
 
     Not to be confused with a Python iterator.

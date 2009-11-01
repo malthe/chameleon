@@ -1,6 +1,10 @@
-from zope import interface
+try:
+    from zope.interface import Interface
+except ImportError:
+    class Interface(object):
+        pass
 
-class IExpressionTranslator(interface.Interface):
+class IExpressionTranslator(Interface):
     """This interface defines an expression translation utility or
     adapter; most implementations will subclass
     ``chameleon.zpt.language.TALES`` and override one or more
@@ -20,20 +24,20 @@ class IExpressionTranslator(interface.Interface):
         Specification:
 
             tales ::= (pragma:) expression ['|' tales]
-            
+
         """
-            
+
     def declaration(string):
         """A variable definition.
-        
+
         Specification:
-        
+
            variables ::= variable_name [',' variables]
 
         This corresponds to Python variable assignment which supports
         assignment in tuples.
         """
-        
+
     def mapping(string):
         """A mapping definition.
 
@@ -47,16 +51,16 @@ class IExpressionTranslator(interface.Interface):
         """Variable Assignment.
 
         Specification:
-        
+
            definition ::= declaration expression
 
         """
-        
+
     def definitions(string):
         """Multiple variable definitions.
-        
+
         Specification:
 
            definitions ::= definition [';' definitions]
-           
+
         """

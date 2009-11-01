@@ -217,12 +217,11 @@ class ZopePageTemplateElement(translation.Element):
 
     @property
     def translator(self):
-        while self.meta_translator is None:
-            self = self.getparent()
-            if self is None:
-                raise ValueError("Default expression not set.")
+        element = self.root
+        if element is None:
+            raise ValueError("Default expression not set.")
 
-        return expressions.lookup_translator(None, self.meta_translator)
+        return expressions.lookup_translator(None, element.meta_translator)
 
     metal_define = None
     metal_use = None

@@ -1,9 +1,23 @@
 import re
 import parser
 
-from zope import interface
-from zope import component
-from zope.dottedname.resolve import resolve as resolve_dotted
+try:
+    from zope.interface import implements
+except ImportError:
+    def implements(interface):
+        pass
+
+try:
+    from zope.component import queryUtility
+    from zope.component import queryAdapter
+    from zope.component import adapts
+except ImportError:
+    def queryUtility(*args):
+        return
+    def queryAdapter(*args):
+        return
+    def adapts(interface):
+        pass
 
 from chameleon.core import types
 from chameleon.core import parsing
@@ -24,9 +38,9 @@ def lookup_translator(current, name):
     architecture.
     """
 
-    translator = component.queryUtility(
+    translator = queryUtility(
         interfaces.IExpressionTranslator, name=name) or \
-        component.queryAdapter(
+        queryAdapter(
         current, interfaces.IExpressionTranslator, name=name)
 
     if translator is not None:
@@ -39,8 +53,8 @@ def lookup_translator(current, name):
 class ExpressionTranslator(object):
     """Base class for TALES expression translation."""
 
-    interface.implements(interfaces.IExpressionTranslator)
-    
+    implements(interfaces.IExpressionTranslator)
+
     re_pragma = re.compile(r'^\s*(?P<pragma>[a-z]+):')
     re_method = re.compile(r'^(?P<name>[A-Za-z0-9_]+)'
                            '(\((?P<args>[A-Za-z0-9_]+\s*(,\s*[A-Za-z0-9_]+)*)\))?')
@@ -49,13 +63,13 @@ class ExpressionTranslator(object):
 
     def __init__(self):
         self.translator = self
-    
+
     def pragma(self, name):
         return lookup_translator(self, name)
-    
+
     def declaration(self, string):
         """Variable declaration.
-        
+
         >>> declaration = ExpressionTranslator().declaration
 
         Single variable:
@@ -437,7 +451,7 @@ python_translator = PythonTranslator()
 class StringTranslator(ExpressionTranslator):
     """Implements string translation expression."""
 
-    component.adapts(interfaces.IExpressionTranslator)
+    adapts(interfaces.IExpressionTranslator)
     
     re_interpolation = re.compile(r'(?P<prefix>[^\\]\$|^\$)({((?P<expression>.*)})?|'
                                   '(?P<variable>[A-Za-z][A-Za-z0-9_]*))')
@@ -504,7 +518,7 @@ class StringTranslator(ExpressionTranslator):
         return string.replace(symbol+symbol, symbol)
 
 class ImportTranslator(ExpressionTranslator):
-    component.adapts(interfaces.IExpressionTranslator)
+    adapts(interfaces.IExpressionTranslator)
     symbol = '_resolve_dotted'
     re_dotted = re.compile(r'^[A-Za-z.]+$')
 
@@ -540,10 +554,36 @@ class ImportTranslator(ExpressionTranslator):
         return value
 
 _module_cache = {}
+
+# stolen from zope.dottedname
+def resolve_dotted(name, module=None):
+    name = name.split('.')
+    if not name[0]:
+        if module is None:
+            raise ValueError("relative name without base module")
+        module = module.split('.')
+        name.pop(0)
+        while not name[0]:
+            module.pop()
+            name.pop(0)
+        name = module + name
+
+    used = name.pop(0)
+    found = __import__(used)
+    for n in name:
+        used += '.' + n
+        try:
+            found = getattr(found, n)
+        except AttributeError:
+            __import__(used)
+            found = getattr(found, n)
+
+    return found
+
 def _resolve_dotted(dotted):
     if not dotted in _module_cache:
         resolved = resolve_dotted(dotted)
         _module_cache[dotted] = resolved
     return _module_cache[dotted]
 
-        
+

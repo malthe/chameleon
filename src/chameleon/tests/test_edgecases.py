@@ -1,14 +1,6 @@
 import unittest
 
-from zope.component.testing import PlacelessSetup
-
-class TestExplicitDoctypes(unittest.TestCase, PlacelessSetup):
-    def setUp(self):
-        PlacelessSetup.setUp(self)
-
-    def tearDown(self):
-        PlacelessSetup.tearDown(self)
-
+class TestExplicitDoctypes(unittest.TestCase):
     def test_doctype_declared_in_constructor_adds_doctype(self):
         from chameleon.core.testing import MockTemplate
         from chameleon.core import doctypes
