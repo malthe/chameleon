@@ -1,24 +1,10 @@
 import re
 import parser
 
-try:
-    from zope.interface import implements
-except ImportError:
-    def implements(interface):
-        pass
-
-try:
-    from zope.component import queryUtility
-    from zope.component import queryAdapter
-    from zope.component import adapts
-except ImportError:
-    def queryUtility(*args):
-        return
-    def queryAdapter(*args):
-        return
-    def adapts(interface):
-        pass
-
+from chameleon.core.utils import implements
+from chameleon.core.utils import queryUtility
+from chameleon.core.utils import queryAdapter
+from chameleon.core.utils import adapts
 from chameleon.core import types
 from chameleon.core import parsing
 

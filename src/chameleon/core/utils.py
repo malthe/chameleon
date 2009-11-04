@@ -1,4 +1,20 @@
-from zope import interface
+try:
+    from zope.interface import implements
+except ImportError:
+    def implements(interface):
+        pass
+
+try:
+    from zope.component import queryUtility
+    from zope.component import queryAdapter
+    from zope.component import adapts
+except ImportError:
+    def queryUtility(*args):
+        return
+    def queryAdapter(*args):
+        return
+    def adapts(interface):
+        pass
 
 import sys
 import interfaces
@@ -314,7 +330,7 @@ class emptydict(dict):
 emptydict = emptydict()
 
 class repeatitem(object):
-    interface.implements(interfaces.ITALESIterator)
+    implements(interfaces.ITALESIterator)
 
     __slots__ = "length", "_iterator"
 
