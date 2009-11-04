@@ -9,7 +9,7 @@ Usage
 -----
 
   >>> from chameleon.zpt.template import PageTemplate
-  
+
   >>> print PageTemplate("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml">
   ...   Hello World!
@@ -19,16 +19,16 @@ Usage
   </div>
 
   >>> from chameleon.zpt.template import PageTemplateFile
-  >>> from chameleon.zpt import tests
-  
-  >>> path = tests.__path__[0]
-  >>> t = PageTemplateFile(path+'/helloworld.pt', None)
+  >>> from chameleon import tests
+
+  >>> import os
+  >>> path = os.path.join(tests.__path__[0], 'templates')
+  >>> t = PageTemplateFile(os.path.join(path, 'helloworld.pt'), None)
   >>> print t()
   <div xmlns="http://www.w3.org/1999/xhtml">
     Hello World!
   </div>
 
-  >>> import os
   >>> t.filename.startswith(os.sep)
   True
 
@@ -37,7 +37,7 @@ Usage
   Hello World!
 
   >>> from chameleon.zpt.template import PageTextTemplateFile
-  >>> t = PageTextTemplateFile(path+'/helloworld.txt')
+  >>> t = PageTextTemplateFile(os.path.join(path, 'helloworld.txt'))
   >>> print t()
   Hello World!
 

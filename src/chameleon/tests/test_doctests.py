@@ -11,6 +11,7 @@ def docfilesuite(func):
         return doctest.DocFileSuite(
             path, optionflags=OPTIONFLAGS,
             package="chameleon", encoding="utf-8")
+    handler.__name__ = func.__name__
     return handler
 
 class CoreTests(unittest.TestCase):
