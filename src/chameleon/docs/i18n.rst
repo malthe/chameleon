@@ -1,0 +1,263 @@
+.. _i18n_chapter:
+
+Internationalization via the ``i18n`` Namespace
+===============================================
+
+Internationalization support is provided via the ``i18n`` namespace
+and a *translation domain*. It's required to use the Zope Component
+Architecture to register translation domains.
+
+Registering a Translation Domain
+--------------------------------
+
+A translation domain object is an object with a ``translate`` method
+which accepts certain arguments.  It returns a translation for the
+given msgid or the default.
+
+You may register a translation domain within your own code by using
+the Zope Component Architecture::
+
+  from zope import component
+  from zope import interface
+
+  class MockTranslationDomain(object):
+       interface.implements(ITranslationDomain)
+ 
+       def translate(self, msgid, mapping=None, context=None,
+                    target_language=None, default=None):
+           if target_language != 'de':
+               return default
+  
+           return "Mock translation of '%s'." % msgid
+
+  td = MockTranslationDomain()
+  component.provideUtility(td, ITranslationDomain, name="test")
+
+The domain's name is used to specify which translation to use.  A
+favorite example is: How do you translate 'Sun'? Is it our star, the
+abbreviation of Sunday or the company?  Specifying the domain name,
+such as ``Stars`` or ``DaysOfWeek`` will make it unambiguous.  The
+domain name is referred to in ``18n:translate`` tags shown below.
+
+Standard arguments in the ``translate`` method are described below::
+
+        msgid -- The id of the message that should be translated.  This may be
+                 an implicit or an explicit message id.
+
+        mapping -- The object to get the interpolation data from.
+
+        context -- An object that provides contextual information for
+                   determining client language preferences.
+
+        target_language -- The language to translate to.
+
+        default -- This will be returned if no translation is found.
+
+.. warning:: We need a better Mock that shows usage of ``context`` and
+   ``mapping``.
+
+The ``i18n`` Namespace
+----------------------
+
+The 'i18n' namespace URI and recommended prefix are currently defined as::
+
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+
+This is not a URL, but merely a unique identifier.  Do not expect a
+browser to resolve it successfully.
+
+The Attributes
+--------------
+
+The allowable ``i18n`` attributes are:
+
+- ``i18n:translate``
+- ``i18n:domain``
+- ``i18n:source``
+- ``i18n:target``
+- ``i18n:name``
+- ``i18n:attributes``
+- ``i18n:data``
+
+i18n:translate
+~~~~~~~~~~~~~~~
+
+This attribute is used to mark units of text for translation.  If this
+attribute is specified with an empty string as the value, the message
+ID is computed from the content of the element bearing this attribute.
+Otherwise, the value of the element gives the message ID.
+
+i18n:domain
+~~~~~~~~~~~~
+
+The ``i18n:domain`` attribute is used to specify the domain to be used
+to get the translation.  If not specified, the translation services
+will use a default domain.  The value of the attribute is used
+directly; it is not a TALES expression.
+
+i18n:source
+~~~~~~~~~~~
+
+The ``i18n:source`` attribute specifies the language of the text to be
+translated.  The default is ``nothing``, which means we don't provide
+this information to the translation services.
+
+
+i18n:target
+~~~~~~~~~~~
+
+The ``i18n:target`` attribute specifies the language of the
+translation we want to get.  If the value is ``default``, the language
+negotiation services will be used to choose the destination language.
+If the value is ``nothing``, no translation will be performed; this
+can be used to suppress translation within a larger translated unit.
+Any other value must be a language code.
+
+The attribute value is a TALES expression; the result of evaluating
+the expression is the language code or one of the reserved values.
+
+.. note:: ``i18n:target`` is primarily used for hints to text
+   extraction tools and translation teams.  If you had some text that
+   should only be translated to e.g. German, then it probably
+   shouldn't be wrapped in an ``i18n:translate`` span.
+
+i18n:name
+~~~~~~~~~
+
+Name the content of the current element for use in interpolation
+within translated content.  This allows a replaceable component in
+content to be re-ordered by translation.  For example::
+
+    <span i18n:translate=''>
+      <span tal:replace='here/name' i18n:name='name' /> was born in
+      <span tal:replace='here/country_of_birth' i18n:name='country' />.
+    </span>
+
+would cause this text to be passed to the translation service::
+
+    "${name} was born in ${country}."
+
+i18n:attributes
+~~~~~~~~~~~~~~~
+ 
+This attribute will allow us to translate attributes of HTML tags,
+such as the ``alt`` attribute in the ``img`` tag. The
+``i18n:attributes`` attribute specifies a list of attributes to be
+translated with optional message IDs for each; if multiple attribute
+names are given, they must be separated by semi-colons.  Message IDs
+used in this context must not include whitespace.
+
+Note that the value of the particular attributes come either from the
+HTML attribute value itself or from the data inserted by
+``tal:attributes``.
+
+If an attibute is to be both computed using ``tal:attributes`` and
+translated, the translation service is passed the result of the TALES
+expression for that attribute.
+
+An example::
+
+    <img src="http://foo.com/logo" alt="Visit us"
+         tal:attributes="alt here/greeting"
+         i18n:attributes="alt"
+         >
+
+In this example, we let ``tal:attributes`` set the value of the ``alt``
+attribute to the text "Stop by for a visit!".  This text will be
+passed to the translation service, which uses the result of language
+negotiation to translate "Stop by for a visit!" into the requested
+language.  The example text in the template, "Visit us", will simply
+be discarded.
+
+Another example, with explicit message IDs::
+
+    <img src="../icons/uparrow.png" alt="Up"
+         i18n:attributes="src up-arrow-icon; alt up-arrow-alttext"
+         >
+
+Here, the message ID ``up-arrow-icon`` will be used to generate the
+link to an icon image file, and the message ID 'up-arrow-alttext' will
+be used for the "alt" text.
+
+i18n:data
+~~~~~~~~~
+
+Since TAL always returns strings, we need a way in ZPT to translate
+objects, one of the most obvious cases being ``datetime`` objects. The
+``data`` attribute will allow us to specify such an object, and
+``i18n:translate`` will provide us with a legal format string for that
+object.  If ``data`` is used, ``i18n:translate`` must be used to give
+an explicit message ID, rather than relying on a message ID computed
+from the content.
+
+Relation with TAL processing
+----------------------------
+
+The attributes defined in the ``i18n`` namespace modify the behavior
+of the TAL interpreter for the ``tal:attributes``, ``tal:content``,
+``tal:repeat``, and ``tal:replace`` attributes, but otherwise do not
+affect TAL processing.
+
+Since these attributes only affect TAL processing by causing
+translations to occur at specific times, using these with a TAL
+processor which does not support the ``i18n`` namespace degrades well;
+the structural expectations for a template which uses the ``i18n``
+support is no different from those for a page which does not.  The
+only difference is that translations will not be performed in a legacy
+processor.
+
+Relation with METAL processing
+-------------------------------
+
+When using translation with METAL macros, the internationalization
+context is considered part of the specific documents that page
+components are retrieved from rather than part of the combined page.
+This makes the internationalization context lexical rather than
+dynamic, making it easier for a site builder to understand the
+behavior of each element with respect to internationalization.
+
+Let's look at an example to see what this means::
+
+    <html i18n:translate='' i18n:domain='EventsCalendar'
+          metal:use-macro='container/master.html/macros/thismonth'>
+
+      <div metal:fill-slot='additional-notes'>
+        <ol tal:condition="here/notes">
+          <li tal:repeat="note here/notes">
+             <tal:block tal:omit-tag=""
+                        tal:condition="note/heading">
+               <strong tal:content="note/heading">
+                 Note heading goes here
+               </strong>
+               <br />
+             </tal:block>
+             <span tal:replace="note/description">
+               Some longer explanation for the note goes here.
+             </span>
+          </li>
+        </ol>
+      </div>
+
+    </html>
+
+And the macro source::
+
+    <html i18n:domain='CalendarService'>
+      <div tal:replace='python:DateTime().Month()'
+           i18n:translate=''>January</div>
+
+      <!-- really hairy TAL code here ;-) -->
+
+      <div define-slot="additional-notes">
+        Place for the application to add additional notes if desired.
+      </div>
+
+    </html>
+
+Note that the macro is using a different domain than the application
+(which it should be).  With lexical scoping, no special markup needs
+to be applied to cause the slot-filler in the application to be part
+of the same domain as the rest of the application's page components.
+If dynamic scoping were used, the internationalization context would
+need to be re-established in the slot-filler.
+
