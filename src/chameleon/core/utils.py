@@ -1,7 +1,7 @@
 try:
     from zope.interface import implements
 except ImportError:
-    def implements(interface):
+    def implements(*interfaces):
         pass
 
 try:
@@ -9,11 +9,11 @@ try:
     from zope.component import queryAdapter
     from zope.component import adapts
 except ImportError:
-    def queryUtility(*args):
+    def queryUtility(*args, **kw):
         return
-    def queryAdapter(*args):
+    def queryAdapter(*args, **kw):
         return
-    def adapts(interface):
+    def adapts(*interfaces):
         pass
 
 import sys
