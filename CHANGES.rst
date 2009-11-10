@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.0.2 (released 2009-11-10)
+---------------------------
 
 - Really fixed ZCA import fallbacks.
 
