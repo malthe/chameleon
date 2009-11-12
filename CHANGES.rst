@@ -3,6 +3,10 @@ Changes
 
 In next release...
 
+- Fixed issue where traceback would contain erroneous debugging
+  information. The source code is now taken directly from the
+  traceback object.
+
 - Include Python expression in syntax error exception message.
 
 1.0.2 (released 2009-11-10)

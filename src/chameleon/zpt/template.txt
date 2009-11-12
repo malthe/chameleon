@@ -298,6 +298,8 @@ elsewhere).
   >>> print content(another=another, form=form)
   Traceback (most recent call last):
    ...
+  RuntimeError: Caught exception rendering template.
+   ...
   KeyError: 'extra_info'
 
   >>> body = """\
@@ -397,6 +399,8 @@ Exception while evaluating definition:
   ...   <span tal:define="dummy range()" />
   ... </div>""").render()
   Traceback (most recent call last):
+    ...
+  RuntimeError: Caught exception rendering template.
     ...
   TypeError: range expected at least 1 arguments, got 0
 

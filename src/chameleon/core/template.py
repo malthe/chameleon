@@ -102,7 +102,7 @@ class Template(object):
             tree = parse_method(body)
         except:
             utils.raise_template_exception(
-                "", repr(self), {}, sys.exc_info())
+                repr(self), {}, sys.exc_info())
 
         # it's not clear from the tree if an XML declaration was
         # present in the document source; the following is a
@@ -185,9 +185,8 @@ class Template(object):
         try:
             return func(econtext, rcontext)
         except:
-            source = func.__dict__.get('source') or inspect.getsource(func)
             utils.raise_template_exception(
-                source, repr(self), kwargs, sys.exc_info())
+                repr(self), kwargs, sys.exc_info())
 
     def render(self, **kwargs):
         return self.cook_and_render(kwargs, utils.emptydict, None, True)

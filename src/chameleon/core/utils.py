@@ -632,13 +632,13 @@ def format_kwargs(kwargs):
                     type(value).__name__,
                     getattr(value, '__name__', "-"),
                     hex(id(value)))))
-    
+
     return ["%s: %s" % item for item in items]
 
 def raise_exc(exc):
     raise exc
 
-def raise_template_exception(source, description, kwargs, exc_info):
+def raise_template_exception(description, kwargs, exc_info):
     """Re-raise exception raised while calling ``template``, given by
     the ``exc_info`` tuple (see ``sys.exc_info``)."""
 
@@ -650,7 +650,7 @@ def raise_template_exception(source, description, kwargs, exc_info):
     # omit keyword arguments that begin with an underscore; these are
     # used internally be the template engine and should not be exposed
     map(kwargs.__delitem__, [k for k in kwargs if k.startswith('_')])
-    
+
     # format keyword arguments; consecutive arguments are indented for
     # readability
     try:
@@ -661,17 +661,19 @@ def raise_template_exception(source, description, kwargs, exc_info):
         # already in an exception handler, there's no point in
         # pursuing this further
         formatted_arguments = ()
-    
+
     for index, string in enumerate(formatted_arguments[1:]):
         formatted_arguments[index+1] = " "*15 + string
 
     # extract line number from traceback object
     cls, exc, tb = exc_info
     try:
-        lineno = tb.tb_next.tb_lineno-1
+        lineno = tb.tb_next.tb_frame.f_lineno - 1
+        filename = tb.tb_next.tb_frame.f_code.co_filename
+        source = open(filename).read()
     except AttributeError:
-        lineno = 1
-        
+        source = None
+
     # locate source code annotation (these are available from
     # the template source as comments)
     if source:
