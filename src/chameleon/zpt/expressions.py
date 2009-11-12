@@ -416,17 +416,31 @@ class ExpressionTranslator(object):
 
 class PythonTranslator(ExpressionTranslator):
     """Implements Python expression translation."""
-    
+
     def translate(self, string, escape=None):
         """We use the ``parser`` module to determine if
-        an expression is a valid python expression."""
+        an expression is a valid python expression.
+
+        Make sure the syntax error exception contains the expression
+        string.
+
+        >>> translate = PythonTranslator().translate
+        >>> try: translate('abc:def:ghi')
+        ... except SyntaxError, e: 'abc' in str(e)
+        True
+        """
 
         if isinstance(string, unicode):
             string = string.encode('utf-8')
-            
+
         if string:
-            parser.expr(string.strip())
-        
+            try:
+                expression = string.strip()
+                parser.expr(expression)
+            except SyntaxError, e:
+                e.msg += " (%s)" % expression
+                raise
+
             if isinstance(string, str):
                 string = string.decode('utf-8')
 

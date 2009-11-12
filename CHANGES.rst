@@ -1,6 +1,10 @@
 Changes
 =======
 
+In next release...
+
+- Include Python expression in syntax error exception message.
+
 1.0.2 (released 2009-11-10)
 ---------------------------
 
