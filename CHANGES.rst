@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.0.3 (released 2009-11-12)
+---------------------------
 
 - Fixed issue where traceback would contain erroneous debugging
   information. The source code is now taken directly from the
