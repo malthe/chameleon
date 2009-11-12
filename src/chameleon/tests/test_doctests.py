@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 import doctest
 
@@ -8,9 +9,12 @@ OPTIONFLAGS = (doctest.ELLIPSIS |
 def docfilesuite(func):
     def handler(cls):
         path = func(cls)
+        kw = {}
+        if sys.version_info[:3] >= (2,5,0):
+            kw['encoding'] = 'utf-8'
         return doctest.DocFileSuite(
-            path, optionflags=OPTIONFLAGS,
-            package="chameleon", encoding="utf-8")
+            path, optionflags=OPTIONFLAGS, package="chameleon", **kw)
+
     handler.__name__ = func.__name__
     return handler
 
