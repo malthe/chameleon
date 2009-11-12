@@ -438,7 +438,7 @@ class PythonTranslator(ExpressionTranslator):
                 expression = string.strip()
                 parser.expr(expression)
             except SyntaxError, e:
-                e.msg += " (%s)" % expression
+                e.msg += " (``%s``, %d:%d)" % (expression, e.lineno, e.offset)
                 raise
 
             if isinstance(string, str):
