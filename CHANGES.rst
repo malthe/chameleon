@@ -3,6 +3,9 @@ Changes
 
 In next release...
 
+- Fixed issue where the file-based template constructor did not accept
+  the ``encoding`` parameter.
+
 - Use more caution when falling back to dictionary lookup.
 
 1.0.3 (released 2009-11-12)
