@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.0.4 (released 2009-11-15)
+---------------------------
 
 - Fixed issue where the file-based template constructor did not accept
   the ``encoding`` parameter.
