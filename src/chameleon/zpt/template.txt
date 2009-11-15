@@ -371,6 +371,28 @@ elsewhere).
     </ul>
   </html>
 
+The empty string macro comprises the full template:
+
+  >>> inner = PageTemplate("""\
+  ...  <html tal:define="title 'Hello world!'" metal:use-macro="macro" />
+  ... """)
+
+  >>> outer = PageTemplate("""\
+  ...  <html tal:define="body 'Welcome.'">
+  ...    <body>
+  ...      <h1 tal:content="title" />
+  ...      <p tal:content="body" />
+  ...    </body>
+  ...  </html>""")
+
+  >>> print inner(macro=outer.macros[""])
+  <html>
+    <body>
+      <h1>Hello world!</h1>
+      <p>Welcome.</p>
+    </body>
+  </html>
+
 Error handling
 --------------
 
