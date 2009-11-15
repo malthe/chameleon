@@ -1,6 +1,10 @@
 Changes
 =======
 
+In next release...
+
+- Use more caution when falling back to dictionary lookup.
+
 1.0.3 (released 2009-11-12)
 ---------------------------
 

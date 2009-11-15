@@ -28,8 +28,12 @@ def lookup_attr(obj, key):
         return getattr(obj, key)
     except AttributeError, e:
         try:
-            return obj[key]
-        except (KeyError, TypeError, AttributeError):
+            get = obj.__getitem__
+        except AttributeError:
+            raise e
+        try:
+            return get(key)
+        except KeyError:
             raise e
 
 def lookup_name(data, name):
