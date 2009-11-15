@@ -32,6 +32,24 @@ chameleon.core.template.TemplateFile
   >>> t.filename.startswith(os.sep)
   True
 
+chameleon.core.template.TemplateFile with encoding
+--------------------------------------------------
+
+  >>> from chameleon.core.template import TemplateFile
+  >>> from chameleon import tests
+  >>> import os
+  >>> path = os.path.join(tests.__path__[0], 'templates')
+  >>> t = TemplateFile(os.path.join(path, 'helloworld.pt'), mock_parser,
+  ...                  encoding='utf-8')
+  >>> print t()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> import os
+  >>> t.filename.startswith(os.sep)
+  True
+
 Macros
 ------
 

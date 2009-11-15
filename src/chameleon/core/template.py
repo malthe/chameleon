@@ -216,7 +216,10 @@ class TemplateFile(Template):
     global_registry = {}
 
     def __init__(self, filename, parser, format=None,  doctype=None,
-                 auto_reload=config.DEBUG_MODE):
+                 encoding=None, auto_reload=config.DEBUG_MODE):
+        if encoding is not None:
+            self.encoding = encoding
+
         # compute absolute filename
         self.filename = filename = os.path.abspath(
             os.path.normpath(os.path.expanduser(filename)))
