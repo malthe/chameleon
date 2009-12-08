@@ -190,7 +190,7 @@ class ZopePageTemplateElement(translation.Element):
             if tail is not None:
                 if self.element.strip_text:
                     parent = self.element.getparent()
-                    if parent is not None and parent.strip_text:
+                    if parent is not None and parent.strip_text and parent[-1] is self.element:
                         tail = tail.rstrip('\n ')
 
                 parent = self.element.getparent()
