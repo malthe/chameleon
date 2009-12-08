@@ -282,8 +282,18 @@ tal:omit-tag
       <p>A paragraph here.</p>
     </div>
 
+:: Whitespace
+
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <tal:block>one</tal:block> - <tal:block>two</tal:block>
+  ... </html>""")
+  <html xmlns="http://www.w3.org/1999/xhtml">
+     one - two
+  </html>
+
 :: Unicode with dynamic attributes and content
-    
+
   >>> print render("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">

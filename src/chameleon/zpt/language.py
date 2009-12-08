@@ -192,9 +192,7 @@ class ZopePageTemplateElement(translation.Element):
                     parent = self.element.getparent()
                     if parent is not None and parent.strip_text:
                         tail = tail.rstrip('\n ')
-                    else:
-                        tail = tail.rstrip(' ')
-                        
+
                 parent = self.element.getparent()
                 if parent is not None and not parent.node._interpolation_enabled:
                     return (tail,)
