@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.0.5 (released 2009-12-08)
+---------------------------
 
 - Fixed issue where the translation compiler would break on messages
   that contained the formatting character '%'.
