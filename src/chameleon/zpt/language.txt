@@ -286,7 +286,7 @@ tal:omit-tag
 
   >>> print render("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml">
-  ...   <tal:block>one</tal:block> - <tal:block>two</tal:block>
+  ...   <tal:span><tal:block replace="'one'">one</tal:block> - <tal:block replace="'two'">two</tal:block></tal:span>
   ... </html>""")
   <html xmlns="http://www.w3.org/1999/xhtml">
      one - two
