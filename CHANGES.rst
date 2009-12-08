@@ -3,6 +3,9 @@ Changes
 
 In next release...
 
+- Fixed issue where the translation compiler would break on messages
+  that contained the formatting character '%'.
+
 - Fixed white space issue.
 
 1.0.4 (released 2009-11-15)

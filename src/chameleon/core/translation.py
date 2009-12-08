@@ -599,7 +599,7 @@ class Node(object):
                 mapping = 'None'
 
             if not msgid:
-                text = utils.htmlescape(self.element.text or "")
+                text = utils.htmlescape(self.element.text.replace('%', '%%') or "")
                 _.append(clauses.Assign(types.value(repr(text)),
                                         self.symbols.msgid))
 
@@ -634,20 +634,19 @@ class Node(object):
                     subclauses.append(clauses.Assign(
                         types.template('%(msgid)s + %(out)s.getvalue()'),
                         self.symbols.msgid))
-                    
+
                 _.append(clauses.Group(subclauses))
 
             if msgid:
+                value = types.value(repr(msgid)).replace('%', '%%')
                 if elements:
-                    value = types.value(repr(msgid))
                     default = self.symbols.marker
                 else:
-                    value = types.value(repr(msgid))
                     default = types.value(repr(
-                        utils.serialize(self.element, omit=True)))
+                        utils.serialize(self.element, omit=True))).replace('%', '%%')
             else:
                 default = value = types.template('%(msgid)s')
-                
+
             _.append(clauses.Assign(
                 self.translate_expression(
                     value, mapping=mapping, default=default), self.symbols.result))

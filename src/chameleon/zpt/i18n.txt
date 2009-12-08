@@ -430,7 +430,7 @@ Translation of tag content and tag attributes
 ---------------------------------------------
 
 A simple example to start with.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
@@ -493,3 +493,27 @@ Not passing a language:
       <span>Default</span>
     </div>
   </div>
+
+Messages that contain the formatting character '%' (edge-case):
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  ...      i18n:domain="test">
+  ...     <span i18n:translate="">%</span>
+  ...     <span i18n:translate="%">default</span>
+  ... </div>"""
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>%</span>
+    <span>default</span>
+  </div>
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Mock translation of '%'.</span>
+    <span>Mock translation of '%'.</span>
+  </div>
+
