@@ -291,6 +291,7 @@ tal:omit-tag
   ...   <tal:span> - <tal:block>one</tal:block> - <tal:block>two</tal:block></tal:span>
   ...   <tal:block>one</tal:block> - <tal:block>two</tal:block> - <tal:block>three</tal:block>
   ...   <tal:span><tal:block>one</tal:block> - <tal:block>two</tal:block> - <tal:block>three</tal:block></tal:span>
+  ...   one<tal:block> two</tal:block>
   ... </html>""")
   <html xmlns="http://www.w3.org/1999/xhtml">
     one - two
@@ -298,6 +299,7 @@ tal:omit-tag
     - one - two
     one - two - three
     one - two - three
+    one two
   </html>
 
 :: Unicode with dynamic attributes and content
