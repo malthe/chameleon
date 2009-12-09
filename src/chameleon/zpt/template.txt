@@ -393,6 +393,35 @@ The empty string macro comprises the full template:
     </body>
   </html>
 
+  >>> macro = PageTemplate("""
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>
+  ...     <div metal:define-macro="navigation">
+  ...       This is the macro's slot: <span metal:define-slot="slot" />
+  ...     </div>
+  ...   </body>
+  ... </html>
+  ... """)
+
+  >>> template = PageTemplate("""
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>
+  ...     <div metal:extend-macro="macro.macros['navigation']"
+  ...          metal:define-macro="navigation_extended">
+  ...       <span metal:fill-slot="slot"> message </span>
+  ...     </div>
+  ...   </body>
+  ... </html>""")
+
+  >>> print template(macro=macro)
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div>
+        This is the macro's slot: <span> message </span>
+      </div>
+    </body>
+  </html>
+
 Error handling
 --------------
 

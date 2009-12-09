@@ -1137,15 +1137,19 @@ class Macro(object):
         self.extend_except = extend_except
         self.args = args
         self.label = label
-        
+
     def begin(self, stream):
         self.assign.begin(stream, stream.symbols.tmp)
 
         if self.extend:
             stream.write("for _name in %s:" % stream.symbols.slots)
             stream.indent()
-            stream.write("if _name not in %s and _name not in (%s,):" % (
-                stream.symbols.tmp, ", ".join(map(repr, self.extend_except))))
+            if self.extend_except:
+                stream.write("if _name not in %s and _name not in (%s,):" % (
+                    stream.symbols.tmp, ", ".join(map(repr, self.extend_except))))
+            else:
+                stream.write("if _name not in %s:" % stream.symbols.tmp)
+
             stream.indent()
             stream.write("%s[_name] = %s[_name]" % (
                 stream.symbols.tmp, stream.symbols.slots))
