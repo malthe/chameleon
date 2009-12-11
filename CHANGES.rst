@@ -3,6 +3,8 @@ Changes
 
 In next release...
 
+- Fixed character encoding issue.
+
 - Fixed issue where macro extension would fail.
 
 1.0.5 (released 2009-12-08)

@@ -592,9 +592,7 @@ Escaping inserted data
 ----------------------
 
 By default all inserted data is escaped. Content that's already
-encoded using numeric character representation should be left alone
-(note that currently attributes are always decoded due to the expat
-parser)::
+encoded using numeric character representation should be left alone::
 
   >>> print render("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml">
@@ -624,7 +622,7 @@ parser)::
       one &amp; two
       one &amp; two
       <span>&#8220;three&#8221; &mdash; can&#8217;t&#8230;</span>
-      <span>“three” — can’t…</span>
+      <span>“three” &mdash; can’t…</span>
       <span>a "quote" b</span>
       a "quote" b
       a "quote" b

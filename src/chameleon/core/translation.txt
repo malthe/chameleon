@@ -54,17 +54,19 @@ XHTML
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
     Hello World!
   </html>
-    
-:: Unicode 
+
+:: Unicode
 
   >>> print render_xhtml("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml">
   ...   La Peña
   ...   <img alt="La Peña" />
+  ...   <input type="submit" name="form.submitted" value="提交" />
   ... </div>""")
   <div xmlns="http://www.w3.org/1999/xhtml">
     La Peña
-    <img alt="La Pe&ntilde;a" />
+    <img alt="La Peña" />
+    <input type="submit" name="form.submitted" value="提交" />
   </div>
 
 :: CDATA blocks
@@ -100,7 +102,7 @@ Literals
 
 :: Although not XML-compliant, named entities are accepted even
    without a document type declaration.
-    
+
   >>> print render_xhtml("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml">
   ...   Hello &nbsp; World!

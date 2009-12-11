@@ -39,7 +39,7 @@ def coerces_gracefully(encoding):
     return True
 
 entities = "".join((
-    '<!ENTITY %s "&#%d;">' % (name, text) for (name, text) in \
+    '<!ENTITY %s "&amp;%s;">' % (name, name) for (name, text) in \
     htmlentitydefs.name2codepoint.items()))
 
 re_annotation = re.compile(r'^\s*u?[\'"](.*)[\'"]$')
@@ -185,15 +185,6 @@ def escape(string, quote=None, encoding=None):
     if quote is not None:
         string = string.replace(quote, '\\'+quote)
 
-    # force html entities for any non-ascii character
-    def substitute(m):
-        name = m.group(1)
-        code = int(name)
-        return '&%s;' % htmlentitydefs.codepoint2name[code]
-            
-    string = string.encode('ascii', 'xmlcharrefreplace').decode('ascii')
-    string = re_numeric_entity.sub(substitute, string)
-
     if encoding:
         string = string.encode(encoding)
 
@@ -205,13 +196,13 @@ def htmlescape(text):
         if m is None:
             break
         text = text[:m.start()] + re_amp.sub("&amp;", text[m.start():], 1)
-        
+
     return text.replace('<', '&lt;').replace('>', '&gt;')
 
 re_normalize = re.compile(r'(^[0-9]|\b[^A-Za-z])')
 def normalize_slot_name(name):
     return re_normalize.sub('_', name)
-    
+
 def serialize(element, encoding=None, omit=False):
     return "".join(serialize_element(element, encoding, omit=omit))
 

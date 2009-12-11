@@ -486,7 +486,7 @@ Python's conversion utilities:
   ... </html>""".encode("utf-8"), encoding="latin-1")(
   ...     test=u"U Can\u2019t Touch This.").encode('latin-1', 'xmlcharrefreplace')
   <html xmlns="http://www.w3.org/1999/xhtml">
-   <body class="U Can&rsquo;t Touch This.">
+   <body class="U Can&#8217;t Touch This.">
        U Can&#8217;t Touch This.
        U Can&#8217;t Touch This.
        <span test="U Can&#8217;t Touch This.">U Can&#8217;t Touch This.</span>
