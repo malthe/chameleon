@@ -239,7 +239,7 @@ class ExpatParser(object):
                         '"%(pubid)s" "%(sysid)s">' % d)
             self.doctype = "\n".join(doctype).encode("utf-8")
 
-            tree = ElementTree(
+            ElementTree(
                 self.parser, element, self.xml_version,
                 self.encoding, self.standalone,
                 self.doctype)
