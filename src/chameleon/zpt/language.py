@@ -154,7 +154,7 @@ class ZopePageTemplateElement(translation.Element):
 
         @property
         def fill_slot(self):
-            return self.element.metal_fillslot        
+            return self.element.metal_fillslot
 
         @property
         def cdata(self):
@@ -164,7 +164,8 @@ class ZopePageTemplateElement(translation.Element):
         def text(self):
             text = self.element.text
             if text is not None:
-                if self.element.strip_text:
+                parent = self.element.getparent()
+                if parent is not None and self.element.strip_text and parent[0] is self.element:
                     text = text.lstrip('\n ')
 
                 if not self._interpolation_enabled:

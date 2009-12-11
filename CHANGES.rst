@@ -3,6 +3,8 @@ Changes
 
 In next release...
 
+- Fixed white space issue.
+
 - Fixed character encoding issue.
 
 - Fixed issue where macro extension would fail.
