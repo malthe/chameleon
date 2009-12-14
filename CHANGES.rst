@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.0.6 (released 2009-12-14)
+---------------------------
 
 - Fixed white space issue.
 

@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 import sys
 
-version = '1.0.5'
+version = '1.0.6'
 
 install_requires = [
     'setuptools',
