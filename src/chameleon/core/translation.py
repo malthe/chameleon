@@ -376,7 +376,7 @@ class Node(object):
                 value = types.value('"%s"' % msgid)
 
                 if variable in attributes:
-                    default = '"%s"' % attributes[variable]
+                    default = repr(attributes[variable])
                     expression = self.translate_expression(value, default=default)
                 else:
                     expression = self.translate_expression(value)
@@ -384,7 +384,7 @@ class Node(object):
                 value = attributes.get(variable)
                 if value is not None:
                     if variable not in dynamic_attr_names:
-                        value = '"%s"' % value
+                        value = repr(value)
                     expression = self.translate_expression(value)
                 else:
                     raise ValueError("Must be either static or dynamic "
@@ -452,7 +452,7 @@ class Node(object):
                 if isinstance(part, types.expression):
                     subclauses.append(clauses.Write(part))
                 else:
-                    part = part.strip().replace('  ', ' ').replace('\n', '')
+                    part = ' '.join(part.split())
                     if part != "":
                         subclauses.append(clauses.Out(part))
 
@@ -626,9 +626,14 @@ class Node(object):
                     # when computing a dynamic message id, add a
                     # reference to the named block
                     if not msgid:
-                        subclauses.append(clauses.Assign(
-                            types.value(repr("${%s}" % name)), self.symbols.msgid))
-                    
+                        if not unnamed_elements:
+                            subclauses.append(clauses.Assign(
+                                types.value(repr("${%s}" % name)), self.symbols.msgid))
+                        else:
+                            subclauses.append(clauses.Assign(
+                                types.template('%(msgid)s + ' + repr("${%s}" % name) + ' + ' + repr(element.tail)),
+                                self.symbols.msgid))
+
                 # else add it to the dynamic message id
                 else:
                     subclauses.append(clauses.Assign(
@@ -645,7 +650,8 @@ class Node(object):
                     default = types.value(repr(
                         utils.serialize(self.element, omit=True))).replace('%', '%%')
             else:
-                default = value = types.template('%(msgid)s')
+                default = types.template('%(msgid)s')
+                value = types.template("' '.join(%(msgid)s.split())")
 
             _.append(clauses.Assign(
                 self.translate_expression(
@@ -714,7 +720,7 @@ class Node(object):
             out.write(element.tail)
 
         msgid = out.getvalue().strip()
-        msgid = msgid.replace('  ', ' ').replace('\n', '')
+        msgid = ' '.join(msgid.split())
 
         return msgid
 

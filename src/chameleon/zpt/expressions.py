@@ -126,11 +126,7 @@ class ExpressionTranslator(object):
             d = d.strip()
             if d == '':
                 continue
-
-            while '  ' in d:
-                d = d.replace('  ', ' ')
-
-            parts = d.split(' ')
+            parts = d.split()
             if len(parts) == 1:
                 mappings.append((d, None))
             elif len(parts) == 2:

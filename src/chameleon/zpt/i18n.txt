@@ -1,3 +1,5 @@
+.. -*- coding: utf-8 -*-
+
 Internationalization
 --------------------
 
@@ -53,7 +55,7 @@ First we need to turn the template into a callable:
   >>> template = PageTemplate(body)
 
 Let's try rendering this template without passing a target language.
-    
+
   >>> print template.render()
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>
@@ -69,7 +71,7 @@ Now we'll render the template again---passing German as the language.
   </div>
 
 Let's try infering the translation message id from the tag body.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
@@ -269,7 +271,7 @@ specific message id, it is left untouched:
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
   ...   <span i18n:domain="test" i18n:translate="">
-  ...     The book is on the <span tal:content="string:desk">table</span>.
+  ...     The book is on the <span tal:content="string:desk" i18n:name="place">table</span>.
   ...   </span>
   ... </div>"""
 
@@ -278,6 +280,24 @@ specific message id, it is left untouched:
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>
       The book is on the <span>desk</span>.
+    </span>
+  </div>
+
+Dynamic content and sub-tags in a translation:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="">
+  ...     The <b>book</b> is on the <span tal:content="string:desk" i18n:name="place">table</span>.
+  ...   </span>
+  ... </div>"""
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      The <b>book</b> is on the <span>desk</span>.
     </span>
   </div>
 
@@ -517,3 +537,34 @@ Messages that contain the formatting character '%' (edge-case):
     <span>Mock translation of '%'.</span>
   </div>
 
+Translation of non-ASCII tag attributes
+---------------------------------------
+
+A simple example to start with.
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" title="Español" i18n:attributes="title">
+  ...     Default
+  ...   </span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Español">
+      Default
+    </span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span title="Mock translation of 'Español'.">
+      Default
+    </span>
+  </div>

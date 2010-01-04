@@ -1,6 +1,15 @@
 Changes
 =======
 
+In next release...
+
+- Fixed encoding issue of translated attributes. [kobold]
+
+- Fixed translation issue, that would prevent translation of tag
+  contents with both named and unnamed subtags. [kobold]
+
+- Fixed issue where messages could contain a double space. [kobold]
+
 1.0.6 (released 2009-12-14)
 ---------------------------
 

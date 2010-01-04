@@ -642,7 +642,7 @@ class Tag(object):
                 # as an optimization, we only define the `default` symbol,
                 # if it's present in the evaluation value (as string
                 # representation).
-                if stream.symbols.default in str(value):
+                if stream.symbols.default in repr(value):
                     default = self.defaults.get(attribute, marker)
                 else:
                     default = None
