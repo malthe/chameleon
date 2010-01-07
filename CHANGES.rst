@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.0.7 (released 2010-01-07)
+---------------------------
 
 - Fixed encoding issue of translated attributes. [kobold]
 
