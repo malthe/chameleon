@@ -1,8 +1,8 @@
 Changes
 =======
 
-Next release
-------------
+1.0.8 (released 2010-01-12)
+---------------------------
 
 - Use RPL license (http://repoze.org/license.html); include RPL and
   copyright notice in software.

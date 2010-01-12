@@ -8,11 +8,6 @@ The engine itself performs 10-15 times better than the reference
 implementation and real-world benchmarks show an overall performance
 improvement in complex applications of 30-50%.
 
-License
--------
-
-This software is made available under the BSD license.
-
 Development
 -----------
 
