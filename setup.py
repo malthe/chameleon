@@ -7,7 +7,6 @@ version = '1.0.8'
 
 install_requires = [
     'setuptools',
-    'sourcecodegen>=0.6.11',
     ]
 
 if sys.version_info[:3] < (2,5,0):

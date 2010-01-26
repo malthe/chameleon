@@ -317,7 +317,8 @@ elsewhere).
   ...	  <metal:block metal:use-macro="template.macros['greeting']" />
   ...   </div>
   ... </div>"""
-  >>> print PageTemplate(body)()
+  >>> template = PageTemplate(body)
+  >>> print template()
   <div xmlns="http://www.w3.org/1999/xhtml">
     <div class="macro">
         Hey

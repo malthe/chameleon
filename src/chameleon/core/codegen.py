@@ -1,6 +1,7 @@
-from compiler import ast, parse
-from sourcecodegen import ModuleSourceCodeGenerator
-from transformer import ASTTransformer
+from chameleon.ast.astutil import parse
+from chameleon.ast.astutil import _ast as ast
+from chameleon.ast.astutil import ASTTransformer
+from chameleon.ast.astutil import ASTCodeGenerator
 from chameleon.core import config
 
 import __builtin__
@@ -41,153 +42,114 @@ def lookup_name(data, name):
         return data[name]
     except KeyError:
         raise NameError(name)
-    
+
 lookup_globals = {
     '_lookup_attr': lookup_attr,
     '_lookup_name': lookup_name,
-    }       
+    }
 
 class TemplateASTTransformer(ASTTransformer):
-    """Concrete AST transformer that implements the AST transformations needed
-    for code embedded in templates.
-
-    """
-
-    def __init__(self, globals):
+    def __init__(self):
         self.locals = [CONSTANTS]
         builtin = dir(__builtin__)
-        self.locals.append(set(globals))
+        self.locals.append(set())
         self.locals.append(set(builtin))
         # self.names is an optimization for visitName (so we don't
         # need to flatten the locals every time it's called)
         self.names = set()
         self.names.update(CONSTANTS)
         self.names.update(builtin)
-        self.names.update(globals)
 
-    def visitConst(self, node):
-        return node
+    def visit_Assign(self, node):
+        node.value = self.visit(node.value)
+        return ASTTransformer.visit_Assign(self, node)
 
-    def visitAssName(self, node):
-        if len(self.locals) > 1:
-            if node.flags == 'OP_ASSIGN':
-                self.locals[-1].add(node.name)
-                self.names.add(node.name)
-            else:
-                self.locals[-1].remove(node.name)
-                self.names.remove(node.name)
-                return None
-        return node
+    def visit_Delete(self, node):
+        ASTTransformer.visit_Delete(self, node)
 
-    def visitClass(self, node):
-        if len(self.locals) > 1:
-            self.locals[-1].add(node.name)
-            self.names.add(node.name)
-        self.locals.append(set())
-        try:
-            return ASTTransformer.visitClass(self, node)
-        finally:
-            self.locals.pop()
+        # drop node
+        pass
 
-    def visitFor(self, node):
-        self.locals.append(set())
-        try:
-            return ASTTransformer.visitFor(self, node)
-        finally:
-            self.locals.pop()
-
-    def visitFunction(self, node):
+    def visit_FunctionDef(self, node):
         if len(self.locals) > 1:
             self.locals[-1].add(node.name)
             self.names.add(node.name)
 
         # process defaults *before* defining parameters
-        node.defaults = tuple(self.visit(x) for x in node.defaults)
+        node.args.defaults = tuple(
+            self.visit(x) for x in node.args.defaults)
 
-        self.locals.append(set(node.argnames))
-        argnames = set(node.argnames)
-        newnames = argnames.difference(self.names)
-        self.names.update(newnames)
+        if node.args.args:
+            argnames = [arg.id for arg in node.args.args]
+            self.locals.append(set(argnames))
+            argnames = set(argnames)
+            newnames = argnames.difference(self.names)
+            self.names.update(newnames)
 
         try:
-            return ASTTransformer.visitFunction(self, node)
+            return ASTTransformer.visit_FunctionDef(self, node)
         finally:
             self.locals.pop()
-            self.names -= newnames
-            
-    def visitGenExpr(self, node):
-        self.locals.append(set())
-        try:
-            return ASTTransformer.visitGenExpr(self, node)
-        finally:
-            self.locals.pop()
+            if node.args.args:
+                self.names -= newnames
 
-    def visitLambda(self, node):
-        argnames = flatten(node.argnames)
-        self.names.update(argnames)
-        self.locals.append(set(argnames))
-        try:
-            return ASTTransformer.visitLambda(self, node)
-        finally:
-            self.locals.pop()
+    def visit_Name(self, node):
+        if isinstance(node.ctx, ast.Load):
+            if node.id not in self.names:
+                return ast.Subscript(
+                    ast.Name("econtext", ast.Load()),
+                    ast.Index(ast.Str(node.id)),
+                    ast.Load())
+        if isinstance(node.ctx, ast.Store):
+            self.locals[-1].add(node.id)
+            self.names.add(node.id)
+        if isinstance(node.ctx, ast.Del):
+            self.locals[-1].remove(node.id)
+            self.names.remove(node.id)
 
-    def visitListComp(self, node):
-        self.locals.append(set())
-        try:
-            return ASTTransformer.visitListComp(self, node)
-        finally:
-            self.locals.pop()
-
-    def visitName(self, node):
-        if not node.name in self.names:
-            return ast.Subscript(
-                ast.Name("econtext"), None, [ast.Const(node.name)])
         return node
 
-    def visitFrom(self, node):
-        for index, (name, alias) in enumerate(node.names):
-            if alias is None:
-                self.names.add(name)
+    def visit_ImportFrom(self, node):
+        for index, alias in enumerate(node.names):
+            if alias.asname is None:
+                self.names.add(alias.name)
             else:
-                self.names.add(alias)            
+                self.names.add(alias.asname)
         return node
 
-    def visitGetattr(self, node):
+    def visit_Attribute(self, node):
         """Get attribute with fallback to dictionary lookup.
 
         Note: Variables starting with an underscore are exempt
         (reserved for internal use); as are the default system symbols.
         """
-        
-        if hasattr(node.expr, 'name') and node.expr.name.startswith('_') or \
-               isinstance(node.expr, ast.Name) and node.expr.name in SYMBOLS:
-            return ASTTransformer.visitGetattr(self, node)
 
-        return ast.CallFunc(ast.Name('_lookup_attr'), [
-            self.visit(node.expr), ast.Const(node.attrname)
-            ])
+        if isinstance(node.value, ast.Name) and \
+           (node.value.id.startswith('_') or node.value.id in SYMBOLS):
+            return ASTTransformer.visit_Attribute(self, node)
+
+        return ast.Call(
+            ast.Name('_lookup_attr', ast.Load()),
+            [self.visit(node.value), ast.Str(node.attr)],
+            [], None, None)
 
 class Suite(object):
     __slots__ = ['source', '_globals']
 
     mode = 'exec'
-    
-    def __init__(self, source, globals=()):
+
+    def __init__(self, source):
         """Create the code object from a string."""
 
         if isinstance(source, unicode):
             source = source.encode('utf-8')
-            
-        node = parse(source, self.mode)
-        
-        # build tree
-        transform = TemplateASTTransformer(globals)
-        tree = transform.visit(node)
-        filename = tree.filename = '<script>'
 
-        # generate source code
-        self.source = ModuleSourceCodeGenerator(tree).getSourceCode()
-        
+        node = parse(source, self.mode)
+        transform = TemplateASTTransformer()
+        tree = transform.visit(node)
+        generator = ASTCodeGenerator(tree)
+        self.source = generator.code
+
     def __hash__(self):
         return hash(self.source)
 

@@ -6,14 +6,16 @@ import doctest
 OPTIONFLAGS = (doctest.ELLIPSIS |
                doctest.NORMALIZE_WHITESPACE)
 
+class UTF8DocTestParser(doctest.DocTestParser):
+    def parse(self, string, name='<string>'):
+        return doctest.DocTestParser.parse(self, string.decode('utf-8'), name)
+
 def docfilesuite(func):
     def handler(cls):
         path = func(cls)
-        kw = {}
-        if sys.version_info[:3] >= (2,5,0):
-            kw['encoding'] = 'utf-8'
+        parser = UTF8DocTestParser()
         return doctest.DocFileSuite(
-            path, optionflags=OPTIONFLAGS, package="chameleon", **kw)
+            path, optionflags=OPTIONFLAGS, package="chameleon", parser=parser)
 
     handler.__name__ = func.__name__
     return handler

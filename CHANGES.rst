@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release...
+
+- Made all tests compatible with Python 2.4.
+
+- Use the 2.5 AST for code transformation for compatibility with
+  Google App Engine. The AST utilities required were copied from
+  Genshi (license document included).
+
 1.0.8 (released 2010-01-12)
 ---------------------------
 
