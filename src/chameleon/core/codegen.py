@@ -96,10 +96,24 @@ class TemplateASTTransformer(ASTTransformer):
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Load):
             if node.id not in self.names:
-                return ast.Subscript(
-                    ast.Name("econtext", ast.Load()),
-                    ast.Index(ast.Str(node.id)),
-                    ast.Load())
+                # this should be spellable as...
+                ##                     return ast.Subscript(
+                ##                         ast.Name("econtext", ast.Load()),
+                ##                         ast.Index(ast.Str(node.id)),
+                ##                         ast.Load())
+                ## .. but Python 2.5 doesn't allow it.
+                name = ast.Name()
+                name.id = 'econtext'
+                name.ctx = ast.Load()
+                idx = ast.Index()
+                idx.value = ast.Str()
+                idx.value.s = node.id
+                subscr = ast.Subscript()
+                subscr.value = name
+                subscr.slice = idx
+                subscr.ctx = ast.Load()
+                return subscr
+            
         if isinstance(node.ctx, ast.Store):
             self.locals[-1].add(node.id)
             self.names.add(node.id)
@@ -128,10 +142,26 @@ class TemplateASTTransformer(ASTTransformer):
            (node.value.id.startswith('_') or node.value.id in SYMBOLS):
             return ASTTransformer.visit_Attribute(self, node)
 
-        return ast.Call(
-            ast.Name('_lookup_attr', ast.Load()),
-            [self.visit(node.value), ast.Str(node.attr)],
-            [], None, None)
+        ## This should be spellable as
+        ##         return ast.Call(
+        ##             ast.Name('_lookup_attr', ast.Load()),
+        ##             [self.visit(node.value), ast.Str(node.attr)],
+        ##             [], None, None)
+        ## .. except Python 2.5 doesn't allow it.
+        
+        call = ast.Call()
+        name = ast.Name()
+        name.id = '_lookup_attr'
+        name.ctx = ast.Load()
+        call.func = name
+        string = ast.Str()
+        string.s = node.attr
+        args = [self.visit(node.value), string]
+        call.args = args
+        call.keywords = []
+        call.starargs = None
+        call.kwargs = None
+        return call
 
 class Suite(object):
     __slots__ = ['source', '_globals']

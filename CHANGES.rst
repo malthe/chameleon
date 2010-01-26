@@ -1,6 +1,13 @@
 Changes
 =======
 
+Next release
+------------
+
+- Python 2.5 compatibility fixes (symptom: ``TypeError: default
+  __new__ takes no parameters`` with the statement generating the
+  error something like ``ast.Name("econtext", ast.Load())``).
+
 1.1 (released 2010-01-26)
 -------------------------
 
