@@ -8,6 +8,11 @@ The engine itself performs 10-15 times better than the reference
 implementation and real-world benchmarks show an overall performance
 improvement in complex applications of 30-50%.
 
+Compatibility
+-------------
+
+Works on Python 2.4, 2.5 and 2.6, including Google App Engine.
+
 Development
 -----------
 

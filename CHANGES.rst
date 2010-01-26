@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.1 (released 2010-01-26)
+-------------------------
 
 - Made all tests compatible with Python 2.4.
 
