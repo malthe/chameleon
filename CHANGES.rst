@@ -1,8 +1,8 @@
 Changes
 =======
 
-Next release
-------------
+1.1.1 (released 2010-01-26)
+---------------------------
 
 - Python 2.5 compatibility fixes (symptom: ``TypeError: default
   __new__ takes no parameters`` with the statement generating the
