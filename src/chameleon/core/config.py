@@ -33,11 +33,6 @@ VALIDATION_KEY = 'CHAMELEON_VALIDATE'
 VALIDATION = os.environ.get(VALIDATION_KEY, 'false')
 VALIDATION = VALIDATION.lower() in TRUEVALS
 
-try:
-    from compiler import ast as RUNTIME_COMPILATION
-except ImportError:
-    RUNTIME_COMPILATION = False
-
 # these definitions are standard---change at your own risk!
 XML_NS = "http://www.w3.org/XML/1998/namespace"
 XHTML_NS = "http://www.w3.org/1999/xhtml"

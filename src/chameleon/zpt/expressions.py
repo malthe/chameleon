@@ -1,5 +1,4 @@
 import re
-import parser
 
 from chameleon.core.utils import implements
 from chameleon.core.utils import queryUtility
@@ -7,6 +6,7 @@ from chameleon.core.utils import queryAdapter
 from chameleon.core.utils import adapts
 from chameleon.core import types
 from chameleon.core import parsing
+from chameleon.ast.astutil import parse
 
 import interfaces
 
@@ -432,7 +432,7 @@ class PythonTranslator(ExpressionTranslator):
         if string:
             try:
                 expression = string.strip()
-                parser.expr(expression)
+                parse(expression, 'eval')
             except SyntaxError, e:
                 e.msg += " (``%s``, %d:%d)" % (expression, e.lineno, e.offset)
                 raise

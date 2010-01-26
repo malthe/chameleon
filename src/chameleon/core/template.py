@@ -1,6 +1,5 @@
 import os
 import sys
-import inspect
 import doctypes
 import tempfile
 import utils
@@ -122,9 +121,6 @@ class Template(object):
             tree, explicit_doctype=explicit_doctype,
             xml_declaration=xml_declaration, encoding=self.encoding,
             omit_default_prefix=self.omit_default_prefix)
-
-        if config.RUNTIME_COMPILATION is False:
-            compiler = None
 
         self.__dict__['compiler'] = compiler
         self.__dict__['slots']  = compiler.macros
