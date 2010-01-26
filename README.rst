@@ -22,3 +22,4 @@ The code is maintained in a subversion repository::
 
 If you want to contribute or need support, join #repoze on freenode
 irc or write the `mailinglist <mailto:repoze-dev@lists.repoze.org>`_.
+
