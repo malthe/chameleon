@@ -415,8 +415,7 @@ The following information is available from the repeat variable:
 
 You can access the contents of the repeat variable using either dictionary- or attribute-style access, e.g. ``repeat['item'].start`` or ``repeat.item.start``.
 
-With the exception of ``start``, ``end``, and ``index``, all of the
-attributes of a repeat variable are methods and must be called explicitly, e.g. ``repeat['item'].length()``.
+.. note:: For legacy compatibility, the attributes ``odd``, ``even``, ``number``, ``letter``, ``Letter``, ``roman``, and ``Roman`` are callable (returning ``self``).
 
 Note that ``first`` and ``last`` are intended for use with sorted
 sequences.  They try to divide the sequence into group of items with

@@ -171,19 +171,37 @@ tal:repeat (repeat-variable)
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
   ...   <ul>
-  ...     <li tal:repeat="i range(3)"><span tal:replace="str(i) + ' ' + str(repeat['i'].even())" /></li>
+  ...     <li tal:attributes="class repeat['i'].even()+repeat['i'].odd()"
+  ...         tal:repeat="i range(3)"><span tal:replace="str(i)" /></li>
+  ...   </ul>
+  ...   <ul>
+  ...     <li tal:attributes="class repeat['i'].even+repeat['i'].odd"
+  ...         tal:repeat="i range(3)"><span tal:replace="str(i)" /></li>
+  ...   </ul>
+  ...   <ul>
+  ...     <li tal:repeat="i range(3)"><span tal:condition="repeat['i'].even" tal:replace="repeat['i'].even" /><span tal:condition="repeat['i'].odd" tal:replace="repeat['i'].odd" /></li>
   ...   </ul>
   ... </div>""")
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <ul>
-        <li>0 True</li>
-        <li>1 False</li>
-        <li>2 True</li>
-      </ul>
-    </div>
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <ul>
+      <li class="even">0</li>
+      <li class="odd">1</li>
+      <li class="even">2</li>
+    </ul>
+    <ul>
+      <li class="even">0</li>
+      <li class="odd">1</li>
+      <li class="even">2</li>
+    </ul>
+    <ul>
+      <li>even</li>
+      <li>odd</li>
+      <li>even</li>
+    </ul>
+  </div>
 
 tal:repeat (nested, with same variable)
-    
+
   >>> print render("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal"

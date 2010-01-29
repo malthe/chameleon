@@ -1,6 +1,16 @@
 Changes
 =======
 
+In next release...
+
+- The repeat variable attributes (``odd``, ``even`` etc.) are now
+  *callable strings*, e.g. legacy users may still call these attributes,
+  but it is no longer required.
+
+- The ``odd`` and ``even`` attributes now return the English strings
+  ``"odd"`` and ``"even"`` in place of ``True`` and the empty string
+  ``""`` instead of ``False``.
+
 1.1.1 (released 2010-01-26)
 ---------------------------
 

@@ -65,6 +65,38 @@ XML_PREFIX_MAX_LENGTH = max(map(len, XML_PREFIXES))
 s_counter = 0
 marker = object()
 
+class callablestr(str):
+    __slots__ = ()
+
+    def __call__(self):
+        return self
+
+class callableint(int):
+    __slots__ = ()
+
+    def __call__(self):
+        return self
+
+class descriptorstr(object):
+    __slots__ = "function", "__name__"
+
+    def __init__(self, function):
+        self.function = function
+        self.__name__ = function.__name__
+
+    def __get__(self, context, cls):
+        return callablestr(self.function(context))
+
+class descriptorint(object):
+    __slots__ = "function", "__name__"
+
+    def __init__(self, function):
+        self.function = function
+        self.__name__ = function.__name__
+
+    def __get__(self, context, cls):
+        return callableint(self.function(context))
+
 def sniff_type(text):
     """Return 'text/xml' if text appears to be XML, otherwise return None."""
     for prefix in XML_PREFIXES:
@@ -350,20 +382,53 @@ class repeatitem(object):
     def end(self):
         return self.index == self.length - 1
 
+    @descriptorint
     def number(self):
         return self.index + 1
 
+    @descriptorstr
     def odd(self):
-        return bool(self.index % 2)
+        """Returns a true value if the item index is odd.
 
+        >>> it = repeatitem(iter(("apple", "pear")), 2)
+
+        >>> it._iterator.next()
+        'apple'
+        >>> it.odd()
+        ''
+
+        >>> it._iterator.next()
+        'pear'
+        >>> it.odd()
+        'odd'
+        """
+
+        return self.index % 2 == 1 and 'odd' or ''
+
+    @descriptorstr
     def even(self):
-        return not self.odd()
+        """Returns a true value if the item index is even.
+
+        >>> it = repeatitem(iter(("apple", "pear")), 2)
+
+        >>> it._iterator.next()
+        'apple'
+        >>> it.even()
+        'even'
+
+        >>> it._iterator.next()
+        'pear'
+        >>> it.even()
+        ''
+        """
+
+        return self.index % 2 == 0 and 'even' or ''
 
     def next(self):
         raise NotImplementedError(
             "Method not implemented (can't update local variable).")
 
-    def letter(self, base=ord('a'), radix=26):
+    def _letter(self, base=ord('a'), radix=26):
         """Get the iterator position as a lower-case letter
 
         >>> it = repeatitem(iter(("apple", "pear", "orange")), 3)
@@ -380,7 +445,7 @@ class repeatitem(object):
         >>> it.letter()
         'c'
         """
-        
+
         index = self.index
         if index < 0:
             raise TypeError("No iteration position")
@@ -391,6 +456,9 @@ class repeatitem(object):
             if not index:
                 return s
 
+    letter = descriptorstr(_letter)
+
+    @descriptorstr
     def Letter(self):
         """Get the iterator position as an upper-case letter
 
@@ -409,8 +477,9 @@ class repeatitem(object):
         'C'
         """
 
-        return self.letter(base=ord('A'))
+        return self._letter(base=ord('A'))
 
+    @descriptorstr
     def Roman(self, rnvalues=(
                     (1000,'M'),(900,'CM'),(500,'D'),(400,'CD'),
                     (100,'C'),(90,'XC'),(50,'L'),(40,'XL'),
@@ -439,6 +508,7 @@ class repeatitem(object):
             s = s + r * rct
         return s
 
+    @descriptorstr
     def roman(self):
         """Get the iterator position as a lower-case roman numeral
 

@@ -742,11 +742,11 @@ class Repeat(object):
     ...     "print (i, r.index, r.letter(), r.Letter(), r.roman(), r.Roman(), r.start, r.end, r.number(), r.odd(), r.even())")
     >>> _repeat.end(stream)
     >>> exec stream.getvalue()
-    (0, 0, 'a', 'A', 'i', 'I', True, False, 1, False, True)
-    (1, 1, 'b', 'B', 'ii', 'II', False, False, 2, True, False)
-    (2, 2, 'c', 'C', 'iii', 'III', False, False, 3, False, True)
-    (3, 3, 'd', 'D', 'iv', 'IV', False, False, 4, True, False)
-    (4, 4, 'e', 'E', 'v', 'V', False, True, 5, False, True)
+    (0, 0, 'a', 'A', 'i', 'I', True, False, 1, '', 'even')
+    (1, 1, 'b', 'B', 'ii', 'II', False, False, 2, 'odd', '')
+    (2, 2, 'c', 'C', 'iii', 'III', False, False, 3, '', 'even')
+    (3, 3, 'd', 'D', 'iv', 'IV', False, False, 4, 'odd', '')
+    (4, 4, 'e', 'E', 'v', 'V', False, True, 5, '', 'even')
     >>> _repeat.end(stream)
 
     A repeat over an empty set.
@@ -793,9 +793,9 @@ class Repeat(object):
     ...     "print (i, r.index, r.start, r.end, r.number(), r.odd(), r.even())")
     >>> _repeat.end(stream)
     >>> exec stream.getvalue()
-    (1, 0, True, False, 1, False, True)
-    (2, 1, False, False, 2, True, False)
-    (3, 2, False, True, 3, False, True)
+    (1, 0, True, False, 1, '', 'even')
+    (2, 1, False, False, 2, 'odd', '')
+    (3, 2, False, True, 3, '', 'even')
     >>> _repeat.end(stream)
 
     A repeat over a non-iterable raises an exception.
