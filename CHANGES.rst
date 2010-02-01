@@ -3,6 +3,10 @@ Changes
 
 In next release...
 
+- Avoid printing document header strings (XML header and DOCTYPE)
+  twice; this would previously happen if a template would define these
+  and use a macro on the top level which also provided them.
+
 - The repeat variable attributes (``odd``, ``even`` etc.) are now
   *callable strings*, e.g. legacy users may still call these attributes,
   but it is no longer required.

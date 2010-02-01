@@ -978,7 +978,7 @@ class Compiler(object):
             root = wrapper
 
         # output XML headers, if applicable
-        if not macro:
+        if global_scope is True or macro is "":
             header = ""
             if self.xml_declaration is not None:
                 header += self.xml_declaration + '\n'

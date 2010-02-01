@@ -49,6 +49,8 @@ Page templates expose macros in their ``macros`` attribute. A
 macros, while ``template`` is always the template being executed.
 
   >>> main = PageTemplate("""\
+  ... <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   ... <html xmlns="http://www.w3.org/1999/xhtml"
   ...       xmlns:tal="http://xml.zope.org/namespaces/tal"
   ...       xmlns:metal="http://xml.zope.org/namespaces/metal"
@@ -69,6 +71,8 @@ macros, while ``template`` is always the template being executed.
   ... </html>""")
 
   >>> print main()
+  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml"
         template-macros="master" macros="master">
      Who are you, foo?
@@ -92,6 +96,8 @@ Only macros which exist in the template may be accessed.
   KeyError: 'bad_macro'
   
   >>> content = PageTemplate("""\
+  ... <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal"
   ...      xmlns:metal="http://xml.zope.org/namespaces/metal"
@@ -105,6 +111,8 @@ Only macros which exist in the template may be accessed.
   ... </div>""")
 
   >>> print content(main=main, bar='bar')
+  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml"
         template-macros="dummy" macros="master">
     Who are you, foo?
