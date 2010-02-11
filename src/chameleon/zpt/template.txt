@@ -40,6 +40,7 @@ Usage
   >>> t = PageTextTemplateFile(os.path.join(path, 'helloworld.txt'))
   >>> print t()
   Hello World!
+  Testing utf-8: äöüß
 
 METAL template integration
 --------------------------
