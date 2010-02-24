@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.1.2 (released 2010-02-24)
+---------------------------
 
 - Avoid printing document header strings (XML header and DOCTYPE)
   twice; this would previously happen if a template would define these
