@@ -51,7 +51,7 @@ def parse(body, parser, validator):
                 tree = root.getroottree()
             else:
                 raise RuntimeError("Unexpected parsing error.")
-            
+
         except xml.parsers.expat.ExpatError, e:
             offset += expat.CurrentByteIndex
 
@@ -62,13 +62,30 @@ def parse(body, parser, validator):
             code = getattr(e, 'code', -1)
             if code == 3:
                 body = None
-                
+
                 if parts:
                     continue
-                
+
                 raise
-            
-            if expatparser.root is None:
+
+            if code == 9 and expatparser.root is not None:
+                # add the root as a tree fragment and update the body
+                # source to the next possible chunk
+                parts.append(expatparser.root)
+                body = body[:expatparser.index] + body[expat.CurrentByteIndex:]
+
+                # a simple heuristic is used here to allow chunks of
+                # 'junk' in-between the tree fragments
+                m = re_tag_start.search(body)
+                if m is not None:
+                    pos = m.start()
+                else:
+                    pos = -1
+                junk = body[:pos]
+                body = body[pos:]
+                parts.append(junk)
+                offset += pos
+            else:
                 # the default exception won't provide correct
                 # information about where in the document the
                 # exception stems from; we can compute it manually
@@ -80,23 +97,6 @@ def parse(body, parser, validator):
                     error_msg, line, column)
                 raise xml.parsers.expat.ExpatError(error_msg)
 
-            # add the root as a tree fragment and update the body
-            # source to the next possible chunk
-            parts.append(expatparser.root)
-            body = body[:expatparser.index] + body[expat.CurrentByteIndex:]
-            
-            # a simple heuristic is used here to allow chunks of
-            # 'junk' in-between the tree fragments
-            m = re_tag_start.search(body)
-            if m is not None:
-                pos = m.start()
-            else:
-                pos = -1
-            junk = body[:pos]
-            body = body[pos:]
-            parts.append(junk)
-            offset += pos
-            
     return tree, expatparser.doctype
 
 class ExpatParser(object):

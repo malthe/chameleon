@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Improve XML parsing error handling.
+
 1.1.2 (released 2010-02-24)
 ---------------------------
 
