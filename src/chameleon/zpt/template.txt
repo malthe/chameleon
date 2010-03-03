@@ -36,12 +36,6 @@ Usage
   >>> print PageTextTemplate("Hello World!")()
   Hello World!
 
-  >>> from chameleon.zpt.template import PageTextTemplateFile
-  >>> t = PageTextTemplateFile(os.path.join(path, 'helloworld.txt'))
-  >>> print t()
-  Hello World!
-  Testing utf-8: äöüß
-
 METAL template integration
 --------------------------
 
