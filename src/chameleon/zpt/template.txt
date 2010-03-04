@@ -426,6 +426,70 @@ The empty string macro comprises the full template:
     </body>
   </html>
 
+Doctype declarations
+--------------------
+
+A macro can have an xml and/or doctype declaration.
+
+  >>> pagemacro = PageTemplate("""
+  ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       metal:define-macro="master">
+  ...   <body>
+  ...     <div metal:define-slot="content">
+  ...       Content goes here
+  ...     </div>
+  ...   </body>
+  ... </html>
+  ... """)
+
+A pagetemplate can also contain a doctype
+
+  >>> template = PageTemplate("""
+  ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      metal:use-macro="macro.macros['master']">
+  ...   <div metal:fill-slot="content">
+  ...     Content
+  ...   </div>
+  ... </div>""")
+
+The final rendered result should have only one doctype, although the doctype
+is defined both on the macro and the template.
+(http://bugs.repoze.org/issue116)
+
+  >>> print template(macro=pagemacro)
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div>
+      Content
+    </div>
+  <BLANKLINE>
+    </body>
+  </html>
+
+If the template contains no doctype, the one from the macro should be used
+
+  >>> template = PageTemplate("""
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      metal:use-macro="macro.macros['master']">
+  ...   <div metal:fill-slot="content">
+  ...     Content
+  ...   </div>
+  ... </div>""")
+
+  >>> print template(macro=pagemacro)
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div>
+      Content
+    </div>
+  <BLANKLINE>
+    </body>
+  </html>
+
 Error handling
 --------------
 
