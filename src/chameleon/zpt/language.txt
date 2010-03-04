@@ -552,6 +552,18 @@ Inside tags:
     <img alt="Interpolation expressions are convenient" />
   </div>
 
+Inside foreign-namespace tags:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:dummy="http://dummy/"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <dummy:img alt="Interpolation ${'expressions'} are ${'convenient'}" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml" xmlns:dummy="http://dummy/">
+    <dummy:img alt="Interpolation expressions are convenient" />
+  </div>
+
 We can disable this feature using ``meta:interpolation``::
 
   >>> print render("""\

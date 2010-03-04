@@ -93,15 +93,22 @@ class ZopePageTemplateElement(translation.Element):
         def dynamic_attributes(self):
             attributes = []
 
-            xhtml_attributes = utils.get_attributes_from_namespace(
-                self.element, config.XHTML_NS)
+            tal_attributes = utils.get_attributes_from_namespace(
+                self.element, config.TAL_NS)
+            metal_attributes = utils.get_attributes_from_namespace(
+                self.element, config.METAL_NS)
+            meta_attributes = utils.get_attributes_from_namespace(
+                self.element, config.META_NS)
+            i18n_attributes = utils.get_attributes_from_namespace(
+                self.element, config.I18N_NS)
 
-            if self.element.prefix is None:
-                xhtml_attributes.update(utils.get_attributes_from_namespace(
-                    self.element, None))
-            
+            internal = tuple(itertools.chain(
+                tal_attributes, meta_attributes, meta_attributes, i18n_attributes))
+
             if self._interpolation_enabled:
-                for name, value in xhtml_attributes.items():
+                for name, value in self.element.attrib.items():
+                    if name in internal:
+                        continue
                     parts = self.element.translator.split(value)
                     for part in parts:
                         if isinstance(part, types.expression):

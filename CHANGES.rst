@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Allow expression interpolation on any tag which is not part of the
+  Chameleon or ZPT namespaces (e.g. TAL, METAL, I18N or META).
+
 - Improve XML parsing error handling.
 
 1.1.2 (released 2010-02-24)
