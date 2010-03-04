@@ -552,6 +552,17 @@ Inside tags:
     <img alt="Interpolation expressions are convenient" />
   </div>
 
+Spaces:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...     ${x},${y} ${x},${y}
+  ... </div>""", x='x', y='y')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+      x,y x,y
+  </div>
+
 Inside foreign-namespace tags:
 
   >>> print render("""\
