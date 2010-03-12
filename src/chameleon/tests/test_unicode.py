@@ -8,13 +8,8 @@ class TestUnicodeMisc(unittest.TestCase):
         from chameleon.zpt.template import PageTextTemplateFile
         t = PageTextTemplateFile(os.path.join(path, 'helloworld.txt'))
         result = t()
-        try:
-            decoded = result.decode('utf-8')
-        except UnicodeEncodeError, e:
-            self.fail(str(e))
-
-        self.assertEqual(
-            decoded, u'Hello World!\nTesting utf-8: \xe4\xf6\xfc\xdf\n')
+        self._assert_unicode_equals(
+            result, u'Hello World!\nTesting utf-8: \xe4\xf6\xfc\xdf\n')
 
     def test_utf8_values_in_page_text_template_file(self):
         import os
@@ -23,13 +18,8 @@ class TestUnicodeMisc(unittest.TestCase):
         t = PageTextTemplateFile(os.path.join(path, 'uglyworld.txt'))
         value = u'ä'.encode("utf-8")
         result = t(value=value)
-        try:
-            decoded = result.decode('utf-8')
-        except UnicodeEncodeError, e:
-            self.fail(str(e))
-
-        self.assertEqual(
-             decoded, u'Inserting a value: ä\n')
+        self._assert_unicode_equals(
+            result, u'Inserting a value: ä\n')
 
     def test_unicode_values_in_page_text_template_file(self):
         import os
@@ -38,10 +28,13 @@ class TestUnicodeMisc(unittest.TestCase):
         t = PageTextTemplateFile(os.path.join(path, 'uglyworld.txt'))
         value = u'ä'
         result = t(value=value)
-        try:
-            decoded = result.decode('utf-8')
-        except UnicodeEncodeError, e:
-            self.fail(str(e))
+        self._assert_unicode_equals(
+            result, u'Inserting a value: ä\n')
 
-        self.assertEqual(
-            decoded, u'Inserting a value: ä\n')
+    def _assert_unicode_equals(self, value, other):
+        if not isinstance(value, unicode):
+            try:
+                value = value.decode('utf-8')
+            except UnicodeEncodeError, e:
+                self.fail(str(e))
+        self.assertEqual(value, other)
