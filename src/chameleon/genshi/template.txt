@@ -1,0 +1,99 @@
+Template classes
+================
+
+The ``chameleon.genshi`` package provides the ``GenshiTemplate`` and
+``GenshiTemplateFile`` classes which allow easy usage of templates in
+your application.
+
+Usage
+-----
+
+  >>> from chameleon.genshi.template import GenshiTemplate
+  
+  >>> print GenshiTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   Hello World!
+  ... </div>""")()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> from chameleon.genshi.template import GenshiTemplateFile
+  >>> from chameleon.genshi import tests
+  
+  >>> path = tests.__path__[0]
+  >>> t = GenshiTemplateFile(path+'/helloworld.html')
+  >>> print t()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello World!
+  </div>
+
+  >>> import os
+  >>> t.filename.startswith(os.sep)
+  True
+
+  >>> from chameleon.genshi.template import GenshiTextTemplate
+  
+  >>> print GenshiTextTemplate("Hello World!")()
+  Hello World!
+
+  >>> from chameleon.genshi.template import GenshiTextTemplateFile
+  >>> t = GenshiTextTemplateFile(path+'/helloworld.txt')
+  >>> print t()
+  Hello World!
+  
+Compiler integration
+--------------------
+
+Certain constructs require close collaboration between the template
+compiler and the page template classes.
+
+py:match
+
+  >>> print GenshiTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <py:match path=".//greeting">Hello, ${select('@name')[0]}</py:match>
+  ...   <greeting name="${'World'.lower()}" />!
+  ... </div>
+  ... """)()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello, world!
+  </div>
+
+XInclude-support
+----------------
+
+When using XInclude-statements in Genshi, macro-definitions are
+carried over from the included template, as are match-templates. This
+is demonstrated below.
+
+  >>> template1 = GenshiTemplateFile(path+"/xinclude1.html")
+  >>> template2 = GenshiTemplateFile(path+"/xinclude2.html")
+  
+  >>> print template1()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      <p class="greeting">
+        Hello, world!
+      </p>
+      Goodbye!
+    </span>
+  </div>
+  
+
+XML template
+------------
+
+XML can be generated too and non-XHTML attributes can contain expressions
+
+
+  >>> print GenshiTemplate("""\
+  ... <WMS_MS_Capabilities xmlns:py="http://genshi.edgewall.org/"
+  ...      xmlns:xlink="http://www.w3.org/1999/xlink">
+  ...   <OnlineResource xlink:href="${service_url}" />
+  ... </WMS_MS_Capabilities>
+  ... """)(service_url='http://example.com/wms?')
+  <WMS_MS_Capabilities xmlns:xlink="http://www.w3.org/1999/xlink">
+    <OnlineResource xlink:href="http://example.com/wms?" />
+  </WMS_MS_Capabilities>

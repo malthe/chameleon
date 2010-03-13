@@ -1,0 +1,580 @@
+Genshi templates
+================
+
+This test demonstrates the compilation of the Genshi language.
+
+py:if
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <div py:if="False">
+  ...     <p>Bar</p>
+  ...   </div>
+  ...   <div py:if="True">
+  ...     <p>Foo</p>
+  ...   </div>
+  ...   <py:if test="False">
+  ...     <b>Bar</b>
+  ...   </py:if>
+  ...   <py:if test="True">
+  ...     <b>Foo</b>
+  ...   </py:if>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      <p>Foo</p>
+    </div>
+  <BLANKLINE>
+      <b>Foo</b>
+  <BLANKLINE>
+  </div>
+
+py:if can be used to make an XInclude optional:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:xi="http://www.w3.org/2001/XInclude"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <xi:include href="/does/not/exist" py:if="False"/>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+  <BLANKLINE>
+  </div>
+
+py:choose, py:when, py:otherwise
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <div py:choose="">
+  ...     <span py:when="0 == 1">0</span>
+  ...     <span py:when="1 == 1">1</span>
+  ...     <div>
+  ...       <span py:when="2 == 2">2</span>
+  ...       <span py:when="2 == 3">3</span>
+  ...       <div py:choose="1">
+  ...          <b py:when="1">3</b>
+  ...          <b py:when="2">4</b>
+  ...       </div>
+  ...     </div>
+  ...     <span py:otherwise="">3</span>
+  ...     <div py:choose="1">
+  ...       <span py:when="0">1</span>
+  ...       <span py:otherwise="">1</span>
+  ...     </div>
+  ...     <div py:choose="">
+  ...       <span py:when="0 == 1">1</span>
+  ...       <span py:otherwise="">2</span>
+  ...     </div>
+  ...   </div>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      <span>1</span>
+      <div>
+        <span>2</span>
+        <div>
+           <b>3</b>
+           </div>
+      </div>
+      <div>
+        <span>1</span>
+      </div>
+      <div>
+        <span>2</span>
+      </div>
+    </div>
+  </div>
+
+py:for
+
+  >>> print render("""\
+  ... <ul xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <li py:for="item in range(3)">${item}</li>
+  ...  <py:for each="item in range(3, 5)">
+  ...    <li>${item}</li>
+  ...  </py:for>
+  ... </ul>""")
+  <ul xmlns="http://www.w3.org/1999/xhtml">
+    <li>0</li>
+  <li>1</li>
+  <li>2</li>
+  <li>3</li>
+  <li>4</li>
+  </ul>
+
+py:for with tuples
+
+  >>> print render("""\
+  ... <ul xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <li py:for="(key,value) in sorted(dict(one=1,two=2,three=3).items(), key=lambda (k,v): (v,k))">${key}=$value</li>
+  ... </ul>""")
+  <ul xmlns="http://www.w3.org/1999/xhtml">
+    <li>one=1</li>
+    <li>two=2</li>
+    <li>three=3</li>
+  </ul>
+
+py:def
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...  <p py:def="greeting(name)" class="greeting">
+  ...    Hello, ${name}!
+  ...  </p>
+  ...  ${greeting('world')}
+  ...  ${greeting('everyone else')}
+  ...  <py:def function="goodbye(name)">
+  ...    <p class="goodbye">Goodbye, ${name}!</p>
+  ...  </py:def>
+  ...  ${goodbye('world')}
+  ...  ${goodbye('everyone')}  
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+   <p class="greeting">
+     Hello, world!
+   </p>
+  <BLANKLINE>
+   <p class="greeting">
+     Hello, everyone else!
+   </p>
+  <BLANKLINE>
+  <BLANKLINE>
+     <p class="goodbye">Goodbye, world!</p>
+  <BLANKLINE>
+  <BLANKLINE>
+  <BLANKLINE>
+     <p class="goodbye">Goodbye, everyone!</p>
+  <BLANKLINE>
+  <BLANKLINE>
+  </div>
+
+py:with
+
+  >>> def quote():
+  ...     return dict(author=u"Some name", quote=u"Some random quote")
+     
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <span py:with="x=2; y=7; z=x+10">${x} ${y} ${z}</span>
+  ...   <py:with vars="x=4; y=3; z=x+5">${x} ${y} ${z}</py:with>
+  ...   <blockquote py:with="q=quote()">
+  ...       "${q["quote"]} <em>${q["author"]}</em>
+  ...   </blockquote>
+  ... </div>""", quote=quote)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>2 7 12</span>
+    4 3 9
+    <blockquote>
+        "Some random quote <em>Some name</em>
+    </blockquote>
+  </div>
+
+  
+py:with in functions
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <py:def function="func">
+  ...     <py:with vars="xxx=True"/>
+  ...   </py:def>
+  ...   <div py:with="xxx=False">
+  ...     ${func()}
+  ...     ${xxx}
+  ...   </div>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      False
+    </div>
+  </div>
+
+py:attrs
+  
+  >>> print render("""\
+  ... <ul xmlns="http://www.w3.org/1999/xhtml"
+  ...     xmlns:py="http://genshi.edgewall.org/">
+  ...   <li class="expand" py:attrs="{'class': 'collapse'}">Bar</li>
+  ...   <li class="expand" py:attrs="d">Bar</li>
+  ... </ul>""", d=dict({'class': u'\u1234'}))
+  <ul xmlns="http://www.w3.org/1999/xhtml">
+    <li class="collapse">Bar</li>
+    <li class="ሴ">Bar</li>
+  </ul>
+
+py:content, py:replace
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <span py:content="'Hello, world!'" />
+  ...   <span py:replace="'Goodbye, world!'" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Hello, world!</span>
+    Goodbye, world!
+  </div>
+
+py:strip
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...    <span py:strip="True"><b>foo</b></span>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+     <b>foo</b>
+  </div>
+
+py:match
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <span py:match=".//greeting">
+  ...     Hello, ${select('@name')[0]}!
+  ...   </span>
+  ...   <py:match path=".//farewell">
+  ...      <span>goodbye, ${select('@name')[0]}!</span>
+  ...   </py:match>
+  ...   <greeting name="${'dude'}" /> and 
+  ...   <farewell name="${'dude'}" />
+  ...   <farewell py:if="0" name="${'nemo'}" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+      Hello, dude!
+    </span> and 
+    <span>goodbye, dude!</span>
+  </div>
+
+:: Genshi variable interpolation (${<exp>} notation)
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <span>inter${'pol' + 'ati'}on</span>is ${'convenient'}!
+  ...   <span>${'a'}${'b'}${'c'} ${'d'}</span>
+  ...   <span py:with="hello='Hello'" class="${hello} World!" />
+  ...   <span class="my-${'class'} item${'Last'}" />
+  ...   <a href="${ltr.href}" class="${ltr.iscurrent}">${ltr.letter}</a>
+  ...   <span style="position: ${'abs'}olute"
+  ...         class="my-${'class'} item${'Last'}" />
+  ... </div>""", ltr={'letter': 'A', 'href': '?title=A', 'iscurrent': 'current'})
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>interpolation</span>is convenient!
+    <span>abc d</span>
+    <span class="Hello World!" />
+    <span class="my-class itemLast" />
+    <a href="?title=A" class="current">A</a>
+    <span style="position: absolute" class="my-class itemLast" />
+  </div>
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   ${'$'}{22*2-2} = ${22*2-2}
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    ${22*2-2} = 42
+  </div>
+
+
+:: Simple variable names do not need { .. }. From `py:with specs`_.
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <span py:with="y=7; z=x+10">$x $y $z</span>
+  ... </div>""", x=42)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>42 7 52</span>
+  </div>
+
+:: Genshi variable interpolation and unicode values
+    
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   <img alt="${'La Peña'}" />
+  ...   <img alt="Hello ${'La Peña'}" />
+  ...   <img alt="La Peña, oh ${'La Peña'}" />
+  ...   ${unicode('La Pe\xc3\xb1a', 'utf-8').encode('utf-8')}
+  ...   <img alt="${unicode('La Pe\xc3\xb1a', 'utf-8').encode('utf-8')}" />
+  ...   <img alt="Hello ${unicode('La Pe\xc3\xb1a', 'utf-8').encode('utf-8')}!" />
+  ... </div>""", encoding='utf-8')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <img alt="La Peña" />
+    <img alt="Hello La Peña" />
+    <img alt="La Peña, oh La Peña" />
+    La Peña
+    <img alt="La Peña" />
+    <img alt="Hello La Peña!" />
+  </div>
+
+:: Unicode combined with attribute expansion
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   <img alt="La PeÃ±a" />
+  ...   <img alt="${alt}" />
+  ... </div>""", alt=unicode("La Pe\xc3\xb1a", 'utf-8'))
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <img alt="La Pe&Atilde;&plusmn;a" />
+    <img alt="La Peña" />
+  </div>
+
+:: Variables containing quotes
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   <strong>"${quote}"</strong>
+  ... </div>""", quote="Hello, World!")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <strong>"Hello, World!"</strong>
+    </div>
+  
+:: Variables containing markup
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   ${message}
+  ... </div>""", message="Hello, <em>World</em>!")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      Hello, &lt;em&gt;World&lt;/em&gt;!
+    </div>
+
+:: Unless we are in a CDATA block
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ... /* <![CDATA[ */
+  ...   ${message}
+  ... /* ]]> */
+  ... </div>""", message="Hello, <em>World!")
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      /* <![CDATA[ */
+      Hello, <em>World!
+      /* ]]> */
+    </div>
+
+:: HTML comments
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <!-- a comment -->
+  ...   <!-- a multi-
+  ...        line comment -->
+  ...   <!-- a comment with an ${'expression'} -->
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <!-- a comment -->
+    <!-- a multi-
+         line comment -->
+    <!-- a comment with an expression -->
+  </div>
+
+:: Chameleon used to forget to output the ]; after the for loop
+
+  >>> print render("""\
+  ... <script xmlns="http://www.w3.org/1999/xhtml"
+  ...         xmlns:py="http://genshi.edgewall.org/"
+  ...         type="text/javascript">
+  ...  var brands = [
+  ...  <py:for each="brand in []">
+  ...    { value :  "${brand['id']}", "title" : "${brand['title']}" },
+  ...  </py:for>
+  ...  ];
+  ... </script>""")
+  <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript">
+  var brands = [
+  ];
+  </script>
+
+:: Strange looping behaviour
+
+  >>> brands=[dict(id=1, title="One"),
+  ...         dict(id=2, title="Two"),
+  ...         dict(id=3, title="Three")]
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
+  ... <script type="text/javascript">
+  ... var brands = [
+  ...     <py:for each="brand in brands">
+  ...         { value :  "${brand['id']}", title : "${brand['title']}" },
+  ...     </py:for>
+  ...     ];
+  ...
+  ... $(document.ready(function() {
+  ...   alert("Hello, World");
+  ... });
+  ... </script>
+  ... </div>""", brands=brands)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+  <script type="text/javascript">
+    var brands = [
+      { value : "1", title : "One" },
+      { value : "2", title : "Two" },
+      { value : "3", title : "Three" },
+      ];
+  <BLANKLINE>
+  $(document.ready(function() {
+    alert("Hello, World");
+  });
+  </script>
+  </div>
+
+:: Very basic recursing
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...     xmlns:py="http://genshi.edgewall.org/">
+  ...   <ul py:def="rendermenu(menu)" py:if="menu">
+  ...     ${rendermenu([])}
+  ...   </ul>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+  </div>
+  
+:: Slightly more complex recursive function calls
+ 
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
+  ...   <ul py:def="rendermenu(menu)">
+  ...     <li py:for="entry in menu"
+  ...         py:attrs="{'class' : entry['current'] and 'current' or None}">
+  ...       <a py:attrs="dict(href=entry['url'])"
+  ...          py:content="entry['title']">Merken</a>
+  ...       ${rendermenu(entry.get('children', []))}
+  ...     </li>
+  ...   </ul>
+  ...   ${rendermenu(menu)}
+  ... </div>""", menu=[dict(title=u"Menu entry", url="/test", current=True)])
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <ul>
+      <li class="current">
+        <a href="/test">Menu entry</a>
+        <ul>
+  <BLANKLINE>
+    </ul>
+  <BLANKLINE>
+      </li>
+  <BLANKLINE>
+    </ul>
+  <BLANKLINE>
+  </div>
+
+
+:: You can use a loop variable with py:choose
+
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
+  ...   <body>
+  ...     <div py:for="article in [dict(wfstate='new'), dict(wfstate='pending')]">
+  ...       <span py:choose="article['wfstate']">
+  ...           <span py:when="'pending'">Pending</span>
+  ...           <span py:when="'new'">New</span>
+  ...       </span>
+  ...     </div>
+  ...   </body>
+  ... </html>""")
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div>
+        <span>
+            <span>New</span>
+        </span>
+      </div>
+      <div>
+        <span>
+            <span>Pending</span>
+        </span>
+      </div>
+    </body>
+  </html>
+
+:: Text is not interpolated unless necessary
+
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
+  ...   <body py:with="form_errors=''">
+  ...     <em py:if="'name' in form_errors">${form_errors['name']}</em>
+  ...   </body>
+  ... </html>""")
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+    </body>
+  </html>
+
+:: By default all inserted data is escaped
+
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
+  ...   <body>
+  ...     <span py:content="data">Data</span>
+  ...     <span py:replace="data">Data</span>
+  ...     ${data}
+  ...   </body>
+  ... </html>""", data="one & two")
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <span>one &amp; two</span>
+      one &amp; two
+      one &amp; two
+    </body>
+  </html>
+
+If inserted data has a __html__ method it is called and the result is
+inserted without further escaping:
+
+  >>> class Markup(unicode):
+  ...     def __html__(self):
+  ...         return self
+  
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
+  ...   <body>
+  ...     <span py:content="data">Data</span>
+  ...     <span py:replace="data">Data</span>
+  ...     ${data}
+  ...   </body>
+  ... </html>""", data=Markup("<em>correct</em>"))
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <span><em>correct</em></span>
+      <em>correct</em>
+      <em>correct</em>
+    </body>
+  </html>
+
+If validation is enabled, markup inserted using ``__html__`` must
+validate
+
+  >>> from chameleon.core import config
+  >>> config.VALIDATION = True
+  
+  >>> print render("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
+  ...   <body>
+  ...     ${data}
+  ...   </body>
+  ... </html>""", data=Markup("<em>incorrect<em>"))
+  Traceback (most recent call last):
+   ...
+  ValidationError: Insertion of u'<em>incorrect<em>' is not allowed.
+  
+  >>> config.VALIDATION = False
+  
+.. _py:with specs: http://genshi.edgewall.org/wiki/Documentation/0.4.x/xml-templates.html#py-with
