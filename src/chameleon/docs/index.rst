@@ -6,10 +6,11 @@
 Chameleon
 =========
 
-Chameleon is an XML attribute language template compiler. It includes
-a complete implementation of the Zope Page Templates (ZPT) language.
+Chameleon is an XML attribute language template compiler. It comes
+with implementations for the Zope Page Templates (ZPT) and Genshi
+languages.
 
-The engine compiles templates into byte-code. This results in
+The engine compiles templates into Python byte-code. This results in
 performance which is on average 10-15 times better than implementation
 which use runtime interpretation. Real-world application benchmarks
 show an overall performance improvement in complex applications of
@@ -27,10 +28,10 @@ This software is made available under the BSD license.
 Development
 -----------
 
-To report bugs, use the `Chameleon ZPT bug tracker
-<https://bugs.launchpad.net/chameleon.zpt>`_. If you've got questions
-that aren't answered by this documentation, please contact the
-`mailinglist <http://groups.google.com/group/z3c_pt>`_.
+To report bugs, use the `Chameleon bug tracker
+<https://bugs.launchpad.net/chameleon>`_. If you've got questions that
+aren't answered by this documentation, please contact the `Repoze
+mailinglist <http://lists.repoze.org/listinfo/repoze-dev>`_.
 
 Browse and check out tagged and trunk versions of :mod:`Chameleon` via
 the `Repoze Subversion repository
@@ -41,10 +42,6 @@ Subversion, use this command::
 
 Related projects
 ----------------
-
-The *Genshi* port currenty lives as a separate project (see `chameleon.genshi <http://pypi.python.org/pypi/chameleon.genshi>`_)::
-
-  $ svn co svn://svn.repoze.org/chameleon.genshi/trunk chameleon-genshi
 
 An HTML-based language which integrates with ZPT (see `chameleon.html
 <http://pypi.python.org/pypi/chameleon.html>`_)::
@@ -58,6 +55,7 @@ Contents
    :maxdepth: 2
 
    zpt.rst
+   genshi.rst
    config.rst
 
 Indices and Tables

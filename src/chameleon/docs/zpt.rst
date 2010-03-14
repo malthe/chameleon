@@ -1,5 +1,3 @@
-.. _index:
-
 Zope Page Templates
 ===================
 
