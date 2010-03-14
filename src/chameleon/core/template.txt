@@ -69,19 +69,19 @@ XInclude support
 ----------------
 
   >>> template = TemplateFile(os.path.join(path, "xinclude1.pt"), mock_parser)
-  >>> print template()
-  <div xmlns="http://www.w3.org/1999/xhtml">
+  >>> result = template()
+  >>> print result
+  <html xmlns="http://www.w3.org/1999/xhtml">
     <div xmlns:test="http://test/ns">
       <span test:attr="test">Hello, world!</span>
     </div>
-  </div>
+  </html>
 
-  >>> print template()
-  <div xmlns="http://www.w3.org/1999/xhtml">
-    <div xmlns:test="http://test/ns">
-      <span test:attr="test">Hello, world!</span>
-    </div>
-  </div>
+Repeat renderings produce same result (includes are compiled once and
+cached):
+
+  >>> result == template()
+  True
 
 Encoding
 --------
