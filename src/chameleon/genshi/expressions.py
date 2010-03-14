@@ -1,9 +1,6 @@
 import re
 import parser
 
-from zope import interface
-from zope import component
-
 from chameleon.core import types
 from chameleon.core import parsing
 
@@ -16,7 +13,7 @@ class ExpressionTranslator(object):
 
     def declaration(self, string):
         """Variable declaration.
-        
+
         >>> declaration = ExpressionTranslator().declaration
 
         Single variable:
@@ -288,7 +285,7 @@ class ExpressionTranslator(object):
 
         >>> method('name(a, b, c)')
         name(a, b, c)
-        
+
         """
 
         m = self.re_method.match(string)
@@ -318,5 +315,5 @@ class ExpressionTranslator(object):
 
     def split(self, string):
         return parsing.interpolate(string, self.expression)
-        
+
 translator = ExpressionTranslator()
