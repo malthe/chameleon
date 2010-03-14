@@ -3,6 +3,16 @@ Genshi templates
 
 This test demonstrates the compilation of the Genshi language.
 
+  >>> import chameleon.genshi.language
+  >>> import chameleon.core.testing
+  >>> def render(body, encoding=None, **kwargs):
+  ...     parser = chameleon.genshi.language.Parser()
+  ...     mt = kwargs['match_templates'] = chameleon.genshi.language.MatchTemplates()
+  ...     func = chameleon.core.testing.compile_template(
+  ...         parser, parser, body, encoding=encoding, **kwargs)
+  ...     result = func(**kwargs)
+  ...     return mt.process(result)
+
 py:if
 
   >>> print render("""\
@@ -325,7 +335,7 @@ py:match
   ...   <img alt="${alt}" />
   ... </div>""", alt=unicode("La Pe\xc3\xb1a", 'utf-8'))
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <img alt="La Pe&Atilde;&plusmn;a" />
+    <img alt="La PeÃ±a" />
     <img alt="La Peña" />
   </div>
 

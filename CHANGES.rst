@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Integrated Genshi implementation.
+
 - Allow expression interpolation on any tag which is not part of the
   Chameleon or ZPT namespaces (e.g. TAL, METAL, I18N or META).
 

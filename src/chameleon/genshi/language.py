@@ -5,16 +5,20 @@ from chameleon.core import etree
 from chameleon.core import utils
 from chameleon.core import types
 
-import lxml.html
 import expressions
 import itertools
 
+try:
+    from lxml import html
+except ImportError:
+    html = None
+
 def get_elements_with_attribute_unless_in_between(element, ns, name, discard):
     elements = []
-    
+
     discarded = utils.elements_with_attribute(element, ns, discard)
     subelements = utils.elements_with_attribute(element, ns, name)
-    
+
     for subelement in subelements:
         parent = subelement.getparent()
         while parent is not None:
@@ -31,7 +35,7 @@ class XPathResult(list):
         def format_result(result):
             if isinstance(result, basestring):
                 return result
-            return lxml.html.tostring(result)
+            return html.tostring(result)
         return u"".join(
             map(format_result, self))
 
@@ -40,10 +44,10 @@ class XPathResult(list):
 
     def __html__(self):
         return unicode(self)
-    
+
 class MatchTemplates(object):
     encoding = 'utf-8'
-    
+
     def __init__(self):
         self.templates = {}
 
@@ -62,7 +66,10 @@ class MatchTemplates(object):
         if not self.templates:
             return body
 
-        root = lxml.html.fromstring(body)
+        if html is None:
+            raise ImportError("lxml.html")
+
+        root = html.fromstring(body)
         for path, (method, limit) in self.templates.items():
             for element in root.xpath(path)[:limit]:
                 out, write = generation.initialize_stream()
@@ -71,7 +78,7 @@ class MatchTemplates(object):
                 method(out, write, select)
 
                 # replace element with fragments
-                fragments = lxml.html.fragments_fromstring(out.getvalue())
+                fragments = html.fragments_fromstring(out.getvalue())
                 if element is root:
                     for fragment in fragments:
                         # ignore trivial fragments, if we're replacing
@@ -113,7 +120,7 @@ class MatchTemplates(object):
                     else:
                         prev.tail = tail
 
-        return lxml.html.tostring(root, pretty_print=True, encoding=self.encoding)
+        return html.tostring(root, pretty_print=True, encoding=self.encoding)
     
 class GenshiElement(translation.Element):
     """Genshi language element."""
@@ -147,7 +154,7 @@ class GenshiElement(translation.Element):
                 return True
             if self.element.xi_href:
                 return True
-            
+
         @property
         def define(self):
             return self.element.py_with
@@ -229,7 +236,7 @@ class GenshiElement(translation.Element):
         @property
         def translated_attributes(self):
             return self.element.i18n_attributes
-        
+
         @property
         def translate(self):
             return self.element.i18n_translate

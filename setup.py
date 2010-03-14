@@ -36,7 +36,8 @@ setup(name="Chameleon",
       tests_require=install_requires + [
           'zope.interface==3.5.2',
           'zope.component==3.7.1',
-          'zope.i18n==3.7.1'
+          'zope.i18n==3.7.1',
+          'lxml',
           ],
       test_suite="chameleon.tests",
       )

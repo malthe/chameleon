@@ -96,3 +96,32 @@ class ZopePageTemplatesTests(unittest.TestCase):
     def test_expressions_module(cls):
         from chameleon.zpt import expressions
         return doctest.DocTestSuite(expressions, optionflags=OPTIONFLAGS)
+
+class GenshiTemplatesTests(unittest.TestCase):
+    def __new__(self, test):
+        return getattr(self, test)()
+
+    @classmethod
+    @docfilesuite
+    def test_language(cls):
+        return os.path.join('genshi', 'language.txt')
+
+    @classmethod
+    @docfilesuite
+    def test_template(cls):
+        return os.path.join('genshi', 'template.txt')
+
+    @classmethod
+    @docfilesuite
+    def test_i18n(cls):
+        return os.path.join('genshi', 'i18n.txt')
+
+    @classmethod
+    def test_language_module(cls):
+        from chameleon.genshi import language
+        return doctest.DocTestSuite(language, optionflags=OPTIONFLAGS)
+
+    @classmethod
+    def test_expressions_module(cls):
+        from chameleon.genshi import expressions
+        return doctest.DocTestSuite(expressions, optionflags=OPTIONFLAGS)

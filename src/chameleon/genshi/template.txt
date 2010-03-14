@@ -9,7 +9,7 @@ Usage
 -----
 
   >>> from chameleon.genshi.template import GenshiTemplate
-  
+
   >>> print GenshiTemplate("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml">
   ...   Hello World!
@@ -19,9 +19,10 @@ Usage
   </div>
 
   >>> from chameleon.genshi.template import GenshiTemplateFile
-  >>> from chameleon.genshi import tests
-  
-  >>> path = tests.__path__[0]
+  >>> from chameleon import tests
+
+  >>> import os
+  >>> path = os.path.join(tests.__path__[0], 'templates')
   >>> t = GenshiTemplateFile(path+'/helloworld.html')
   >>> print t()
   <div xmlns="http://www.w3.org/1999/xhtml">
@@ -33,15 +34,15 @@ Usage
   True
 
   >>> from chameleon.genshi.template import GenshiTextTemplate
-  
+
   >>> print GenshiTextTemplate("Hello World!")()
   Hello World!
 
   >>> from chameleon.genshi.template import GenshiTextTemplateFile
   >>> t = GenshiTextTemplateFile(path+'/helloworld.txt')
-  >>> print t()
-  Hello World!
-  
+  >>> t()
+  'Hello W\xc3\xb5rld!\n'
+
 Compiler integration
 --------------------
 
@@ -70,7 +71,7 @@ is demonstrated below.
 
   >>> template1 = GenshiTemplateFile(path+"/xinclude1.html")
   >>> template2 = GenshiTemplateFile(path+"/xinclude2.html")
-  
+
   >>> print template1()
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>
@@ -80,7 +81,7 @@ is demonstrated below.
       Goodbye!
     </span>
   </div>
-  
+
 
 XML template
 ------------
