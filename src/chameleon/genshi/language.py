@@ -126,6 +126,7 @@ class GenshiElement(translation.Element):
     """Genshi language element."""
 
     translator = expressions.translator
+    strip_text = False
 
     class node(translation.Node):
         ns_omit = (
@@ -259,8 +260,16 @@ class GenshiElement(translation.Element):
 
         @property
         def text(self):
-            if self.element.text is not None:
-                parts = self.element.translator.split(self.element.text)
+            text = self.element.text
+            if text is not None:
+                parent = self.element.getparent()
+                if parent is not None and self.element.strip_text and parent[0] is self.element:
+                    text = text.lstrip('\n ')
+
+                if not self._interpolation_enabled:
+                    return (text,)
+
+                parts = self.element.translator.split(text)
                 if self.element.tag == '{http://www.w3.org/1999/xhtml}cdata':
                     return parts
 
@@ -268,15 +277,26 @@ class GenshiElement(translation.Element):
                     return parts
 
                 return tuple(
-                    isinstance(part, types.expression) and \
-                    types.escape(part) or part for part in parts)
+                    isinstance(part, types.expression) and types.escape(part) or \
+                    self.element.meta_structure is True and part or \
+                    utils.htmlescape(part) for part in parts)
 
             return ()
 
         @property
         def tail(self):
-            if self.element.tail is not None:
-                parts = self.element.translator.split(self.element.tail)
+            tail = self.element.tail
+            if tail is not None:
+                if self.element.strip_text:
+                    parent = self.element.getparent()
+                    if parent is not None and parent.strip_text and parent[-1] is self.element:
+                        tail = tail.rstrip('\n ')
+
+                parent = self.element.getparent()
+                if parent is not None and not parent.node._interpolation_enabled:
+                    return (tail,)
+
+                parts = self.element.translator.split(tail)
                 if self.element.tag == '{http://www.w3.org/1999/xhtml}cdata':
                     return parts
 
@@ -284,8 +304,10 @@ class GenshiElement(translation.Element):
                     return parts
 
                 return tuple(
-                    isinstance(part, types.expression) and \
-                    types.escape(part) or part for part in parts)
+                    isinstance(part, types.expression) and types.escape(part) or \
+                    self.element.meta_structure is True and part or \
+                    utils.htmlescape(part) for part in parts)
+
             return ()
 
     node = property(node)
@@ -406,6 +428,7 @@ class MetaElement(XHTMLElement, translation.MetaElement):
     pass
 
 class PyElement(XHTMLElement):
+    strip_text = True
     py_strip = utils.attribute("strip", lambda p: p.expression, u"")
 
 class PyIfElement(PyElement):
