@@ -9,7 +9,7 @@ class TestUnicodeMisc(unittest.TestCase):
         t = PageTextTemplateFile(os.path.join(path, 'helloworld.txt'))
         result = t()
         self._assert_unicode_equals(
-            result, u'Hello World!\nTesting utf-8: \xe4\xf6\xfc\xdf\n')
+            result, u'Hello W\xf5rld!\n')
 
     def test_utf8_values_in_page_text_template_file(self):
         import os
