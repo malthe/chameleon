@@ -132,7 +132,7 @@ class ASTCodeGenerator(object):
     # FunctionDef(identifier name, arguments args,
     #                           stmt* body, expr* decorators)
     def visit_FunctionDef(self, node):
-        for decorator in getattr(node, 'decorators', ()):
+        for decorator in getattr(node, 'decorator_list', ()):
             self._new_line()
             self._write('@')
             self.visit(decorator)
