@@ -975,11 +975,9 @@ class Compiler(object):
             clause.end(stream)
 
         if macro is not None:
-            if global_scope is False and macro == "" and 'xmlns' in root.attrib:
-                del root.attrib['xmlns']
-
             nsmap = {}
             namespaces = set()
+
             for tag in root.attrib:
                 if '}' not in tag:
                     continue
