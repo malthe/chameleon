@@ -12,9 +12,9 @@ class GenshiTemplate(template.Template):
             parser = self.default_parser
         super(GenshiTemplate, self).__init__(body, parser, format, doctype)
 
-    def render(self, **kwargs):
+    def render(self, *args, **kwargs):
         mt = kwargs['match_templates'] = language.MatchTemplates()
-        result = super(GenshiTemplate, self).render(**kwargs)
+        result = super(GenshiTemplate, self).render(*args, **kwargs)
         return mt.process(result)
 
 class GenshiTemplateFile(template.TemplateFile, GenshiTemplate):

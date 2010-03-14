@@ -12,10 +12,10 @@ class PageTemplate(template.Template):
         kwargs['parser']=parser is not None and parser or self.default_parser
         super(PageTemplate, self).__init__(body, **kwargs)
 
-    def render(self, **kwargs):
+    def render(self, *args, **kwargs):
         kwargs.setdefault("template", self)
         kwargs.setdefault("macros", self.macros)
-        return super(PageTemplate, self).render(**kwargs)
+        return super(PageTemplate, self).render(*args, **kwargs)
 
     def render_macro(self, macro, global_scope=False, slots={}, parameters={}):
         parameters.setdefault("macros", self.macros)
