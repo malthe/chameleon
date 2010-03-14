@@ -1,6 +1,12 @@
 Changes
 =======
 
+- XML namespace fixes.
+
+- Template instances may now be used as macros; this will use the
+  template in its entirety, including any XML declarations. This
+  addresses issue #139.
+
 - Integrated Genshi implementation.
 
 - Allow expression interpolation on any tag which is not part of the
