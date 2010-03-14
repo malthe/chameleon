@@ -103,7 +103,7 @@ class ZopePageTemplateElement(translation.Element):
                 self.element, config.I18N_NS)
 
             internal = tuple(itertools.chain(
-                tal_attributes, meta_attributes, meta_attributes, i18n_attributes))
+                tal_attributes, metal_attributes, meta_attributes, i18n_attributes))
 
             if self._interpolation_enabled:
                 for name, value in self.element.attrib.items():
