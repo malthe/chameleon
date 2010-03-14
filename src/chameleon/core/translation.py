@@ -152,6 +152,25 @@ class Node(object):
 
         return result
 
+    def interpolated_attributes(self, internal):
+        for name, value in self.element.attrib.items():
+            if name in internal:
+                continue
+            if '}' in name:
+                namespace, name = name[1:].split('}')
+                if namespace not in self.ns_omit:
+                    for prefix, ns in self.element.nsmap.items():
+                        if ns == namespace:
+                            break
+                    else:
+                        continue
+                    name = "%s:%s" % (prefix, name)
+            parts = self.element.translator.split(value)
+            for part in parts:
+                if isinstance(part, types.expression):
+                    yield types.declaration((name,)), types.join(parts)
+                    break
+
     @property
     def attribute_ordering(self):
         static = self.static_attributes
@@ -971,7 +990,7 @@ class Compiler(object):
             for prefix, namespace in root.nsmap.items():
                 if namespace in namespaces:
                     nsmap[prefix] = namespace
-                
+
             wrapper = self.tree.parser.makeelement(
                 utils.meta_attr('wrapper'), root.attrib.copy(), nsmap=nsmap)
             wrapper.append(root)

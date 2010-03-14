@@ -75,13 +75,13 @@ class ZopePageTemplateElement(translation.Element):
                 if isinstance(content, types.escape):
                     return types.escape((types.value(self.content_symbol),))
                 return types.parts((types.value(self.content_symbol),))
-        
+
         @property
         def _content(self):
             return (self.element.tal_content or
                     self.element.tal_replace or
                     self.element.meta_replace)
-                    
+
         @property
         def skip(self):
             return (bool(self.content) or
@@ -106,15 +106,7 @@ class ZopePageTemplateElement(translation.Element):
                 tal_attributes, metal_attributes, meta_attributes, i18n_attributes))
 
             if self._interpolation_enabled:
-                for name, value in self.element.attrib.items():
-                    if name in internal:
-                        continue
-                    parts = self.element.translator.split(value)
-                    for part in parts:
-                        if isinstance(part, types.expression):
-                            attributes.append(
-                                (types.declaration((name,)), types.join(parts)))
-                            break
+                attributes.extend(self.interpolated_attributes(internal))
 
             if self.element.tal_attributes is not None:
                 attributes.extend(self.element.tal_attributes)
