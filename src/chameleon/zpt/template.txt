@@ -431,7 +431,7 @@ Doctype declarations
 
 A macro can have an xml and/or doctype declaration.
 
-  >>> pagemacro = PageTemplate("""
+  >>> main = PageTemplate("""
   ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   ... <html xmlns="http://www.w3.org/1999/xhtml"
   ...       metal:define-macro="master">
@@ -448,7 +448,7 @@ A pagetemplate can also contain a doctype
   >>> template = PageTemplate("""
   ... <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   ... <div xmlns="http://www.w3.org/1999/xhtml"
-  ...      metal:use-macro="macro.macros['master']">
+  ...      metal:use-macro="main.macros['master']">
   ...   <div metal:fill-slot="content">
   ...     Content
   ...   </div>
@@ -458,7 +458,7 @@ The final rendered result should have only one doctype, although the doctype
 is defined both on the macro and the template.
 (http://bugs.repoze.org/issue116)
 
-  >>> print template(macro=pagemacro)
+  >>> print template(main=main)
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml">
     <body>
@@ -469,24 +469,23 @@ is defined both on the macro and the template.
     </body>
   </html>
 
-If the template contains no doctype, the one from the macro should be used
+If a template is used directly in ``metal:use-macro``, it inherits
+even the doctype.
 
   >>> template = PageTemplate("""
-  ... <div xmlns="http://www.w3.org/1999/xhtml"
-  ...      metal:use-macro="macro.macros['master']">
+  ... <div xmlns="http://www.w3.org/1999/xhtml" metal:use-macro="main">
   ...   <div metal:fill-slot="content">
   ...     Content
   ...   </div>
   ... </div>""")
 
-  >>> print template(macro=pagemacro)
+  >>> print template(main=main)
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml">
     <body>
       <div>
       Content
     </div>
-  <BLANKLINE>
     </body>
   </html>
 

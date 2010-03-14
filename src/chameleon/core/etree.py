@@ -395,9 +395,11 @@ class Annotation(property):
 
     def _get(instance, element):
         value = element.attrib.get(instance.name)
-        if value is not None:
-            return loads(base64.decodestring(value))
-        return instance.default
+        if value is None:
+            return instance.default
+        if value:
+            value = loads(base64.decodestring(value))
+        return value
 
     def _set(instance, element, value):
         element.attrib[instance.name] = base64.encodestring(dumps(value))

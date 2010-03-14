@@ -184,7 +184,16 @@ class Template(object):
             utils.raise_template_exception(
                 repr(self), kwargs, sys.exc_info())
 
-    def render(self, **kwargs):
+    def render(self, *args, **kwargs):
+        if args:
+            try:
+                slots, = args
+            except TypeError:
+                raise TypeError(
+                    "render() takes 1 or 2 non-keyword argument (%d given)" % \
+                        len(args))
+            return self.render_macro(
+                "", slots=slots, parameters=kwargs)
         return self.cook_and_render(kwargs, utils.emptydict, None, True)
 
     def render_macro(self, macro, global_scope=False, slots={}, parameters={}):
@@ -330,9 +339,9 @@ class TemplateFile(Template):
                     "Unable to read body (%s)." % self.filename)
         return Template.slots.fget(self)
 
-    def render(self, **kwargs):
+    def render(self, *args, **kwargs):
         kwargs[config.SYMBOLS.xincludes] = self.xincludes
-        return super(TemplateFile, self).render(**kwargs)
+        return super(TemplateFile, self).render(*args, **kwargs)
 
     def mtime(self):
         try:
