@@ -174,7 +174,7 @@ class ExpatParser(object):
                 prefix, name = key.split(':')
                 nsmap[name] = value
                 del attrs[key]
-            
+
         for key, value in attrs.items():
             try:
                 prefix, name = key.split(':')
@@ -188,9 +188,10 @@ class ExpatParser(object):
                 if self.root is not None:
                     element = self.element
 
-                    while element is None:
+                    while element is not None:
                         namespace = element.nsmap.get(prefix)
                         if namespace is not None:
+                            nsmap[prefix] = namespace
                             break
                         element = element.getparent()
 
@@ -385,7 +386,7 @@ class Parser(object):
     # which invokes the ``parse``-method
     def __call__(self, body):
         return self.parse(body)
-    
+
 class Annotation(property):
     def __init__(self, name, default=None):
         property.__init__(self, self._get, self._set)
@@ -405,7 +406,7 @@ class ElementBase(object):
     """ElementTree-compatible base element."""
 
     node = tree = parent = prefix = tail = text = None
-    
+
     def __init__(self, tag, attrib=None, nsmap=None):
         if attrib is None:
             attrib = {}
