@@ -105,7 +105,7 @@ class MatchTemplates(object):
                         else:
                             prev.tail = (prev.tail or "") + fragment
                         fragments.pop(0)
-                        
+
                     for fragment in fragments:
                         if isinstance(fragment, basestring):
                             assert prev is not None
@@ -121,12 +121,12 @@ class MatchTemplates(object):
                         prev.tail = tail
 
         return html.tostring(root, pretty_print=True, encoding=self.encoding)
-    
+
 class GenshiElement(translation.Element):
     """Genshi language element."""
 
     translator = expressions.translator
-    
+
     class node(translation.Node):
         ns_omit = (
             "http://xml.zope.org/namespaces/meta",
@@ -139,6 +139,10 @@ class GenshiElement(translation.Element):
 
         symbols = translation.Node.symbols(
             match_templates=config.TRANSIENT_SYMBOL)
+
+        @property
+        def _interpolation_enabled(self):
+            return self.element.meta_interpolation in config.TRUEVALS + ('',)
 
         @property
         def _interpolation_escape(self):
@@ -175,7 +179,7 @@ class GenshiElement(translation.Element):
         @property
         def skip(self):
             return bool(self.content) or self.translate is not None
-        
+
         @property
         def dict_attributes(self):
             return self.element.py_attrs
@@ -183,29 +187,19 @@ class GenshiElement(translation.Element):
         @property
         def dynamic_attributes(self):
             attributes = []
-            xhtml_attributes = {}
-            if self.element.prefix is None:
-                xhtml_attributes.update(utils.get_attributes_from_namespace(
-                    self.element, None))
 
-            for name, value in self.element.attrib.items():
-                if '}' in name:
-                    namespace, name = name[1:].split('}')
-                    if namespace not in self.ns_omit:
-                        for prefix, ns in self.element.nsmap.items():
-                            if ns == namespace:
-                                break
-                        else:
-                            continue
-                        xhtml_attributes["%s:%s" % (prefix, name)] = value
-            
-            for name, value in xhtml_attributes.items():
-                parts = self.element.translator.split(value)
-                for part in parts:
-                    if isinstance(part, types.expression):
-                        attributes.append(
-                            (types.declaration((name,)), types.join(parts)))
-                        break
+            py_attributes = utils.get_attributes_from_namespace(
+                self.element, config.PY_NS)
+            meta_attributes = utils.get_attributes_from_namespace(
+                self.element, config.META_NS)
+            i18n_attributes = utils.get_attributes_from_namespace(
+                self.element, config.I18N_NS)
+
+            internal = tuple(itertools.chain(
+                py_attributes, meta_attributes, i18n_attributes))
+
+            if self._interpolation_enabled:
+                attributes.extend(self.interpolated_attributes(internal))
 
             if self.element.meta_attributes is not None:
                 attributes.extend(self.element.meta_attributes)
@@ -393,6 +387,10 @@ class XHTMLElement(GenshiElement):
         utils.py_attr('replace'), lambda p: p.output)
     py_strip = utils.attribute(
         utils.py_attr('strip'), lambda p: p.expression)
+    meta_translator = etree.Annotation(
+        utils.meta_attr('translator'))
+    meta_interpolation = utils.attribute(
+        utils.meta_attr('interpolation'), default='true')
     meta_interpolation_escaping = utils.attribute(
         utils.meta_attr('interpolation-escaping'), default='true')
     i18n_translate = utils.attribute(
@@ -409,7 +407,7 @@ class MetaElement(XHTMLElement, translation.MetaElement):
 
 class PyElement(XHTMLElement):
     py_strip = utils.attribute("strip", lambda p: p.expression, u"")
-    
+
 class PyIfElement(PyElement):
     py_if = utils.attribute("test", lambda p: p.expression)
 
@@ -422,7 +420,7 @@ class PyWithElement(PyElement):
 
 class PyDefElement(PyElement):
     py_def = utils.attribute("function", lambda p: p.method)
-    
+
 class PyMatchElement(PyElement):
     py_match = utils.attribute("path")
     py_once = utils.attribute("once", default="false")
@@ -436,7 +434,7 @@ class TextElement(XHTMLElement):
 
 class Parser(etree.Parser):
     """The parser implementation for Genshi templates."""
-    
+
     element_mapping = {
         config.XHTML_NS: {None: XHTMLElement},
         config.META_NS: {None: MetaElement},
