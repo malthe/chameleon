@@ -160,6 +160,8 @@ Description
 The ``metal:use-macro`` statement replaces the statement element with
 a macro. The statement expression describes a macro definition.
 
+.. note:: In Chameleon the expression may point to a template instance; in this case it will be rendered in its entirety.
+
 In :mod:`zc.pt` the expression will generally be a expression
 referring to a macro defined in another template which is passed in to
 the rendering template. See ``metal:define-macro`` for more
