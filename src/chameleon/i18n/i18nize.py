@@ -1,4 +1,6 @@
 from lxml import etree
+import optparse
+import os
 import re
 import sys
 
@@ -112,16 +114,43 @@ def handleAttributes(el, counter):
 
 
 if __name__=="__main__":
-    tree=etree.parse(sys.argv[1])
-    root=tree.getroot()
-    if "i18n" not in root.nsmap:
-        root.nsmap["i18n"]=NSMAP["i18n"]
+    parser=optparse.OptionParser(usage="i18nify [options] <template> [<template>..]")
+    parser.add_option("-o", "--output", metavar="FILE",
+            help="Store the result in FILE instead.",
+            dest="output", action="store")
+    parser.add_option("-i", "--inplace",
+            help="Modify template files in-place.",
+            dest="inplace", action="store_true", default=False)
 
-    counter=Counter()
-    for el in tree.iter():
-        handleContent(el, counter)
-        handleAttributes(el, counter)
+    (options, args) = parser.parse_args()
+    if options.output and len(args)>1:
+        print >>sys.stderr, "Can not use -o/--output with multipe input files."
+        sys.exit(1)
+    if options.output and options.inplace:
+        print >>sys.stderr, "Using both -i/--inplace and -o/--output is not possible."
+        sys.exit(1)
 
+    for filename in args:
+        tree=etree.parse(filename)
+        root=tree.getroot()
+        if "i18n" not in root.nsmap:
+            root.nsmap["i18n"]=NSMAP["i18n"]
 
-    print etree.tostring(tree)
+        counter=Counter()
+        for el in tree.iter():
+            handleContent(el, counter)
+            handleAttributes(el, counter)
+
+        if options.inplace:
+            tmpname="%s~" % filename
+            tree.write(tmpname, encoding="utf-8")
+            os.rename(tmpname, filename)
+        else:
+            if options.output:
+                output=open(options.output, "w")
+            else:
+                output=sys.stdout
+
+            output.write(etree.tostring(tree))
+            output.write("\n")
 
