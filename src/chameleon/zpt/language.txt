@@ -583,11 +583,17 @@ We can disable this feature using ``meta:interpolation``::
   ...      xmlns:meta="http://xml.zope.org/namespaces/meta">
   ...   <div meta:interpolation="false">
   ...     ${'foo'}
+  ...     <![CDATA[
+  ...       ${'foo'}
+  ...     ]]>
   ...   </div>
   ... </div>""")
   <div xmlns="http://www.w3.org/1999/xhtml">
     <div>
       ${'foo'}
+      <![CDATA[
+        ${'foo'}
+      ]]>
     </div>
   </div>
 
