@@ -107,7 +107,7 @@ def handleAttributes(el, counter):
         if not el.attrib.get(attr, "").strip():
             del spec[attr]
     for attr in I18N_ATTRS:
-        if attr not in spec and attr in el.attrib:
+        if attr not in spec and el.attrib.get(attr, "").strip():
             spec[attr]="string%s" % counter
             counter+=1
     setTranslatedAttributes(el, spec)
