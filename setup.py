@@ -32,7 +32,14 @@ setup(name="Chameleon",
       package_dir = {'':'src'},
       include_package_data=True,
       zip_safe=False,
+      entry_points = """
+      [console_scripts]
+      i18nize = chameleon.i18n.i18nize:main [i18nize]
+      """,
       install_requires=install_requires,
+      extras_require = {
+          'i18nize' : [ "lxml", ],
+          },
       tests_require=install_requires + [
           'zope.interface==3.5.2',
           'zope.component==3.7.1',
