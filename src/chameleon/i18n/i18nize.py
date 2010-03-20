@@ -136,7 +136,15 @@ def main():
         sys.exit(1)
 
     for filename in args:
-        tree=etree.parse(filename)
+        try:
+            tree=etree.parse(filename)
+        except (IOError, etree.XMLSyntaxError), e:
+            msg=str(e)
+            if len(args)>1:
+                print >> sys.stderr, "%s: %s" % (filename, msg)
+            else:
+                print >> sys.stderr, msg
+            sys.exit(2)
         root=tree.getroot()
         if "i18n" not in root.nsmap:
             root.nsmap["i18n"]=NSMAP["i18n"]
