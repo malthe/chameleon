@@ -115,7 +115,7 @@ def handleAttributes(el, counter):
 
 def main():
     parser=optparse.OptionParser(
-            usage="i18nify [options] <template> [<template>..]",
+            usage="i18nify [options] [<template>..]",
             description="This script adds i18n attributes to Genshi and ZPT "
                         "templates so they can be translated by Chameleon.")
     parser.add_option("-o", "--output", metavar="FILE",
@@ -127,8 +127,7 @@ def main():
 
     (options, args) = parser.parse_args()
     if not args:
-        parser.print_usage()
-        return
+        args=[sys.stdin]
     if options.output and len(args)>1:
         print >>sys.stderr, "Can not use -o/--output with multipe input files."
         sys.exit(1)
