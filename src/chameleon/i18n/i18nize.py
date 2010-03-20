@@ -113,8 +113,11 @@ def handleAttributes(el, counter):
     setTranslatedAttributes(el, spec)
 
 
-if __name__=="__main__":
-    parser=optparse.OptionParser(usage="i18nify [options] <template> [<template>..]")
+def main():
+    parser=optparse.OptionParser(
+            usage="i18nify [options] <template> [<template>..]",
+            description="This script adds i18n attributes to Genshi and ZPT "
+                        "templates so they can be translated by Chameleon.")
     parser.add_option("-o", "--output", metavar="FILE",
             help="Store the result in FILE instead.",
             dest="output", action="store")
@@ -123,6 +126,9 @@ if __name__=="__main__":
             dest="inplace", action="store_true", default=False)
 
     (options, args) = parser.parse_args()
+    if not args:
+        parser.print_usage()
+        return
     if options.output and len(args)>1:
         print >>sys.stderr, "Can not use -o/--output with multipe input files."
         sys.exit(1)
@@ -154,3 +160,6 @@ if __name__=="__main__":
             output.write(etree.tostring(tree))
             output.write("\n")
 
+
+if __name__=="__main__":
+    main()
