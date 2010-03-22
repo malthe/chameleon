@@ -1,8 +1,12 @@
-from lxml import etree
 import optparse
 import os
 import re
 import sys
+
+try:
+    from lxml import etree
+except ImportError:
+    etree = None
 
 HTML_COMMENT = re.compile(r"<!--.*?-->")
 EXPANSION = re.compile(r"\${.*?}")
@@ -124,6 +128,10 @@ def main():
     parser.add_option("-i", "--inplace",
             help="Modify template files in-place.",
             dest="inplace", action="store_true", default=False)
+
+    if etree is None:
+        print >>sys.stderr, "Must have ``lxml`` package installed."
+        sys.exit(1)
 
     (options, args) = parser.parse_args()
     if not args:
