@@ -89,8 +89,8 @@ class TemplateASTTransformer(ASTTransformer):
         try:
             return ASTTransformer.visit_FunctionDef(self, node)
         finally:
-            self.locals.pop()
             if node.args.args:
+                self.locals.pop()
                 self.names -= newnames
 
     def visit_Name(self, node):
