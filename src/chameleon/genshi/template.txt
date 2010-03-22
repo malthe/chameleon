@@ -106,7 +106,8 @@ Multiple functions
 Four or more function definitions should not result in an error:
 
   >>> print GenshiTemplate("""\
-  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:py="http://genshi.edgewall.org/">
   ...   <py:def function="func1"></py:def>
   ...   <py:def function="func2"></py:def>
   ...   <py:def function="func3"></py:def>
