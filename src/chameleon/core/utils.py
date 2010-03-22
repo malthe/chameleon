@@ -171,11 +171,12 @@ def _elements_with_attribute(element, ns, name, value):
             yield match
 
 class attribute(property):
-    def __init__(self, tokens, factory=None, default=None, encoding=None):
+    def __init__(self, tokens, factory=None, default=None, encoding=None, recursive=False):
         self.tokens = tokens
         self.factory = factory
         self.default = default
         self.encoding = encoding
+        self.recursive = recursive
         property.__init__(self, self.__call__)
 
     def __call__(attribute, element):
@@ -193,6 +194,11 @@ class attribute(property):
                 return value
             f = attribute.factory(element.translator)
             return f(value)
+
+        if attribute.recursive:
+            parent = element.getparent()
+            if parent is not None:
+                return attribute(parent)
 
         if attribute.default is not None:
             return attribute.default

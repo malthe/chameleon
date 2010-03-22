@@ -412,9 +412,9 @@ class XHTMLElement(GenshiElement):
     meta_translator = etree.Annotation(
         utils.meta_attr('translator'))
     meta_interpolation = utils.attribute(
-        utils.meta_attr('interpolation'), default='true')
+        utils.meta_attr('interpolation'), default='true', recursive=True)
     meta_interpolation_escaping = utils.attribute(
-        utils.meta_attr('interpolation-escaping'), default='true')
+        utils.meta_attr('interpolation-escaping'), default='true', recursive=True)
     i18n_translate = utils.attribute(
         utils.i18n_attr('translate'))
     i18n_attributes = utils.attribute(

@@ -15,7 +15,7 @@ class ZopePageTemplateElement(translation.Element):
     """
 
     strip_text = False
-    
+
     class node(translation.Node):
         symbols = translation.Node.symbols(
             macros=config.TRANSIENT_SYMBOL)
@@ -231,7 +231,7 @@ class ZopePageTemplateElement(translation.Element):
     i18n_domain = None
     i18n_translate = None
     i18n_attributes = None
-    
+
     tal_define = None
     tal_condition = None
     tal_replace = None
@@ -242,10 +242,10 @@ class ZopePageTemplateElement(translation.Element):
     meta_translator = etree.Annotation(
         utils.meta_attr('translator'))
     meta_interpolation = utils.attribute(
-        utils.meta_attr('interpolation'), default='true')
+        utils.meta_attr('interpolation'), default='true', recursive=True)
     meta_interpolation_escaping = utils.attribute(
-        utils.meta_attr('interpolation-escaping'), default='true')
-    
+        utils.meta_attr('interpolation-escaping'), default='true', recursive=True)
+
 class XHTMLElement(ZopePageTemplateElement):
     """XHTML namespace element."""
 
