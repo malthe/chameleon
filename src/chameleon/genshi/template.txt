@@ -107,17 +107,10 @@ Four or more function definitions should not result in an error:
 
   >>> print GenshiTemplate("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml">
-  ...   <py:def function="navigation">
-  ...   </py:def>
-  ... 
-  ...   <py:def function="profileWarning">
-  ...   </py:def>
-  ... 
-  ...   <py:def function="appendix(ie6warning)">
-  ...   </py:def>
-  ... 
-  ...   <py:def function="analytics">
-  ...   </py:def>
+  ...   <py:def function="func1"></py:def>
+  ...   <py:def function="func2"></py:def>
+  ...   <py:def function="func3"></py:def>
+  ...   <py:def function="func4"></py:def>
   ... </html>""")()
   <html xmlns="http://www.w3.org/1999/xhtml"></html>
   
