@@ -98,3 +98,27 @@ XML can be generated too and non-XHTML attributes can contain expressions
   <WMS_MS_Capabilities xmlns:xlink="http://www.w3.org/1999/xlink">
     <OnlineResource xlink:href="http://example.com/wms?" />
   </WMS_MS_Capabilities>
+
+
+Multiple functions
+------------------
+
+Four or more function definitions should not result in an error:
+
+  >>> print GenshiTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <py:def function="navigation">
+  ...   </py:def>
+  ... 
+  ...   <py:def function="profileWarning">
+  ...   </py:def>
+  ... 
+  ...   <py:def function="appendix(ie6warning)">
+  ...   </py:def>
+  ... 
+  ...   <py:def function="analytics">
+  ...   </py:def>
+  ... </html>""")()
+  <html xmlns="http://www.w3.org/1999/xhtml"></html>
+  
+
