@@ -117,3 +117,16 @@ Four or more function definitions should not result in an error:
   </html>
 
 
+Use of i18n:name in a function
+------------------------------
+  >>> print GenshiTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <py:def function="func">
+  ...   <strong i18n:translate="string1">Text <br i18n:name="newline"/>text</strong>
+  ...   </py:def>
+  ...   ${func()}
+  ... </html>""")()
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <strong>Text <br/>text</strong>
+  </html>
