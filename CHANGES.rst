@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Fixed list comprehension issue.
+
 - Fixed issue with interpolation flag and CDATA; the effect of this
   flag is now recursive, which indirectly means that CDATA elements
   will be affected by a setting on a parent tag.

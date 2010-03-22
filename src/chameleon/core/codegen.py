@@ -113,14 +113,23 @@ class TemplateASTTransformer(ASTTransformer):
                 subscr.slice = idx
                 subscr.ctx = ast.Load()
                 return subscr
-            
+
+
         if isinstance(node.ctx, ast.Store):
             self.locals[-1].add(node.id)
             self.names.add(node.id)
+
         if isinstance(node.ctx, ast.Del):
             self.locals[-1].remove(node.id)
             self.names.remove(node.id)
 
+        return node
+
+    def visit_ListComp(self, node):
+        self.locals.append(set())
+        node.generators = [self.visit(gen) for gen in node.generators]
+        node = super(TemplateASTTransformer, self).visit_ListComp(node)
+        self.locals.pop()
         return node
 
     def visit_ImportFrom(self, node):

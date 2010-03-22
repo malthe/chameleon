@@ -524,6 +524,25 @@ metal:define-slot, metal:fill-slot
     </div>
   </div>
 
+List Comprehension
+------------------
+
+An issue was observed where list comprehension notation resulted
+in a NameError unless the iterator was already defined.
+
+ >>> print render("""\
+ ... <div xmlns="http://www.w3.org/1999/xhtml"
+ ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+ ...  <span tal:content="'-'.join([str(foo) for foo in range(6)])" />
+ ...  <span tal:content="'-'.join(str(foo) for foo in range(6))" />
+ ...  <span tal:content="'-'.join((str(foo) for foo in range(6)))" />
+ ... </div>""")
+ <div xmlns="http://www.w3.org/1999/xhtml">
+  <span>0-1-2-3-4-5</span>
+  <span>0-1-2-3-4-5</span>
+  <span>0-1-2-3-4-5</span>
+ </div>
+
 Expression interpolation
 ------------------------
 
