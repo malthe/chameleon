@@ -341,6 +341,27 @@ If a message id is supplied, unnamed blocks are rendered as-is.
     Mock translation of 'msg_id'.
   </div>
 
+Nested translation.
+
+  >>> template = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <h4 i18n:domain="test" i18n:translate="">
+  ...     <em i18n:name="amount" i18n:translate="">
+  ...         (1 van <tal:weight i18n:name="weight" replace="weight" />)
+  ...     </em>
+  ...   </h4>
+  ... </div>""")
+
+  >>> print template.render(weight=32)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <h4>
+      <em>
+         (1 van 32)
+      </em>
+    </h4>
+  </div>
+
 Using METAL and i18n together:
 
   >>> template = PageTemplate("""\

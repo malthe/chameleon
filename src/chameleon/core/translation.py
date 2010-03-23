@@ -670,7 +670,8 @@ class Node(object):
                         types.template('%(msgid)s + %(out)s.getvalue()'),
                         self.symbols.msgid))
 
-                _.append(clauses.Group(subclauses))
+                _.append(clauses.Condition(
+                    types.value('True'), subclauses, finalize=True))
 
             if msgid:
                 value = types.value(repr(msgid)).replace('%', '%%')
