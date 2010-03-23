@@ -8,14 +8,18 @@ def cache(func):
             self.registry[args] = template = func(self, *args)
         return template
     return load
-    
-class TemplateLoader(object):
-    """Template loader tool. To load templates using relative
-    filenames, pass a sequence of paths (or a single path) as
-    ``search_path``; if ``auto_reload`` is set, templates will be
-    reloaded when modified."""
 
-    def __init__(self, search_path=None, auto_reload=False, parser=None):
+class TemplateLoader(object):
+    """Template loader tool.
+
+    To load templates using relative filenames, pass a sequence of
+    paths (or a single path) as ``search_path``; if ``auto_reload`` is
+    set, templates will be reloaded when modified.
+
+    If ``translate`` is set, it will be used to translate messages.
+    """
+
+    def __init__(self, search_path=None, auto_reload=False, parser=None, translate=None):
         if search_path is None:
             search_path = []
         if isinstance(search_path, basestring):
