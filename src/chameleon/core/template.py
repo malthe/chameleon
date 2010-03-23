@@ -33,6 +33,9 @@ class Template(object):
     To enable default attribute prefix rendering, use the
     ``omit_default_prefix`` parameter (required for certain legacy
     applications).
+
+    To provide a custom translation function, use the ``translate``
+    parameter.
     """
 
     format = 'xml'
