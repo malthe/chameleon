@@ -5,7 +5,7 @@ try:
     from hashlib import sha1 as sha
 except ImportError:
     from sha import sha
-    
+
 try:
     import codegen
 except ImportError:
@@ -219,7 +219,7 @@ class Node(object):
         if isinstance(self.skip, types.expression):
             if len(self.element):
                 condition.end(self.stream)
-                    
+
     def visit(self):
         assert self.stream is not None, "Must use ``start`` method."
 
@@ -272,7 +272,7 @@ class Node(object):
                     _.append(clauses.Write(part, defer=True))
                 else:
                     _.append(clauses.Out(part, defer=True))
-            
+
         # macro method
         macro = self.macro
         if macro is not None:
@@ -280,8 +280,19 @@ class Node(object):
                 dictionary = self.symbols.remote_scope
             else:
                 dictionary = self.symbols.scope
+
+            exclude = set((
+                self.symbols.scope, self.symbols.slots)) | \
+                self.stream.scope[0] | set(macro.args)
+
+            scope = set(itertools.chain(*self.stream.scope[1:])) | set((
+                self.symbols.out, self.symbols.write))
+
+            args = tuple(macro.args) + tuple(
+                "%s=%s" % (name, name) for name in scope if name not in exclude)
+
             _.append(clauses.Method(
-                macro.name, macro.args,
+                macro.name, args,
                 decorators=macro.decorators,
                 dictionary=dictionary))
 
@@ -299,7 +310,7 @@ class Node(object):
                     break
             else:
                 newline = False
-                
+
             if len(variables) > 1:
                 repeat = clauses.Repeat(
                     variables, expression, repeatdict=False, newline=newline)
@@ -317,7 +328,7 @@ class Node(object):
 
         content = self.content
         omit = self.omit
-        
+
         if self.define_slot:
             name = self.define_slot
             scope = set(itertools.chain(*self.stream.scope[1:]))
@@ -373,7 +384,7 @@ class Node(object):
         # dynamic attributes
         dynamic_attrs = self.dynamic_attributes or ()
         dynamic_attr_names = []
-        
+
         for variables, expression in dynamic_attrs:
             if len(variables) != 1:
                 raise ValueError("Tuple definitions in assignment clause "
@@ -450,7 +461,7 @@ class Node(object):
                 _.insert(0, clauses.Assign(
                     value, "%s.value = %s" % (
                         self.symbols.default_marker_symbol, self.symbols.default)))
-                
+
             _.append(clauses.Write(content))
 
         # dynamic text
@@ -462,7 +473,7 @@ class Node(object):
 
             init_stream = types.value('_init_stream()')
             init_stream.symbol_mapping['_init_stream'] = generation.initialize_stream
-            
+
             subclauses = []
             subclauses.append(clauses.Define(
                 types.declaration((self.symbols.out, self.symbols.write)), init_stream))
@@ -478,7 +489,7 @@ class Node(object):
             # attempt translation
             subclauses.append(clauses.Assign(
                 self.translate_expression(
-                types.value('%(out)s.getvalue()'), 
+                types.value('%(out)s.getvalue()'),
                 default=None), self.symbols.tmp))
 
             _.append(clauses.Group(subclauses))
@@ -594,7 +605,7 @@ class Node(object):
             # unnamed elements, the message id must be dynamic
             named_elements = [e for e in self.element
                               if e.node.translation_name]
-            
+
             unnamed_elements = [e for e in self.element
                                 if not e.node.translation_name]
 
@@ -602,7 +613,7 @@ class Node(object):
                 elements = ()
             else:
                 elements = tuple(self.element)
-            
+
             # if no message id is provided, there are two cases:
             #
             # 1) all dynamic content is assigned a translation name
@@ -637,7 +648,7 @@ class Node(object):
                 # if the element is named, record it in the mapping
                 if element in named_elements:
                     name = element.node.translation_name
-                    
+
                     subclauses.append(clauses.Assign(
                         types.template('%(out)s.getvalue()'),
                         "%s['%s']" % (mapping, name)))
@@ -709,7 +720,7 @@ class Node(object):
                     _.append(clauses.Else(subclauses))
             else:
                 _.append(clauses.UnicodeWrite(result))
-                
+
         return _
 
     def wrap_literal(self, element):
@@ -770,7 +781,7 @@ class Element(etree.ElementBase):
             return self.element.meta_replace
 
     node = property(node)
-    
+
     def start(self, stream):
         self._stream = stream
         self.node.visit()
@@ -822,13 +833,13 @@ class MetaElement(Element):
     meta_omit = True
 
     meta_structure = True
-    
+
     meta_attributes = etree.Annotation('attributes')
 
     meta_replace = etree.Annotation('replace')
 
     meta_omit_default_prefix = etree.Annotation('omit-default-prefix')
-    
+
 class Compiler(object):
     """Template compiler.
 

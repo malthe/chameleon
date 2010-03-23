@@ -223,8 +223,7 @@ class GenshiElement(translation.Element):
                 decorator = '%s("""%s""", %s)' % (
                     self.match_symbol, self.element.py_match, once)
                 return types.method(
-                    "match", ["%s=None" % arg for arg in args],
-                    decorators=(decorator,))
+                    "match", args, decorators=(decorator,))
 
             return self.element.py_def
 

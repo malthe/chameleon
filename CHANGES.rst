@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Fixed issue where translation name mappings would conflict with
+  template function definitions.
+
 - Fixed list comprehension issue.
 
 - Fixed issue with interpolation flag and CDATA; the effect of this
