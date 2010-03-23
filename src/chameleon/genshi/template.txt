@@ -128,5 +128,5 @@ Use of i18n:name in a function
   ...   ${func()}
   ... </html>""")()
   <html xmlns="http://www.w3.org/1999/xhtml">
-    <strong>Text <br/>text</strong>
+    <strong>Text <br />text</strong>
   </html>
