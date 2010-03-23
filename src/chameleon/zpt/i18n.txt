@@ -321,7 +321,34 @@ If a message id is supplied, unnamed blocks are rendered as-is.
   <div xmlns="http://www.w3.org/1999/xhtml">
     Mock translation of 'msg_id'.
   </div>
-  
+
+Using METAL and i18n together:
+
+  >>> template = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <div metal:define-macro="macro">
+  ...     <p i18n:domain="test" i18n:translate="">
+  ...       <span i18n:name="count" tal:content="count|default">18</span> bananas.
+  ...     </p>
+  ...   </div>
+  ...   <div tal:define="count 42" metal:use-macro="macros.macro" />
+  ... </div>""")
+
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+      <p>
+        <span>18</span> bananas.
+      </p>
+    </div>
+    <div>
+      <p>
+        <span>42</span> bananas.
+      </p>
+    </div>
+  </div>
+
 Translation of tag attributes
 -----------------------------
 
