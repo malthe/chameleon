@@ -7,10 +7,10 @@ class GenshiTemplate(template.Template):
 
     default_parser = language.Parser()
 
-    def __init__(self, body, parser=None, format=None, doctype=None):
+    def __init__(self, body, parser=None, **kwargs):
         if parser is None:
             parser = self.default_parser
-        super(GenshiTemplate, self).__init__(body, parser, format, doctype)
+        super(GenshiTemplate, self).__init__(body, parser, **kwargs)
 
     def render(self, *args, **kwargs):
         mt = kwargs['match_templates'] = language.MatchTemplates()
@@ -20,12 +20,11 @@ class GenshiTemplate(template.Template):
 class GenshiTemplateFile(template.TemplateFile, GenshiTemplate):
     __doc__ = template.TemplateFile.__doc__ # for Sphinx autodoc
 
-    def __init__(self, filename, parser=None, format=None,
-                 doctype=None, **kwargs):
+    def __init__(self, filename, parser=None, **kwargs):
         if parser is None:
             parser = self.default_parser
         super(GenshiTemplateFile, self).__init__(
-            filename, parser, format, doctype, **kwargs)
+            filename, parser, **kwargs)
 
 class GenshiTextTemplate(GenshiTemplate):
     __doc__ = template.Template.__doc__ # for Sphinx autodoc
