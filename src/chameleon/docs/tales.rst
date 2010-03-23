@@ -44,8 +44,8 @@ These are the TALES expression types supported by default in
    expression.
 
 There's a mechanism to allow fallback to alternative expressions, if one should fail (raise an exception). The pipe character ('|') is used to separate two expressions.
-   
-.. warning:: The reference implementation of ZPT has a number of expression types that are closely tied to the Zope framework. See :ref:`using_with_zope`.
+
+.. warning:: The reference implementation of ZPT has a number of expression types that are closely tied to the Zope framework.
 
 .. _tales_built_in_names:
 
