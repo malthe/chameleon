@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Added support for passing in a translation function to the template
+  constructor.
+
 - Fixed issue where translation name mappings would conflict with
   template function definitions.
 

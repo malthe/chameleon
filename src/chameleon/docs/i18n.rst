@@ -3,35 +3,59 @@
 Internationalization via the ``i18n`` Namespace
 ===============================================
 
-Internationalization support is provided via the ``i18n`` namespace
-and a *translation domain*. It's required to use the Zope Component
-Architecture to register translation domains.
+Translation of template contents and attributes is supported via the
+``i18n`` namespace. It's available to both Genshi and Zope Page
+Templates.
+
+Providing a translation function
+--------------------------------
+
+The simplest way to hook into the translation machinery is to provide
+a translation function to the template constructor::
+
+  >>> from chameleon.genshi.template import GenshiTemplate
+  >>> template = GenshiTemplate(source, translate=my_translation_function)
+
+This function has the following signature::
+
+  def translate(msgid, domain=None, mapping=None, context=None,
+                target_language=None, default=None)
+
+The same API is used with Zope Page Templates.
 
 Registering a Translation Domain
 --------------------------------
+
+By default, if ``zope.i18n`` is available, this framework is used to
+translate messages. This requires the use of *translation domains*.
 
 A translation domain object is an object with a ``translate`` method
 which accepts certain arguments.  It returns a translation for the
 given msgid or the default.
 
-You may register a translation domain within your own code by using
-the Zope Component Architecture::
+.. note:: It's required to use the Zope Component Architecture to register translation domains.
+
+The following snippet describes how to manually register a translation
+domain component::
 
   from zope import component
   from zope import interface
 
   class MockTranslationDomain(object):
        interface.implements(ITranslationDomain)
- 
+
        def translate(self, msgid, mapping=None, context=None,
                     target_language=None, default=None):
            if target_language != 'de':
                return default
-  
+
            return "Mock translation of '%s'." % msgid
 
   td = MockTranslationDomain()
   component.provideUtility(td, ITranslationDomain, name="test")
+
+As an alternative, the ``registerTranslations`` ZCML-directive can be
+used if you're configuring components using ``zope.configuration``.
 
 The domain's name is used to specify which translation to use.  A
 favorite example is: How do you translate 'Sun'? Is it our star, the

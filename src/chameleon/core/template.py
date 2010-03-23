@@ -44,7 +44,7 @@ class Template(object):
     translate = staticmethod(i18n.fast_translate)
 
     def __init__(self, body, parser, format=None, doctype=None,
-                 encoding=None, omit_default_prefix=True):
+                 encoding=None, omit_default_prefix=True, translate=None):
         if encoding is not None:
             self.encoding = encoding
 
@@ -61,8 +61,11 @@ class Template(object):
         if format is not None:
             self.format = format
 
-        if doctype is not None:            
+        if doctype is not None:
             self.explicit_doctype = doctype
+
+        if translate is not None:
+            self.translate = translate
 
         self.parser = parser
         self.body = body

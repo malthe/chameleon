@@ -1,7 +1,7 @@
 .. -*- coding: utf-8 -*-
 
-Internationalization
---------------------
+Internationalization (I18N)
+===========================
 
 Page templates support the i18n attribute language. The implementation
 is based on this document:
@@ -11,10 +11,53 @@ is based on this document:
 With the exception of i18n:data and i18n:source, the implementation is
 complete.
 
-To get set started, let's provide German mock translations for all
-msgids:
+API
+---
 
-  >>> from zope import component
+To demonstrate the high-level API, the following template requires
+translation of tag contents.
+
+  >>> from chameleon.zpt.template import PageTemplate
+  >>> template = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test" i18n:translate="msgid">Default</span>
+  ... </div>""")
+
+Without passing a language, we simply get the default value.
+
+  >>> print template.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Default</span>
+  </div>
+
+To translate messages, we define a translation function. The following
+describes the method signature:
+
+  >>> def translate(msgid, domain=None, mapping=None, context=None,
+  ...               target_language=None, default=None):
+  ...     return msgid.upper()
+
+Let's initialize a new template instance, this time passing in a
+translation function.
+
+  >>> template_with_translation = PageTemplate(template.body, translate=translate)
+
+If we now render the template, our translation message id should be
+uppercased.
+
+  >>> print template_with_translation.render()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>MSGID</span>
+  </div>
+
+When ``zope.i18n`` is available (separately available from the Python
+Package Index), this framework is used for translation. We will use
+this for the remainder of this test.
+
+The following sets up a translation domain that provides mock
+translations for the German language code, ``"de"``.
+
   >>> from zope import interface
   >>> from chameleon.core import utils
 
@@ -33,41 +76,17 @@ msgids:
   ...             mock += ' mapping=%s' % mapping
   ...         return mock + '.'
 
-  >>> td = MockTranslationDomain()
-  >>> component.provideUtility(td, ITranslationDomain, name="test")
+  >>> from zope import component
+  >>> component.provideUtility(MockTranslationDomain(), ITranslationDomain, name="test")
 
 Translation of tag contents
 ---------------------------
-
-First, a simple example:
-
-  >>> body = """\
-  ... <div xmlns="http://www.w3.org/1999/xhtml"
-  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-  ...   <span i18n:domain="test" i18n:translate="test_msgid">
-  ...     Default
-  ...   </span>
-  ... </div>"""
-
-First we need to turn the template into a callable:
-
-  >>> from chameleon.zpt.template import PageTemplate
-  >>> template = PageTemplate(body)
-
-Let's try rendering this template without passing a target language.
-
-  >>> print template.render()
-  <div xmlns="http://www.w3.org/1999/xhtml">
-    <span>
-      Default
-    </span>
-  </div>
 
 Now we'll render the template again---passing German as the language.
 
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span>Mock translation of 'test_msgid'.</span>
+    <span>Mock translation of 'msgid'.</span>
   </div>
 
 Let's try infering the translation message id from the tag body.
@@ -302,7 +321,7 @@ Dynamic content and sub-tags in a translation:
   </div>
 
 If a message id is supplied, unnamed blocks are rendered as-is.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
@@ -353,7 +372,7 @@ Translation of tag attributes
 -----------------------------
 
 A simple example to start with.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">

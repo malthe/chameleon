@@ -13,6 +13,8 @@ Reference
 
 Please see the Genshi `XML template reference <http://genshi.edgewall.org/wiki/Documentation/0.5.x/templates.html>`_.
 
+For internationalization support, see :ref:`i18n_chapter`.
+
 .. _genshitemplate_api_module:
 
 API reference
