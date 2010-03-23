@@ -1,11 +1,12 @@
 from chameleon.core import template
-
-import language
+from chameleon.genshi.language import MatchTemplates
+from chameleon.genshi.language import Parser
+from chameleon.genshi.language import TextParser
 
 class GenshiTemplate(template.Template):
     __doc__ = template.Template.__doc__ # for Sphinx autodoc
 
-    default_parser = language.Parser()
+    default_parser = Parser()
 
     def __init__(self, body, parser=None, **kwargs):
         if parser is None:
@@ -13,7 +14,7 @@ class GenshiTemplate(template.Template):
         super(GenshiTemplate, self).__init__(body, parser, **kwargs)
 
     def render(self, *args, **kwargs):
-        mt = kwargs['match_templates'] = language.MatchTemplates()
+        mt = kwargs['match_templates'] = MatchTemplates()
         result = super(GenshiTemplate, self).render(*args, **kwargs)
         return mt.process(result)
 
@@ -28,10 +29,10 @@ class GenshiTemplateFile(template.TemplateFile, GenshiTemplate):
 
 class GenshiTextTemplate(GenshiTemplate):
     __doc__ = template.Template.__doc__ # for Sphinx autodoc
-    default_parser = language.TextParser()
+    default_parser = TextParser()
     format = 'text'
 
 class GenshiTextTemplateFile(GenshiTemplateFile):
     __doc__ = template.Template.__doc__ # for Sphinx autodoc
-    default_parser = language.TextParser()
+    default_parser = TextParser()
     format = 'text'
