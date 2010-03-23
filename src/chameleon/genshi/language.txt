@@ -52,6 +52,22 @@ py:if can be used to make an XInclude optional:
   <BLANKLINE>
   </div>
 
+py:if with a lambda:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:xi="http://www.w3.org/2001/XInclude"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <p py:if="filter(lambda x: x%2==0, [0,2,4,6])">
+  ...     All numbers are odd.
+  ...   </p>
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <p>
+      All numbers are odd.
+    </p>
+  </div>
+
 py:choose, py:when, py:otherwise
 
   >>> print render("""\

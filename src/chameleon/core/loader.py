@@ -15,7 +15,7 @@ class TemplateLoader(object):
     ``search_path``; if ``auto_reload`` is set, templates will be
     reloaded when modified."""
 
-    def __init__(self, search_path=None, auto_reload=False, parser=None):
+    def __init__(self, search_path=None, auto_reload=False, parser=None, target_language=None):
         if search_path is None:
             search_path = []
         if isinstance(search_path, basestring):
@@ -25,6 +25,7 @@ class TemplateLoader(object):
         self.parser = parser
         if parser is None:
             self.parser = getattr(self, 'default_parser', None)
+        self.target_language = target_language
         self.registry = {}
 
     @cache
