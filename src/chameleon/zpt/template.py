@@ -1,13 +1,12 @@
 from chameleon.core import template
-
-import language
+from chameleon.zpt.language import Parser
+from chameleon.zpt.language import TextParser
 
 class PageTemplate(template.Template):
     __doc__ = template.Template.__doc__ # for Sphinx autodoc
-
-    default_parser = language.Parser()
+    default_parser = Parser()
     version = 3
-    
+
     def __init__(self, body, parser=None, **kwargs):
         kwargs['parser']=parser is not None and parser or self.default_parser
         super(PageTemplate, self).__init__(body, **kwargs)
@@ -25,7 +24,7 @@ class PageTemplate(template.Template):
 class PageTemplateFile(template.TemplateFile, PageTemplate):
     __doc__ = template.TemplateFile.__doc__ # for Sphinx autodoc
 
-    default_parser = language.Parser()
+    default_parser = Parser()
 
     def __init__(self, filename, parser=None, **kwargs):
         kwargs['parser']=parser is not None and parser or self.default_parser
@@ -33,11 +32,11 @@ class PageTemplateFile(template.TemplateFile, PageTemplate):
 
 class PageTextTemplate(PageTemplate):
     __doc__ = template.Template.__doc__ # for Sphinx autodoc
-    default_parser = language.TextParser()
+    default_parser = TextParser()
     format = 'text'
 
 class PageTextTemplateFile(PageTemplateFile):
     __doc__ = template.Template.__doc__ # for Sphinx autodoc
-    default_parser = language.TextParser()
+    default_parser = TextParser()
     format = 'text'
 
