@@ -1,13 +1,16 @@
 Changes
 =======
 
+- Fixed issue where nested translations would fail.
+
 - Added support for passing in a translation function to the template
   constructor.
 
 - Fixed issue where translation name mappings would conflict with
   template function definitions.
 
-- Fixed list comprehension issue.
+- Fixed symbol lookup issue with list comprehensions and lambda
+  expressions.
 
 - Fixed issue with interpolation flag and CDATA; the effect of this
   flag is now recursive, which indirectly means that CDATA elements
