@@ -670,6 +670,12 @@ class Node(object):
                         types.template('%(msgid)s + %(out)s.getvalue()'),
                         self.symbols.msgid))
 
+                # XXX: note that this should read:
+                # _.append(clauses.Group(subclauses))
+                #
+                # but there's a problem with multiple temporary
+                # variable assignments within the same block; this is
+                # just an easy work-around
                 _.append(clauses.Condition(
                     types.value('True'), subclauses, finalize=True))
 
