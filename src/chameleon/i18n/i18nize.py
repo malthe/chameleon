@@ -155,7 +155,10 @@ def main():
             sys.exit(2)
         root=tree.getroot()
         if "i18n" not in root.nsmap:
-            root.nsmap["i18n"]=NSMAP["i18n"]
+            newroot=etree.Element(root.tag,
+                    nsmap=dict(i18n=NSMAP["i18n"], **root.nsmap))
+            newroot[:]=root[:]
+            root=newroot
 
         counter=Counter()
         for el in tree.iter():
@@ -172,7 +175,10 @@ def main():
             else:
                 output=sys.stdout
 
-            output.write(etree.tostring(tree))
+            if tree.docinfo.doctype:
+                output.write(tree.docinfo.doctype)
+                output.write("\n")
+            output.write(etree.tostring(root))
             output.write("\n")
 
 
