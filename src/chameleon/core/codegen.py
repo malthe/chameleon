@@ -115,7 +115,7 @@ class TemplateASTTransformer(ASTTransformer):
                 return subscr
 
 
-        if isinstance(node.ctx, ast.Store):
+        if isinstance(node.ctx, (ast.Param, ast.Store)):
             self.locals[-1].add(node.id)
             self.names.add(node.id)
 
@@ -123,13 +123,6 @@ class TemplateASTTransformer(ASTTransformer):
             self.locals[-1].remove(node.id)
             self.names.remove(node.id)
 
-        return node
-
-    def visit_ListComp(self, node):
-        self.locals.append(set())
-        node.generators = [self.visit(gen) for gen in node.generators]
-        node = super(TemplateASTTransformer, self).visit_ListComp(node)
-        self.locals.pop()
         return node
 
     def visit_ImportFrom(self, node):
@@ -157,7 +150,7 @@ class TemplateASTTransformer(ASTTransformer):
         ##             [self.visit(node.value), ast.Str(node.attr)],
         ##             [], None, None)
         ## .. except Python 2.5 doesn't allow it.
-        
+
         call = ast.Call()
         name = ast.Name()
         name.id = '_lookup_attr'
@@ -171,6 +164,24 @@ class TemplateASTTransformer(ASTTransformer):
         call.starargs = None
         call.kwargs = None
         return call
+
+    def visit_arguments(self, node):
+        node.args = [self.visit(arg) for arg in node.args]
+        return node
+
+    def visit_Lambda(self, node):
+        self.locals.append(set())
+        try:
+            return super(TemplateASTTransformer, self).visit_Lambda(node)
+        finally:
+            self.locals.pop()
+
+    def visit_ListComp(self, node):
+        self.locals.append(set())
+        node.generators = [self.visit(gen) for gen in node.generators]
+        node = super(TemplateASTTransformer, self).visit_ListComp(node)
+        self.locals.pop()
+        return node
 
 class Suite(object):
     __slots__ = ['source', '_globals']
