@@ -244,7 +244,7 @@ class ExpressionTranslator(object):
                     var = self.declaration(string[i:j])
 
             var.global_scope = global_scope
-            
+
             # get expression
             i = j + len(string) - j - len(string[j:].lstrip())
 
@@ -259,29 +259,30 @@ class ExpressionTranslator(object):
             try:
                 expr = self.tales(string[i:], ';')
                 j = -1
-            except SyntaxError, e:
+            except SyntaxError:
                 expr = None
                 j = len(string)
-            
+
             while j > i:
                 j = string.rfind(';', i, j)
                 if j < 0:
-                    raise e
+                    # this is always a re-raise from right above
+                    raise
 
                 try:
                     expr = self.tales(string[i:j], ';')
-                except SyntaxError, e:
+                except SyntaxError:
                     if string.rfind(';', i, j) > 0:
                         continue
-                    raise e
-                
+                    raise
+
                 break
-                
+
             defines.append((var, expr))
 
             if j < 0:
                 break
-            
+
             i = j + 1
 
         return types.definitions(defines)
@@ -384,12 +385,10 @@ class ExpressionTranslator(object):
 
             try:
                 value = translator.translate(expr, escape)
-            except Exception, e:
+            except SyntaxError:
                 if j < len(string):
                     continue
-
-                # re-raise with traceback
-                value = translator.translate(expr, escape)
+                raise
 
             value.label = expr
             parts.append(value)
@@ -422,7 +421,7 @@ class PythonTranslator(ExpressionTranslator):
 
         >>> translate = PythonTranslator().translate
         >>> try: translate('abc:def:ghi')
-        ... except SyntaxError, e: 'abc' in str(e)
+        ... except SyntaxError, e: 'abc:def:ghi' in repr(e)
         True
         """
 
@@ -430,12 +429,8 @@ class PythonTranslator(ExpressionTranslator):
             string = string.encode('utf-8')
 
         if string:
-            try:
-                expression = string.strip()
-                parse(expression, 'eval')
-            except SyntaxError, e:
-                e.msg += " (``%s``, %d:%d)" % (expression, e.lineno, e.offset)
-                raise
+            expression = string.strip()
+            parse(expression, 'eval')
 
             if isinstance(string, str):
                 string = string.decode('utf-8')
