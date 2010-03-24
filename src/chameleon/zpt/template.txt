@@ -570,3 +570,35 @@ Otherwise, it is output as-is:
   <html xmlns="http://www.w3.org/1999/xhtml">
     <body>U Can’t Touch This.</body>
   </html>
+
+Syntax errors
+-------------
+
+When syntactical errors appear in expressions, the traceback hints at
+the location of the error.
+
+Interpolation:
+
+  >>> PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   ${print 'Hello world'}
+  ... </html>""").render()
+  Traceback (most recent call last):
+   ...
+      print 'Hello world'
+             ^
+   ...
+  SyntaxError: invalid syntax
+
+Variable definition:
+
+  >>> PageTemplate("""\
+  ... <html xmlns="http://www.w3.org/1999/xhtml"
+  ...       tal:define="dummy print 'Hello world'">
+  ... </html>""").render()
+  Traceback (most recent call last):
+   ...
+      print 'Hello world'
+             ^
+   ...
+  SyntaxError: invalid syntax
