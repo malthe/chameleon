@@ -191,7 +191,7 @@ Foreign attributes and elements are included as-is.
   </info>
 
 For legacy-support, default attribute prefix may be included.
-  
+
   >>> print Template("""\
   ... <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
   ... <info xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -208,7 +208,19 @@ For legacy-support, default attribute prefix may be included.
     </xlink:description>
   </info>
 
-  
+Parsing
+-------
+
+An issue was observed with ``lxml`` where there was a hard limit on
+the length of the namespace declarations. This test is present to
+verify that this issue does not occur.
+
+  >>> len(Template("""\
+  ... <?xml version="1.0" encoding="UTF-8"?>
+  ... <test xmlns="http://test" %s />""" % " ".join(
+  ...     'xmlns:ns%d="ns%d"' % (i, i) for i in range(100)), mock_parser).render())
+  1864
+
 Error handling
 --------------
 
@@ -224,7 +236,7 @@ functionality.
 To test the error handler, we'll try to call a symbol `dummy`; for
 technical reasons, we must wrap this in an encoded pickle---this is
 due to our test setup.
-  
+
   >>> from chameleon.core.types import value
   >>> from base64 import encodestring
   >>> from cPickle import dumps
@@ -235,7 +247,7 @@ due to our test setup.
 
 First, a simple example where a ``NameError`` exception is raised in a
 function which we'll call from inside the template.
-  
+
   >>> def dummy():
   ...     print i
 
@@ -257,7 +269,7 @@ customized ``__str__`` method.
   ...     def __init__(self, msg):
   ...         Exception.__init__(self, msg)
   ...         self.msg = msg
-  
+
   >>> def dummy():
   ...     raise CustomException("This is a custom error message.")
 

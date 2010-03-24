@@ -735,18 +735,6 @@ validate
   Traceback (most recent call last):
    ...
   ValidationError: Insertion of u'<em>incorrect<em>' is not allowed.
-  
+
   >>> config.VALIDATION = False
 
-Parsing
--------
-
-An issue was observed with ``lxml`` where there was a hard limit on
-the length of the namespace declarations. This test is present to
-verify that this issue does not occur.
-  
-  >>> len(render("""\
-  ... <?xml version="1.0" encoding="UTF-8"?>
-  ... <test xmlns="http://test" %s />""" % " ".join(
-  ...     'xmlns:ns%d="ns%d"' % (i, i) for i in range(100))))
-  1864
