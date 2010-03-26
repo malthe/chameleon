@@ -484,7 +484,7 @@ Messages without a default
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-  ...   <span i18n:domain="test">${who}</span>
+  ...   <span i18n:translate="" i18n:domain="test">${who}</span>
   ... </div>"""
 
 Not passing a language:
