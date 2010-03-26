@@ -13,26 +13,19 @@ To get set started, let's provide German mock translations for all
 msgids:
 
   >>> from zope import component
-  >>> from zope import interface
-  >>> from chameleon.core import utils
-
-  >>> from zope.i18n.interfaces import ITranslationDomain
-  >>> class MockTranslationDomain(object):
-  ...     interface.implements(ITranslationDomain)
-  ...
-  ...     def translate(self, msgid, mapping=None, context=None,
-  ...                   target_language=None, default=None):
-  ...         if target_language != 'de':
-  ...             return default
-  ...
-  ...         mock ="Mock translation of '%s'" % \
-  ...             utils.htmlescape(msgid)
-  ...         if mapping:
-  ...             mock += ' mapping=%s' % mapping
-  ...         return mock + '.'
-
-  >>> td = MockTranslationDomain()
-  >>> component.provideUtility(td, ITranslationDomain, name="test")
+  >>> from zope.i18n.simpletranslationdomain import SimpleTranslationDomain
+  >>> td = SimpleTranslationDomain("test", {
+  ...     ("de", "test_msgid") : u"Mock translation of 'test_msgid'.",
+  ...     ("de", "tid")        : u"Mock translation of 'tid'.",
+  ...     ("de", "aid")        : u"Mock translation of 'aid'.",
+  ...     ("de", "test_msgid") : u"Mock translation of 'test_msgid'.",
+  ...     ("de", "Default")    : u"Mock translation of 'Default'.",
+  ...     ("de", "bananas")    : u"Mock translation of ${count} bananas.",
+  ...     ("de", "two_bananas"): u"Ich will ${bananas} Bananen und ${apples} Äpfels.",
+  ...     ("de", "month_may")  : u"Mai",
+  ...     ("de", "&reg; &lt;") : u"German &reg; &lt;"
+  ...     })
+  >>> component.provideUtility(td, name="test")
 
 Translation of tag contents
 ---------------------------
@@ -100,7 +93,7 @@ We could also add a named block inside the tag.
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-  ...   <p i18n:domain="test" i18n:translate="">
+  ...   <p i18n:domain="test" i18n:translate="bananas">
   ...     <span i18n:name="count">18</span> bananas.
   ...   </p>
   ... </div>"""
@@ -115,8 +108,7 @@ We could also add a named block inside the tag.
     
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <p>Mock translation of '${count} bananas.'
-       mapping={'count': u'<span>18</span>'}.</p>
+    <p>Mock translation of <span>18</span> bananas.</p>
   </div>
 
 Or two:
@@ -124,7 +116,7 @@ Or two:
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-  ...   <span i18n:domain="test" i18n:translate="">
+  ...   <span i18n:domain="test" i18n:translate="two_bananas">
   ...     I want <span i18n:name="bananas">12</span> bananas and
   ...     <span i18n:name="apples">8</span> apples.
   ...   </span>
@@ -145,8 +137,7 @@ In German:
 
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span>Mock translation of 'I want ${bananas} bananas and ${apples} apples.'
-      mapping={'bananas': u'<span>12</span>', 'apples': u'<span>8</span>'}.</span>
+    <span>Ich will <span>12</span> Bananen und <span>8</span> Äpfels.</span>
   </div>
 
 Here's an example from a template for a calendar widget:
@@ -172,14 +163,14 @@ name.
   >>> from zope.i18nmessageid import Message
   
   >>> year = 2008
-  >>> monthname = Message(u'month_nov', domain="test", default=u"November")
+  >>> monthname = Message(u'month_may', domain="test", default=u"May")
 
 Without passing a language.
 
   >>> template = GenshiTemplate(body)
   >>> print template.render(year=year, monthname=monthname)
   <div xmlns="http://www.w3.org/1999/xhtml">
-      November
+      May
       2008
   </div>
 
@@ -187,7 +178,7 @@ Passing German:
   
   >>> print template.render(year=year, monthname=monthname, target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-      Mock translation of 'month_nov'.
+      Mai
       2008
   </div>
   
@@ -230,7 +221,7 @@ Translating entities:
   
   >>> print template.render(year=year, monthname=monthname, target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    Mock translation of '&reg;  &lt;'.
+    German &reg; &lt;
   </div>
 
 If  we're  replacing  or   inserting  content  dynamically,  and  this
@@ -301,7 +292,7 @@ A simple example to start with.
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-  ...   <span i18n:domain="test" title="Simple Title" i18n:attributes="title">
+  ...   <span i18n:domain="test" title="Default" i18n:attributes="title">
   ...     Default
   ...   </span>
   ... </div>"""
@@ -311,7 +302,7 @@ Not passing a language:
   >>> template = GenshiTemplate(body)
   >>> print template.render()
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span title="Simple Title">
+    <span title="Default">
       Default
     </span>
   </div>
@@ -320,7 +311,7 @@ Passing German:
 
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span title="Mock translation of 'Simple Title'.">
+    <span title="Mock translation of 'Default'.">
       Default
     </span>
   </div>
@@ -331,7 +322,7 @@ Use an explicit msgid:
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
   ...   <span i18n:domain="test" title="Simple Title"
-  ...         i18n:attributes="title title_simple">
+  ...         i18n:attributes="title test_msgid">
   ...     Default
   ...   </span>
   ... </div>"""
@@ -350,7 +341,7 @@ Passing German:
 
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span title="Mock translation of 'title_simple'.">
+    <span title="Mock translation of 'test_msgid'.">
       Default
     </span>
   </div>
@@ -361,7 +352,7 @@ Use an explicit msgid with a trailing semicolon.
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
   ...   <span i18n:domain="test" title="Simple Title"
-  ...         i18n:attributes="title title_simple;">
+  ...         i18n:attributes="title test_msgid;">
   ...     Default
   ...   </span>
   ... </div>"""
@@ -380,7 +371,7 @@ Passing German:
 
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span title="Mock translation of 'title_simple'.">
+    <span title="Mock translation of 'test_msgid'.">
       Default
     </span>
   </div>
@@ -392,7 +383,7 @@ Use multiple attributes on the same tag.
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
   ...   <span i18n:domain="test" title="Simple Title"
   ...         longdesc="A not so short description."
-  ...         i18n:attributes="title title_simple; longdesc desc_short">
+  ...         i18n:attributes="title test_msgid; longdesc Default">
   ...     Default
   ...   </span>
   ... </div>"""
@@ -411,8 +402,7 @@ Passing German:
 
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span title="Mock translation of 'title_simple'."
-          longdesc="Mock translation of 'desc_short'.">
+    <span title="Mock translation of 'test_msgid'." longdesc="Mock translation of 'Default'.">
       Default
     </span>
   </div>
