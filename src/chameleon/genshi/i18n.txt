@@ -23,7 +23,8 @@ msgids:
   ...     ("de", "bananas")    : u"Mock translation of ${count} bananas.",
   ...     ("de", "two_bananas"): u"Ich will ${bananas} Bananen und ${apples} Äpfels.",
   ...     ("de", "month_may")  : u"Mai",
-  ...     ("de", "&reg; &lt;") : u"German &reg; &lt;"
+  ...     ("de", "&reg; &lt;") : u"German &reg; &lt;",
+  ...     ("de", "The Dutch")  : u"Die Hollander",
   ...     })
   >>> component.provideUtility(td, name="test")
 
@@ -474,3 +475,30 @@ Not passing a language:
       <span>Default</span>
     </div>
   </div>
+
+
+Messages without a default
+--------------------------
+
+  >>> who = Message(u"The Dutch", domain="test")
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:domain="test">${who}</span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = GenshiTemplate(body)
+  >>> print template.render(who=who)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>The Dutch</span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(who=who, target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Die Hollander</span>
+  </div>
+
