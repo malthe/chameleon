@@ -16,9 +16,9 @@ msgids:
   >>> from zope.i18n.simpletranslationdomain import SimpleTranslationDomain
   >>> td = SimpleTranslationDomain("test", {
   ...     ("de", "test_msgid") : u"Mock translation of 'test_msgid'.",
+  ...     ("de", "msg_id")      : u"Mock translation of 'msg_id'.",
   ...     ("de", "tid")        : u"Mock translation of 'tid'.",
   ...     ("de", "aid")        : u"Mock translation of 'aid'.",
-  ...     ("de", "test_msgid") : u"Mock translation of 'test_msgid'.",
   ...     ("de", "Default")    : u"Mock translation of 'Default'.",
   ...     ("de", "bananas")    : u"Mock translation of ${count} bananas.",
   ...     ("de", "two_bananas"): u"Ich will ${bananas} Bananen und ${apples} Äpfels.",
@@ -284,7 +284,7 @@ If a message id is supplied, unnamed blocks are rendered as-is.
   <div xmlns="http://www.w3.org/1999/xhtml">
     Mock translation of 'msg_id'.
   </div>
-  
+
 Translation of tag attributes
 -----------------------------
 
