@@ -502,3 +502,21 @@ Passing German:
     <span>Die Hollander</span>
   </div>
 
+Using ``py:content``:
+
+  >>> template = GenshiTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span i18n:translate="" i18n:domain="test" py:content="who" />
+  ... </div>""")
+  >>> print template(who=who)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>The Dutch</span>
+  </div>
+
+Passing German:
+
+  >>> print template(who=who, target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Die Hollander</span>
+  </div>
