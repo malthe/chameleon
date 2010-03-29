@@ -1,6 +1,9 @@
 Changes
 =======
 
+1.2.0 (released 2010-03-29)
+---------------------------
+
 - Fixed issue where nested translations would fail.
 
 - Added support for passing in a translation function to the template
