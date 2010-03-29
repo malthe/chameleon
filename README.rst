@@ -18,7 +18,7 @@ Development
 
 The code is maintained in a subversion repository::
 
-  svn://svn.repoze.org/svn/chameleon/trunk
+  http://svn.repoze.org/chameleon/trunk
 
 If you want to contribute or need support, join #repoze on freenode
 irc or write the `mailinglist <mailto:repoze-dev@lists.repoze.org>`_.
