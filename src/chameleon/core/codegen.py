@@ -49,16 +49,17 @@ lookup_globals = {
     }
 
 class TemplateASTTransformer(ASTTransformer):
-    def __init__(self):
+    def __init__(self, globals):
         self.locals = [CONSTANTS]
         builtin = dir(__builtin__)
-        self.locals.append(set())
+        self.locals.append(set(globals))
         self.locals.append(set(builtin))
         # self.names is an optimization for visitName (so we don't
         # need to flatten the locals every time it's called)
         self.names = set()
         self.names.update(CONSTANTS)
         self.names.update(builtin)
+        self.names.update(globals)
 
     def visit_Assign(self, node):
         node.value = self.visit(node.value)
@@ -188,14 +189,14 @@ class Suite(object):
 
     mode = 'exec'
 
-    def __init__(self, source):
+    def __init__(self, source, globals=()):
         """Create the code object from a string."""
 
         if isinstance(source, unicode):
             source = source.encode('utf-8')
 
         node = parse(source, self.mode)
-        transform = TemplateASTTransformer()
+        transform = TemplateASTTransformer(globals)
         tree = transform.visit(node)
         generator = ASTCodeGenerator(tree)
         self.source = generator.code
