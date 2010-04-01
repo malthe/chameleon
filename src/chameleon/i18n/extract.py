@@ -77,6 +77,9 @@ class PythonExtractor(object):
             self.msg.setdefault(self._parameter, []).append(safe_eval(tstring))
         elif ttype==tokenize.OP and tstring==",":
             self.state = self.stateInFactoryWaitForParameter
+        elif ttype==tokenize.OP and tstring==")":
+            self.addMessage(self.msg)
+            self.state = self.stateWaiting
 
     def addMessage(self, msg):
         if not msg.get("label"):
