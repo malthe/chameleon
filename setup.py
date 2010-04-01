@@ -35,6 +35,9 @@ setup(name="Chameleon",
       entry_points = """
       [console_scripts]
       i18nize = chameleon.i18n.i18nize:main [i18nize]
+
+      [babel.extractors]
+      chameleon_python = chameleon.i18n.extract:extract_python
       """,
       install_requires=install_requires,
       extras_require = {
