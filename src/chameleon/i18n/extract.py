@@ -1,7 +1,9 @@
+import collections
 import tokenize
+from chameleon.zpt.language import Parser
 
 def safe_eval(s):
-    return eval(s, {'__builtins__':{}}, {})
+    return eval(s, {"__builtins__":{}}, {})
 
 
 class PythonExtractor(object):
@@ -94,3 +96,48 @@ class PythonExtractor(object):
 
 
 extract_python = PythonExtractor()
+
+
+
+def extract_xml(fileobj, keywords, comment_tags, options):
+    parser = Parser()
+    doc = parser.parse(fileobj.read())
+    root = doc.getroot()
+
+    todo = collections.deque([(root, None)])
+    while todo:
+        (node, domain) = todo.pop()
+        domain = getattr(node, "i18n_domain", domain)
+
+        attrs = getattr(node, "i18n_attributes", None)
+        if attrs:
+            for (attr, label) in attrs:
+                value = node.attrib.get(attr, None)
+                if not value:
+                    continue
+                if value==label:
+                    yield (1, None, label, [])
+                else:
+                    yield (1, None, label, [u"Default: %s" % value])
+
+        label = getattr(node, "i18n_translate", None)
+        if label is not None:
+            msg = []
+            if node.text:
+                msg.append(node.text.lstrip())
+            for child in node.getchildren():
+                name = getattr(child, "i18n_name")
+                if name:
+                    msg.append(u"${%s}" % name)
+                if child.tail:
+                    msg.append(child.tail)
+            msg = u"".join(msg)
+            if label:
+                yield (1, None, label, [u"Default: %s" % msg])
+            else:
+                yield (1, None, msg, [])
+
+        for child in node.getchildren():
+            todo.append((child, domain))
+
+

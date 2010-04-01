@@ -38,6 +38,7 @@ setup(name="Chameleon",
 
       [babel.extractors]
       chameleon_python = chameleon.i18n.extract:extract_python
+      chameleon_xml = chameleon.i18n.extract:extract_xml
       """,
       install_requires=install_requires,
       extras_require = {
