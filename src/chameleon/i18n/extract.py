@@ -1,4 +1,5 @@
 import collections
+import re
 import tokenize
 from chameleon.zpt.language import Parser
 
@@ -94,9 +95,7 @@ class PythonExtractor(object):
         self.messages.append((msg["lineno"], None, u"".join(msg["label"]), comments))
 
 
-
 extract_python = PythonExtractor()
-
 
 
 def extract_xml(fileobj, keywords, comment_tags, options):
@@ -132,6 +131,7 @@ def extract_xml(fileobj, keywords, comment_tags, options):
                 if child.tail:
                     msg.append(child.tail)
             msg = u"".join(msg)
+            msg = re.sub(u"\s{2,}", u" ", msg)
             if label:
                 yield (1, None, label, [u"Default: %s" % msg])
             else:
