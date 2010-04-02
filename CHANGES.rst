@@ -6,6 +6,8 @@ Upcoming release
 
 - Add Babel message extractors for Python, ZPT and Genshi files.
 
+- Correctly handle translations where a msgid has an empty translation.
+
 
 1.2.0 (released 2010-03-29)
 ---------------------------

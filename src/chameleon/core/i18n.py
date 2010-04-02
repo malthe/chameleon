@@ -11,13 +11,12 @@ else:
         if msgid is None:
             return
 
-        if msgid=="shop_personalised":
-            import pdb ; pdb.set_trace()
-
         if target_language is not None:
-            return translate(
+            result = translate(
                 msgid, domain=domain, mapping=mapping, context=context,
                 target_language=target_language, default=default)
+            if result!=msgid:
+                return result
 
         if isinstance(msgid, Message):
             default = msgid.default
