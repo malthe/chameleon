@@ -25,6 +25,7 @@ msgids:
   ...     ("de", "month_may")  : u"Mai",
   ...     ("de", "&reg; &lt;") : u"German &reg; &lt;",
   ...     ("de", "The Dutch")  : u"Die Hollander",
+  ...     ("de", "missing_id") : u"missing_id",
   ...     })
   >>> component.provideUtility(td, name="test")
 
@@ -538,4 +539,28 @@ Translating:
   >>> print template.render(who=who, target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>Die Hollander</span>
+  </div>
+
+Messages without a translation
+------------------------------
+
+For valid msgids that have no translation GNU gettext returns the
+message id, which trips the zope.i18n default handling. Unfortuantely
+this is very common: for a newly created po files without any translations
+this holds for every message. zope.tal seems to get around this by doing its
+own PO handling.
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  ...      i18n:domain="test">
+  ...   <span i18n:translate="missing_id">Default value</span>
+  ... </div>"""
+
+Translating:
+
+  >>> template = GenshiTemplate(body)
+  >>> print template.render(target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Default value</span>
   </div>
