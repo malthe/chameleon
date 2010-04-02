@@ -133,9 +133,9 @@ def extract_xml(fileobj, keywords, comment_tags, options):
             msg = u"".join(msg)
             msg = re.sub(u"\s{2,}", u" ", msg)
             if label:
-                yield (node.lineno, None, label, [u"Default: %s" % msg])
+                yield (node.position[0], None, label, [u"Default: %s" % msg])
             else:
-                yield (node.lineno, None, msg, [])
+                yield (node.position[0], None, msg, [])
 
         for child in node.getchildren():
             todo.append((child, domain))
