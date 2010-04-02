@@ -4,8 +4,9 @@ Internationalization via the ``i18n`` Namespace
 ===============================================
 
 Translation of template contents and attributes is supported via the
-``i18n`` namespace. It's available to both Genshi and Zope Page
-Templates.
+``i18n`` namespace and `zope.i18nmessageid
+<http://pypi.python.org/pypi/zope.i18nmessageid>` messages. It's available to
+both Genshi and Zope Page Templates.
 
 Providing a translation function
 --------------------------------
@@ -284,4 +285,71 @@ to be applied to cause the slot-filler in the application to be part
 of the same domain as the rest of the application's page components.
 If dynamic scoping were used, the internationalization context would
 need to be re-established in the slot-filler.
+
+
+Extracting translatable message
+-------------------------------
+
+Translators use `PO files <http://www.gnu.org/software/hello/manual/gettext/PO-Files.html>`
+when translating messages. To create and update PO files you need to do
+two things: *extract* all messages from python and templates files and
+store them in a ``.pot`` file, and for each language *update* its ``.po`` file.
+Chameleon facilitates this by providing extractors for `Babel <http://babel.edgewall.org/>`.
+To use this you need modify ``setup.py``. For example::
+
+  from setuptools import setup
+
+  setup(name="mypackage",
+        ...
+        install_requires = [
+              ....
+              "Babel",
+              ],
+        message_extractors = { "src": [
+              ("**.py",   "chameleon_python", None ),
+              ("**.pt",   "chameleon_xml", None ),
+              ]},
+        )
+
+This tells Babel to scan the ``src`` directory while using the
+``chameleon_python`` extractor for all ``.py`` files and the
+``chameleon_xml`` extractor for all ``.pt`` files.
+
+You can now use Babel to manage your PO files::
+
+   python setup.py extract_messages --output-file=i18n/mydomain.pot
+   python setup.py update_catalog \
+             -l nl \
+             -i i18n/mydomain.pot \
+             -o i18n/nl/LC_MESSAGES/mydomain.po
+   python setup.py compile_catalog \
+             --directory i18n --locale nl
+
+You can also configure default options in a ``setup.cfg`` file. For example::
+
+   [compile_catalog]
+   domain = mydomain
+   directory = i18n
+   
+   [extract_messages]
+   copyright_holder = Acme Inc.
+   output_file = i18n/mydomain.pot
+   charset = UTF-8
+
+   [init_catalog]
+   domain = mydomain
+   input_file = i18n/mydomain.pot
+   output_dir = i18n
+
+   [update_catalog]
+   domain = mydomain
+   input_file = i18n/mydomain.pot
+   output_dir = i18n
+   previous = true
+
+You can now use the Babel commands directly::
+
+   python setup.py extract_messages
+   python setup.py update_catalog
+   python setup.py compile_catalog
 
