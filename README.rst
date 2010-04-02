@@ -2,7 +2,8 @@ Overview
 --------
 
 Chameleon compiles templates to Python byte-code. It includes a
-complete implementation of the Zope Page Templates (ZPT) language.
+complete implementation of the Zope Page Templates (ZPT) language
+and a partial implementation of the Genshi language.
 
 The engine itself performs 10-15 times better than the reference
 implementation and real-world benchmarks show an overall performance

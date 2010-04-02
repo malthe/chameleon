@@ -1,6 +1,12 @@
 Changes
 =======
 
+Upcoming release
+----------------
+
+- Add Babel message extractors for Python, ZPT and Genshi files.
+
+
 1.2.0 (released 2010-03-29)
 ---------------------------
 
