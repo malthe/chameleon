@@ -214,6 +214,7 @@ class ExpatParser(object):
 
         # create element using parser
         element = self.parser.makeelement(tag, attrs, nsmap=nsmap)
+        element.lineno = self.expat.CurrentLineNumber
 
         if self.root is None:
             # cook doctype
