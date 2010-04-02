@@ -520,3 +520,22 @@ Passing German:
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>Die Hollander</span>
   </div>
+
+Messages from another translation domain
+----------------------------------------
+
+  >>> who = Message(u"The Dutch", domain="test")
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  ...      i18n:domain="other">
+  ...   <span i18n:translate="">${who}</span>
+  ... </div>"""
+
+Translating:
+
+  >>> template = GenshiTemplate(body)
+  >>> print template.render(who=who, target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Die Hollander</span>
+  </div>
