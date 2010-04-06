@@ -3,6 +3,11 @@ Changes
 
 In the next release...
 
+- Objects which are not strings or numbers, and which do not provide
+  an ``__html__`` method, are now considered i18n messages. This means
+  that they are automatically translated (using interpolation or
+  tag-based text insertion or replacement).
+
 - Fixed issue where ``translate`` parameter would not be applicable on
   file-based templates.
 

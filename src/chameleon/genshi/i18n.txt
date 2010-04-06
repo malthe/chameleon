@@ -458,7 +458,7 @@ Passing German:
   </div>
 
 Make sure translations play nice with loops.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
@@ -477,15 +477,17 @@ Not passing a language:
     </div>
   </div>
 
+Message interpolation
+---------------------
 
-Messages without a default
---------------------------
+Messages without a default translation just output the message
+string (identifier).
 
   >>> who = Message(u"The Dutch", domain="test")
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-  ...   <span i18n:translate="" i18n:domain="test">${who}</span>
+  ...   <span>${who}</span>
   ... </div>"""
 
 Not passing a language:
@@ -508,8 +510,11 @@ Using ``py:content``:
   >>> template = GenshiTemplate("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
-  ...   <span i18n:translate="" i18n:domain="test" py:content="who" />
+  ...   <span py:content="who" />
   ... </div>""")
+
+Not passing a language:
+
   >>> print template(who=who)
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>The Dutch</span>
@@ -530,7 +535,7 @@ Messages from another translation domain
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
   ...      i18n:domain="other">
-  ...   <span i18n:translate="">${who}</span>
+  ...   <span>${who}</span>
   ... </div>"""
 
 Translating:

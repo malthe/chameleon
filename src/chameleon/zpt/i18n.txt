@@ -198,9 +198,9 @@ Here's an example from a template for a calendar widget:
 
 We'll set up the tests such that pass in an i18n message for the month
 name.
-  
+
   >>> from zope.i18nmessageid import Message
-  
+
   >>> year = 2008
   >>> monthname = Message(u'month_nov', domain="test", default=u"November")
 
@@ -214,15 +214,15 @@ Without passing a language.
   </div>
 
 Passing German:
-  
+
   >>> print template.render(year=year, monthname=monthname, target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
       Mock translation of 'month_nov'.
       2008
   </div>
-  
+
 Entities and dynamic translation strings:
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
@@ -242,7 +242,7 @@ Entities and dynamic translation strings:
   </div>
 
 Translating entities:
-  
+
   >>> template = PageTemplate("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
@@ -257,15 +257,15 @@ Translating entities:
     &reg;
     &lt;
   </div>
-  
+
   >>> print template.render(year=year, monthname=monthname, target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
     Mock translation of '&reg;  &lt;'.
   </div>
-  
+
 If  we're  replacing  or   inserting  content  dynamically,  and  this
 evaluates to ``None``, omit the tag even if we're translating.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
@@ -562,7 +562,7 @@ Passing German:
   </div>
 
 Make sure translations play nice with loops.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
@@ -634,4 +634,54 @@ Passing German:
     <span title="Mock translation of 'Español'.">
       Default
     </span>
+  </div>
+
+Message interpolation
+---------------------
+
+Messages without a default translation just output the message
+string (identifier).
+
+  >>> who = Message(u"The Dutch", domain="test")
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span>${who}</span>
+  ... </div>"""
+
+Not passing a language:
+
+  >>> template = PageTemplate(body)
+  >>> print template.render(who=who)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>The Dutch</span>
+  </div>
+
+Passing German:
+
+  >>> print template.render(who=who, target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Mock translation of 'The Dutch'.</span>
+  </div>
+
+Using ``tal:content``:
+
+  >>> template = PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <span tal:content="who" />
+  ... </div>""")
+
+Not passing a language:
+
+  >>> print template(who=who)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>The Dutch</span>
+  </div>
+
+Passing German:
+
+  >>> print template(who=who, target_language='de')
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>Mock translation of 'The Dutch'.</span>
   </div>

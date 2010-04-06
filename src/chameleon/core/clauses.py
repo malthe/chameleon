@@ -6,6 +6,11 @@ from chameleon.core import utils
 
 marker = ()
 
+def translate_expression(value, mapping=None, default=None):
+    format = "%%(translate)s(%s, domain=%%(domain)s, mapping=%s, " \
+             "target_language=%%(language)s, default=%s)"
+    return types.template(format % (value, mapping, default))
+
 class Assign(object):
     """
     >>> from chameleon.core import testing
@@ -957,15 +962,15 @@ class Write(object):
         self.assign = Assign(value)
         self.structure = not isinstance(value, types.escape)
         self.defer = defer
-        
+
     def begin(self, stream):
         if not self.defer:
             self.write(stream)
-            
+
     def end(self, stream):
         if self.defer:
             self.write(stream)
-    
+
     def write(self, stream):
         temp = stream.save()
         symbols = stream.symbols.as_dict()
@@ -977,23 +982,44 @@ class Write(object):
         expr = temp
 
         stream.write("%s = %s" % (stream.symbols.tmp, expr))
-        write("if %(tmp)s.__class__ not in (str, unicode, int, float) and hasattr(%(tmp)s, '__html__'):")
+        write("if %(tmp)s.__class__ not in (str, unicode, int, float):")
         stream.indent()
-        stream.out(types.value("%s.__html__()" % symbols['tmp']))
+        write("try:")
+        stream.indent()
+        write("%(tmp)s = %(tmp)s.__html__")
         stream.outdent()
-        
-        write("elif %(tmp)s is not None:")
+        write("except:")
+        stream.indent()
+        write("%%(tmp)s = %s" % translate_expression("%(tmp)s"))
+        stream.outdent()
+        write("else:")
+        stream.indent()
+        write("%(tmp)s = %(tmp)s()")
+        self._maybe_validate(stream)
+        stream.out(types.value(stream.symbols.tmp))
+        write("%(tmp)s = None")
+        stream.outdent()
+        stream.outdent()
+
+        write("if %(tmp)s is not None:")
         stream.indent()
 
+        # only output unicode strings
         stream.ensure_unicode(stream.symbols.tmp)
 
-        # escape non-structural values
+        # escape markup
         if not self.structure:
             stream.escape(stream.symbols.tmp)
 
+        self._maybe_validate(stream)
         stream.out(types.value(symbols['tmp']))
-        stream.outdent()
 
+        stream.outdent()
+        stream.restore()
+
+        self.assign.end(stream)
+
+    def _maybe_validate(self, stream):
         # validate XML if enabled
         if config.VALIDATION:
             try:
@@ -1003,10 +1029,7 @@ class Write(object):
                     "ElementTree (required when XML validation is enabled).")
 
             stream.symbol_mapping[stream.symbols.validate] = utils.validate
-            write("%(validate)s(%(tmp)s)")
-
-        self.assign.end(stream)
-        stream.restore()
+            stream.write("%(validate)s(%(tmp)s)" % stream.symbols.as_dict())
 
 class UnicodeWrite(Write):
     """

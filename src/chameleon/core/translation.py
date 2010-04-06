@@ -407,15 +407,15 @@ class Node(object):
 
                 if variable in attributes:
                     default = repr(attributes[variable])
-                    expression = self.translate_expression(value, default=default)
+                    expression = clauses.translate_expression(value, default=default)
                 else:
-                    expression = self.translate_expression(value)
+                    expression = clauses.translate_expression(value)
             else:
                 value = attributes.get(variable)
                 if value is not None:
                     if variable not in dynamic_attr_names:
                         value = repr(value)
-                    expression = self.translate_expression(value)
+                    expression = clauses.translate_expression(value)
                 else:
                     raise ValueError("Must be either static or dynamic "
                                      "attribute when no message id "
@@ -454,7 +454,7 @@ class Node(object):
                         "Can't use message id with dynamic content translation.")
 
                 _.append(clauses.Assign(content, self.symbols.tmp))
-                content = self.translate_expression(
+                content = clauses.translate_expression(
                     types.value(self.symbols.tmp))
             else:
                 value = types.value(repr(utils.serialize(self.element, omit=True)))
@@ -488,7 +488,7 @@ class Node(object):
 
             # attempt translation
             subclauses.append(clauses.Assign(
-                self.translate_expression(
+                clauses.translate_expression(
                 types.value('%(out)s.getvalue()'),
                 default=None), self.symbols.tmp))
 
@@ -691,7 +691,7 @@ class Node(object):
                 value = types.template("' '.join(%(msgid)s.split())")
 
             _.append(clauses.Assign(
-                self.translate_expression(
+                clauses.translate_expression(
                     value, mapping=mapping, default=default), self.symbols.result))
 
             # write translation to output if successful, otherwise
@@ -760,11 +760,6 @@ class Node(object):
         msgid = ' '.join(msgid.split())
 
         return msgid
-
-    def translate_expression(self, value, mapping=None, default=None):
-        format = "%%(translate)s(%s, domain=%%(domain)s, mapping=%s, " \
-                 "target_language=%%(language)s, default=%s)"
-        return types.template(format % (value, mapping, default))
 
 class Element(etree.ElementBase):
     """Template element class.
