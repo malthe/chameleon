@@ -416,12 +416,13 @@ class PythonTranslator(ExpressionTranslator):
         """We use the ``parser`` module to determine if
         an expression is a valid python expression.
 
-        Make sure the syntax error exception contains the expression
-        string.
+        Make sure the formatted syntax error exception contains the
+        expression string.
 
+        >>> from traceback import format_exc
         >>> translate = PythonTranslator().translate
         >>> try: translate('abc:def:ghi')
-        ... except SyntaxError, e: 'abc:def:ghi' in repr(e)
+        ... except SyntaxError, e: 'abc:def:ghi' in format_exc(e)
         True
         """
 
