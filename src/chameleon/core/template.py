@@ -226,8 +226,8 @@ class TemplateFile(Template):
     content_type = None
     global_registry = {}
 
-    def __init__(self, filename, parser, format=None,  doctype=None,
-                 encoding=None, auto_reload=config.DEBUG_MODE):
+    def __init__(self, filename, parser, format=None, doctype=None,
+                 encoding=None, translate=None, auto_reload=config.DEBUG_MODE):
         if encoding is not None:
             self.encoding = encoding
 
@@ -247,7 +247,9 @@ class TemplateFile(Template):
             self.registry = filecache.TemplateCache(filename, version)
 
         # initialize template
-        Template.__init__(self, None, parser, format=format, doctype=doctype)
+        Template.__init__(
+            self, None, parser, format=format,
+            doctype=doctype, translate=translate)
 
         # read template (note that if we're unable to read the file,
         # we set ``auto_reload`` to true)
