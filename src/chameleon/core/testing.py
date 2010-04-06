@@ -58,7 +58,8 @@ def compile_template(parser, parse_method, body, encoding=None,
     registry.add(None, source)
     func = registry[None]
     def render(target_language=None, **kwargs):
-        kwargs.setdefault("_slots", utils.emptydict)
+        kwargs.setdefault(config.SYMBOLS.slots, utils.emptydict)
+        kwargs.setdefault(config.SYMBOLS.translate, lambda msg, *args, **kwargs: msg)
         rcontext = utils.econtext(kwargs)
         econtext = rcontext.copy()
         return func(econtext, rcontext)
@@ -69,7 +70,7 @@ class MockElement(translation.Element):
         ns_omit = (
             "http://xml.zope.org/namespaces/meta",
             "http://www.w3.org/2001/XInclude")
-        
+
         def __getattr__(self, name):
             return None
 
@@ -85,7 +86,7 @@ class MockElement(translation.Element):
         @property
         def content(self):
             return self.element.meta_replace
-        
+
         @property
         def cdata(self):
             return self.element.meta_cdata
