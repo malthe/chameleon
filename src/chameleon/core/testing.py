@@ -1,3 +1,5 @@
+import os
+import imp
 import translation
 import template
 import generation
@@ -6,7 +8,7 @@ import etree
 import config
 import utils
 import types
-import filecache
+import tempfile
 
 from StringIO import StringIO
 
@@ -28,11 +30,11 @@ def setup_stream(encoding=None):
 
 def render_xhtml(body, **kwargs):
     func = compile_template(mock_parser, mock_parser.parse, body)
-    return func(**kwargs)    
-    
+    return func(**kwargs)
+
 def render_text(body, **kwargs):
     func = compile_template(mock_parser, mock_parser.parse_text, body)
-    return func(**kwargs)    
+    return func(**kwargs)
 
 def compile_xhtml(body):
     return compile_template(mock_parser, mock_parser.parse, body)
@@ -52,17 +54,29 @@ def compile_template(parser, parse_method, body, encoding=None,
     compiler = translation.Compiler(
         tree, xml_declaration=xml_declaration,
         encoding=encoding, explicit_doctype=explicit_doctype)
-
     source = compiler(macro, global_scope)
-    registry = filecache.TemplateRegistry()
-    registry.add(None, source)
-    func = registry[None]
+
     def render(target_language=None, **kwargs):
-        kwargs.setdefault(config.SYMBOLS.slots, utils.emptydict)
-        kwargs.setdefault(config.SYMBOLS.translate, lambda msg, *args, **kwargs: msg)
-        rcontext = utils.econtext(kwargs)
-        econtext = rcontext.copy()
-        return func(econtext, rcontext)
+        f = tempfile.NamedTemporaryFile(suffix=".py")
+        try:
+            # compile source
+            f.write(source)
+            f.flush()
+            name, ext = os.path.splitext(os.path.basename(f.name))
+            args = imp.find_module(name, [os.path.dirname(f.name)])
+            module = imp.load_module(name, *args)
+            func = module.bind()
+
+            # render setup
+            kwargs.setdefault(config.SYMBOLS.slots, utils.emptydict)
+            kwargs.setdefault(config.SYMBOLS.translate, lambda msg, *args, **kwargs: msg)
+            rcontext = utils.econtext(kwargs)
+            econtext = rcontext.copy()
+            result = func(econtext, rcontext)
+        finally:
+            f.close()
+
+        return result
     return render
 
 class MockElement(translation.Element):
