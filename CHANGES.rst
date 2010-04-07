@@ -3,6 +3,10 @@ Changes
 
 In the next release...
 
+- Fixed issue where decorators used internally by the compiler would
+  be silently dropped during compilation on Python 2.4. This fix
+  solves an issue with match templates not being processed.
+
 - Objects which are not strings or numbers, and which do not provide
   an ``__html__`` method, are now considered i18n messages. This means
   that they are automatically translated (using interpolation or

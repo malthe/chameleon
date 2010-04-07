@@ -167,7 +167,7 @@ class For(stmt):
 	__doc__ = None
 
 class FunctionDef(stmt):
-	_fields = ('name', 'args', 'body', 'decorators')
+	_fields = ('name', 'args', 'body', 'decorator_list')
 	__doc__ = None
 
 class GeneratorExp(expr):
