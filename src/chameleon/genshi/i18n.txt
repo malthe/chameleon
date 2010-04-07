@@ -152,7 +152,7 @@ Or nested:
   ...      xmlns:py="http://genshi.edgewall.org/">
   ...   <span i18n:domain="test" i18n:translate="size_advise">
   ...     <span py:strip="True" i18n:name="retailer">${retailer}</span> recommends
-  ...     <strong i18n:name="size_x" i18n:translate="size_advise_suggestion">size
+  ...     <strong i18n:name="size" i18n:translate="size_advise_suggestion">size
   ...        <span py:strip="True" i18n:name="size">${size}</span></strong>.
   ...   </span>
   ... </div>"""
@@ -163,7 +163,7 @@ Without a language this gives:
   >>> print template.render(retailer=u"Esprit", size=u"XL")
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>
-       Esprit recommands <strong>size XL</strong>.
+       Esprit recommends <strong>size XL</strong>.
     </span>
   </div>
 
@@ -172,9 +172,7 @@ In Dutch:
   >>> template = GenshiTemplate(body)
   >>> print template.render(retailer=u"Esprit", size=u"XL", target_language="nl")
   <div xmlns="http://www.w3.org/1999/xhtml">
-    <span>
-       Esprit adviseert u <strong>maat XL</strong>.
-    </span>
+    <span>Esprit adviseert u <strong>maat XL</strong>.</span>
   </div>
 
 Here's an example from a template for a calendar widget:

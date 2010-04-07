@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release...
+
+- Fixed issue where nested translations would drop named blocks due to
+  a name clash.
+
 1.2.1 (released 2010-04-07)
 ---------------------------
 

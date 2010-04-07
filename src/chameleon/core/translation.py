@@ -623,7 +623,7 @@ class Node(object):
                 msgid = self.create_msgid()
 
             if named_elements:
-                mapping = self.symbols.mapping
+                mapping = "%s_%d" % (self.symbols.mapping, id(self.element))
                 _.append(clauses.Assign(types.value('{}'), mapping))
             else:
                 mapping = 'None'
