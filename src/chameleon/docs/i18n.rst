@@ -1,85 +1,135 @@
 .. _i18n_chapter:
 
-Internationalization via the ``i18n`` Namespace
-===============================================
+Internationalization
+====================
 
 Translation of template contents and attributes is supported via the
-``i18n`` namespace and `zope.i18nmessageid
-<http://pypi.python.org/pypi/zope.i18nmessageid>` messages. It's available to
-both Genshi and Zope Page Templates.
+``i18n`` namespace and message objects. It's available to both Genshi
+and Zope Page Templates.
 
-Providing a translation function
---------------------------------
+Messages
+--------
+
+The translation machinery defines messages as any object which is not
+a string or a number, and which does not provide an ``__html__``
+method.
+
+When any such object is inserted into the template, the translate
+function is invoked first to see if it needs translation.
+
+Translation function
+--------------------
 
 The simplest way to hook into the translation machinery is to provide
-a translation function to the template constructor::
+a translation function on template instantiation::
 
   >>> from chameleon.genshi.template import GenshiTemplate
-  >>> template = GenshiTemplate(source, translate=my_translation_function)
+  >>> template = GenshiTemplate(source, translate=translate)
 
 This function has the following signature::
 
   def translate(msgid, domain=None, mapping=None, context=None,
                 target_language=None, default=None)
 
-The same API is used with Zope Page Templates.
+It returns a unicode string.
 
-Registering a Translation Domain
---------------------------------
+If `zope.i18n <http://pypi.python.org/pypi/zope.i18n>`_ is available, the translation machinery defaults to
+using its translation function. Note that this function requires
+messages to conform to the message class from `zope.i18nmessageid
+<http://pypi.python.org/pypi/zope.i18nmessageid>`_; specifically,
+messages must have attributes ``domain``, ``mapping`` and
+``default``. Example use::
 
-By default, if ``zope.i18n`` is available, this framework is used to
-translate messages. This requires the use of *translation domains*.
+  from zope.i18nmessageid import MessageFactory
+  _ = MessageFactory("food")
 
-A translation domain object is an object with a ``translate`` method
-which accepts certain arguments.  It returns a translation for the
-given msgid or the default.
+  apple = _(u"Apple")
 
-.. note:: It's required to use the Zope Component Architecture to register translation domains.
+There's currently no high-level support for other translation
+frameworks.
 
-The following snippet describes how to manually register a translation
-domain component::
+Using Zope's translation framework
+-----------------------------------
+
+The translation function from ``zope.i18n`` relies on *translation
+domains* to provide translations.
+
+These are components that are registered for some translation domain
+identifier and which implement a ``translate`` method that translates
+messages for that domain.
+
+.. note:: To register translation domain components, the Zope Component Architecture must be used (see `zope.component <http://pypi.python.org/pypi/zope.component>`_).
+
+The easiest way to configure translation domains is to use the the
+``registerTranslations`` ZCML-directive; this requires the use of the
+`zope.configuration <http://pypi.python.org/pypi/zope.configuration>`_
+package. This will set up translation domains and gettext catalogs
+automatically::
+
+  <configure xmlns="http://namespaces.zope.org/zope"
+             xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+     <i18n:registerTranslations directory="locales" />
+
+  </configure>
+
+The ``./locales`` directory must follow a particular directory
+structure::
+
+  ./locales/en/LC_MESSAGES
+  ./locales/de/LC_MESSAGES
+  ...
+
+In each of the ``LC_MESSAGES`` directories, one `GNU gettext
+<http://en.wikipedia.org/wiki/GNU_gettext>`_ file in the ``.po``
+format must be present per translation domain::
+
+  # ./locales/de/LC_MESSAGES/food.po
+
+  msgid ""
+  msgstr ""
+  "MIME-Version: 1.0\n"
+  "Content-Type: text/plain; charset=UTF-8\n"
+  "Content-Transfer-Encoding: 8bit\n"
+
+  msgid "Apple"
+  msgstr "Apfel"
+
+It may be necessary to compile the message catalog using the
+``msgfmt`` utility. This will produce a ``.mo`` file.
+
+Translation domains without gettext
+-----------------------------------
+
+The following example demonstrates how to manually set up and
+configure a translation domain for which messages are provided
+directly::
 
   from zope import component
+  from zope.i18n.simpletranslationdomain import SimpleTranslationDomain
+
+  food = SimpleTranslationDomain("food", {
+      ('de', u'Apple'): u'Apfel',
+      })
+
+  component.provideUtility(food, food.domain)
+
+An example of a custom translation domain class::
+
   from zope import interface
 
-  class MockTranslationDomain(object):
+  class TranslationDomain(object):
        interface.implements(ITranslationDomain)
 
        def translate(self, msgid, mapping=None, context=None,
                     target_language=None, default=None):
-           if target_language != 'de':
-               return default
 
-           return "Mock translation of '%s'." % msgid
+           ...
 
-  td = MockTranslationDomain()
-  component.provideUtility(td, ITranslationDomain, name="test")
+  component.provideUtility(TranslationDomain(), name="custom")
 
-As an alternative, the ``registerTranslations`` ZCML-directive can be
-used if you're configuring components using ``zope.configuration``.
-
-The domain's name is used to specify which translation to use.  A
-favorite example is: How do you translate 'Sun'? Is it our star, the
-abbreviation of Sunday or the company?  Specifying the domain name,
-such as ``Stars`` or ``DaysOfWeek`` will make it unambiguous.  The
-domain name is referred to in ``18n:translate`` tags shown below.
-
-Standard arguments in the ``translate`` method are described below::
-
-        msgid -- The id of the message that should be translated.  This may be
-                 an implicit or an explicit message id.
-
-        mapping -- The object to get the interpolation data from.
-
-        context -- An object that provides contextual information for
-                   determining client language preferences.
-
-        target_language -- The language to translate to.
-
-        default -- This will be returned if no translation is found.
-
-.. warning:: We need a better Mock that shows usage of ``context`` and
-   ``mapping``.
+This approach can be used to integrate other translation catalog
+implementations.
 
 The ``i18n`` Namespace
 ----------------------

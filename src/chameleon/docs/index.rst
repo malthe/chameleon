@@ -56,6 +56,7 @@ Contents
 
    zpt.rst
    genshi.rst
+   i18n.rst
    config.rst
 
 Indices and Tables
