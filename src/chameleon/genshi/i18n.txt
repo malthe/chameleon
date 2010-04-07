@@ -26,6 +26,8 @@ msgids:
   ...     ("de", "&reg; &lt;") : u"German &reg; &lt;",
   ...     ("de", "The Dutch")  : u"Die Hollander",
   ...     ("de", "missing_id") : u"missing_id",
+  ...     ("nl", "size_advise"): u"${retailer} adviseert u ${size}.",
+  ...     ("nl", "size_advise_suggestion"): u"maat ${size}",
   ...     })
   >>> component.provideUtility(td, name="test")
 
@@ -140,6 +142,39 @@ In German:
   >>> print template.render(target_language='de')
   <div xmlns="http://www.w3.org/1999/xhtml">
     <span>Ich will <span>12</span> Bananen und <span>8</span> Äpfels.</span>
+  </div>
+
+Or nested:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  ...      xmlns:py="http://genshi.edgewall.org/">
+  ...   <span i18n:domain="test" i18n:translate="size_advise">
+  ...     <span py:strip="True" i18n:name="retailer">${retailer}</span> recommends
+  ...     <strong i18n:name="size_x" i18n:translate="size_advise_suggestion">size
+  ...        <span py:strip="True" i18n:name="size">${size}</span></strong>.
+  ...   </span>
+  ... </div>"""
+
+Without a language this gives:
+
+  >>> template = GenshiTemplate(body)
+  >>> print template.render(retailer=u"Esprit", size=u"XL")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+       Esprit recommands <strong>size XL</strong>.
+    </span>
+  </div>
+
+In Dutch:
+
+  >>> template = GenshiTemplate(body)
+  >>> print template.render(retailer=u"Esprit", size=u"XL", target_language="nl")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <span>
+       Esprit adviseert u <strong>maat XL</strong>.
+    </span>
   </div>
 
 Here's an example from a template for a calendar widget:
