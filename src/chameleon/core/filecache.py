@@ -18,7 +18,7 @@ logger = logging.getLogger("Chameleon")
 class TemplateRegistry(object):
     version = None
     mtime = None
-    
+
     def __init__(self):
         self.registry = {}
 
@@ -39,7 +39,6 @@ class TemplateRegistry(object):
         exec source in _locals
         bind = _locals['bind']
         func = bind()
-        func.source = source
         self.registry[key] = func
 
     def clear(self):
@@ -48,7 +47,8 @@ class TemplateRegistry(object):
 
     def load(self):
         pass
-    
+
+
     def purge(self):
         self.clear()
 
