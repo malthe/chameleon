@@ -1,7 +1,8 @@
 Changes
 =======
 
-In the next release...
+1.2.1 (released 2010-04-07)
+---------------------------
 
 - Fixed issue where decorators used internally by the compiler would
   be silently dropped during compilation on Python 2.4. This fix
