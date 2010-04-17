@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.2.2 (released 2010-04-17)
+---------------------------
 
 - Fixed regression where objects that are not strings or numbers would
   not output due to a recent change in policy that subjected such
