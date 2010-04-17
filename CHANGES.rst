@@ -3,6 +3,18 @@ Changes
 
 In next release...
 
+- Fixed regression where objects that are not strings or numbers would
+  not output due to a recent change in policy that subjected such
+  objects to the translation machinery. However, the default
+  translation function had a bug that instead returned ``None``.
+
+  The new behavior is that such objects are coerced to unicode by
+  default.
+
+  Note that if ``zope.i18n`` is available, an alternative translation
+  function is used; this function, however, has the correct behavior
+  already.
+
 - Fixed issue where nested translations would drop named blocks due to
   a name clash.
 

@@ -3,8 +3,11 @@ try:
     from zope.i18n import translate
     from zope.i18nmessageid import Message
 except ImportError:
-    def fast_translate(msgid, *args, **kwargs):
-        return kwargs.get('default', msgid)
+    def fast_translate(msgid, domain=None, mapping=None, context=None,
+                       target_language=None, default=None):
+        if default is None:
+            return unicode(msgid)
+        return default
 else:
     def fast_translate(msgid, domain=None, mapping=None, context=None,
                        target_language=None, default=None):
