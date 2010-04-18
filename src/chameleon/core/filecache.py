@@ -34,8 +34,8 @@ class TemplateRegistry(object):
             return render is not None
         return False
 
-    def add(self, key, source):
-        _locals = {}
+    def add(self, key, source, filename):
+        _locals = {'__filename__': filename}
         exec source in _locals
         bind = _locals['bind']
         func = bind()
@@ -107,7 +107,7 @@ class TemplateCache(TemplateRegistry):
             self.registry.clear()
             self.registry.update(registry)
 
-    def add(self, key, source):
+    def add(self, key, source, filename):
         """Add template to module.
 
         We simply append the function definition (closure inside a
@@ -124,6 +124,7 @@ class TemplateCache(TemplateRegistry):
             self.initialize(module)
         try:
             module.write(source+'\n')
+            module.write("__filename__ = %s\n" % repr(filename))
             module.write("registry[%s] = bind()\n" % repr(key))
         finally:
             module.close()

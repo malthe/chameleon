@@ -705,73 +705,82 @@ def format_kwargs(kwargs):
 def raise_exc(exc):
     raise exc
 
-def raise_template_exception(description, kwargs, exc_info):
-    """Re-raise exception raised while calling ``template``, given by
-    the ``exc_info`` tuple (see ``sys.exc_info``)."""
+def raise_template_exception(kwargs=None, exc_info=None, filename=None):
+    if kwargs is not None:
+        kwargs = kwargs.copy()
 
-    kwargs = kwargs.copy()
+        # merge dynamic scope
+        kwargs.update(kwargs.pop('econtext', {}))
 
-    # merge dynamic scope
-    kwargs.update(kwargs.pop('econtext', {}))
+        # omit keyword arguments that begin with an underscore; these are
+        # used internally be the template engine and should not be exposed
+        map(kwargs.__delitem__, [k for k in kwargs if k.startswith('_')])
 
-    # omit keyword arguments that begin with an underscore; these are
-    # used internally be the template engine and should not be exposed
-    map(kwargs.__delitem__, [k for k in kwargs if k.startswith('_')])
+        # format keyword arguments; consecutive arguments are indented for
+        # readability
+        try:
+            formatted_arguments = format_kwargs(kwargs)
+        except:
+            # the ``pprint.pformat`` method calls the representation
+            # method of the arguments; this may fail and since we're
+            # already in an exception handler, there's no point in
+            # pursuing this further
+            formatted_arguments = ()
 
-    # format keyword arguments; consecutive arguments are indented for
-    # readability
-    try:
-        formatted_arguments = format_kwargs(kwargs)
-    except:
-        # the ``pprint.pformat`` method calls the representation
-        # method of the arguments; this may fail and since we're
-        # already in an exception handler, there's no point in
-        # pursuing this further
-        formatted_arguments = ()
+        for index, string in enumerate(formatted_arguments[1:]):
+            formatted_arguments[index+1] = " "*15 + string
 
-    for index, string in enumerate(formatted_arguments[1:]):
-        formatted_arguments[index+1] = " "*15 + string
+        kwargs = formatted_arguments
 
     # extract line number from traceback object
     cls, exc, tb = exc_info
-    try:
-        lineno = tb.tb_next.tb_frame.f_lineno - 1
-        filename = tb.tb_next.tb_frame.f_code.co_filename
-        source = open(filename).read()
-    except AttributeError:
-        source = None
 
-    # locate source code annotation (these are available from
-    # the template source as comments)
-    if source:
-        source = source.split('\n')
-        for i in reversed(range(lineno)):
-            try:
-                line = source[i]
-            except IndexError:
-                raise cls, exc, tb
-            m = re_annotation.match(line)
-            if m is not None:
-                annotation = m.group(1)
+    annotation = None
+    if filename is None:
+        # go to nearest template frame
+        while tb is not None:
+            filename = tb.tb_frame.f_globals.get('__filename__')
+            if filename is not None:
                 break
+            tb = tb.tb_next
         else:
-            annotation = ""
+            filename = "<string>"
 
-        error_msg = "Caught exception rendering template."
-    else:
-        annotation = ""
-        error_msg = "Caught exception processing template: %s.\n" % description
+        tb_next = tb
+        while tb_next is not None and '__filename__' in tb_next.tb_frame.f_globals:
+            tb = tb_next
+            tb_next = tb.tb_next
+
+        lineno = tb.tb_frame.f_lineno - 1
+        try:
+            source = open(tb.tb_frame.f_code.co_filename).read()
+        except IOError:
+            source = None
+
+        if source:
+            source = source.split('\n')
+            for i in reversed(range(lineno)):
+                try:
+                    line = source[i]
+                except IndexError:
+                    raise cls, exc, tb
+                m = re_annotation.match(line)
+                if m is not None:
+                    annotation = m.group(1)
+                    break
+
+    error_msg = "Caught exception rendering template."
 
     __dict__ = exc.__dict__
     __name__ = cls.__name__
-    
+
     error_string = str(exc)
 
     if issubclass(cls, Exception):
         class RuntimeError(cls):
             def __init__(self, *args, **kwargs):
                 pass
-            
+
             def __str__(self):
                 return "%s\n%s\n%s: %s" % (
                     error_msg, str(self.__debug_info__),
@@ -788,25 +797,28 @@ def raise_template_exception(description, kwargs, exc_info):
             debug_info = RuntimeError.__debug_info__
         except AttributeError:
             debug_info = RuntimeError.__debug_info__ = DebugInfo()
-        debug_info.append(annotation, description, formatted_arguments)
+
+        info = ""
+        if annotation:
+            info += " - Expression: ``%s``\n" % annotation
+        if filename:
+            info += " - Filename:   %s\n" % filename
+        if kwargs:
+            info += " - Arguments:  %s\n" % "\n".join(kwargs)
+
+        debug_info.append(info)
 
     raise cls, exc, tb
 
 class DebugInfo(object):
     def __init__(self):
         self.info = []
-        
-    def append(self, *args):
-        self.info.append(args)
+
+    def append(self, text):
+        self.info.append(text)
 
     def __str__(self):
-        error_format = ' - Expression: "%s"\n' \
-                       ' - Instance:   %s\n' \
-                       ' - Arguments:  %s\n'
-
-        annotation, description, formatted_arguments = self.info[-1]
-        return error_format % (
-            annotation, description, "\n".join(formatted_arguments))
+        return self.info[-1]
 
 class ValidationError(ValueError):
     def __str__(self):

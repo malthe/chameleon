@@ -3,6 +3,12 @@ Changes
 
 In next release...
 
+- Improved exception output in debug-mode; for nested usage, sections
+  now carry the correct filename.
+
+- Fixed an issue where an incorrect expression annotation would be
+  shown, or none at all.
+
 - When in debug-mode, take steps to ensure traceback is not swallowed
   in properties by explicit invocation.
 

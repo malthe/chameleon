@@ -107,7 +107,7 @@ class Template(object):
             tree = parse_method(body)
         except:
             utils.raise_template_exception(
-                repr(self), {}, sys.exc_info())
+                exc_info=sys.exc_info(), filename=self.filename)
 
         # it's not clear from the tree if an XML declaration was
         # present in the document source; the following is a
@@ -163,7 +163,7 @@ class Template(object):
         key = macro, global_scope, self.signature
         if key not in self.registry:
             source = self.compiler(macro, global_scope)
-            self.registry.add(key, source)
+            self.registry.add(key, source, self.filename)
             if key not in self.registry:
                 raise RuntimeError(
                     "Unable to add template '%s' to registry (%s)." % (
@@ -187,8 +187,7 @@ class Template(object):
         try:
             return func(econtext, rcontext)
         except:
-            utils.raise_template_exception(
-                repr(self), kwargs, sys.exc_info())
+            utils.raise_template_exception(kwargs, sys.exc_info())
 
     def render(self, *args, **kwargs):
         if args:
