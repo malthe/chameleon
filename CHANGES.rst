@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release...
+
+- When in debug-mode, take steps to ensure traceback is not swallowed
+  in properties by explicit invocation.
+
 1.2.2 (released 2010-04-17)
 ---------------------------
 

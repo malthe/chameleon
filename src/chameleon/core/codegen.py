@@ -1,10 +1,11 @@
+import sys
+import __builtin__
+
 from chameleon.ast.astutil import parse
 from chameleon.ast.astutil import _ast as ast
 from chameleon.ast.astutil import ASTTransformer
 from chameleon.ast.astutil import ASTCodeGenerator
 from chameleon.core import config
-
-import __builtin__
 
 CONSTANTS = frozenset(['False', 'True', 'None', 'NotImplemented', 'Ellipsis'])
 SYMBOLS = config.SYMBOLS.as_dict().values()
@@ -27,19 +28,47 @@ def flatten(list):
 def lookup_attr(obj, key):
     try:
         return getattr(obj, key)
-    except AttributeError:
+    except AttributeError, e:
         try:
             get = obj.__getitem__
         except AttributeError:
-            raise
+            raise e
         try:
             return get(key)
         except KeyError:
-            raise
+            raise e
 
-lookup_globals = {
-    '_lookup_attr': lookup_attr,
-    }
+def lookup_attr_debug(obj, key):
+    try:
+        cls = obj.__class__
+        attr = getattr(cls, key)
+        get = getattr(attr, '__get__', None)
+    except AttributeError:
+        attr = None
+
+    if attr is not None:
+        return get(obj, cls)
+    else:
+        try:
+            return getattr(obj, key)
+        except AttributeError, e:
+            try:
+                get = obj.__getitem__
+            except AttributeError:
+                raise e
+            try:
+                return get(key)
+            except KeyError:
+                raise e
+
+if config.DEBUG_MODE:
+    lookup_globals = {
+        '_lookup_attr': lookup_attr_debug,
+        }
+else:
+    lookup_globals = {
+        '_lookup_attr': lookup_attr,
+        }
 
 class TemplateASTTransformer(ASTTransformer):
     def __init__(self, globals):
