@@ -1,6 +1,5 @@
 import os
 import utils
-import logging
 
 # define which values are read as true
 TRUEVALS = ('y', 'yes', 't', 'true', 'on', '1')
@@ -9,10 +8,6 @@ TRUEVALS = ('y', 'yes', 't', 'true', 'on', '1')
 DEBUG_MODE_KEY = 'CHAMELEON_DEBUG'
 DEBUG_MODE = os.environ.get(DEBUG_MODE_KEY, 'false')
 DEBUG_MODE = DEBUG_MODE.lower() in TRUEVALS
-if DEBUG_MODE is True:
-    logging.warn("Chameleon running in DEBUG mode.")
-else:
-    logging.info("Chameleon running in PRODUCTION mode.")
 
 # disable disk-cache to prevent the compiler from caching on disk
 DISK_CACHE_KEY = 'CHAMELEON_CACHE'
