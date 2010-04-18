@@ -27,25 +27,18 @@ def flatten(list):
 def lookup_attr(obj, key):
     try:
         return getattr(obj, key)
-    except AttributeError, e:
+    except AttributeError:
         try:
             get = obj.__getitem__
         except AttributeError:
-            raise e
+            raise
         try:
             return get(key)
         except KeyError:
-            raise e
-
-def lookup_name(data, name):
-    try:
-        return data[name]
-    except KeyError:
-        raise NameError(name)
+            raise
 
 lookup_globals = {
     '_lookup_attr': lookup_attr,
-    '_lookup_name': lookup_name,
     }
 
 class TemplateASTTransformer(ASTTransformer):
