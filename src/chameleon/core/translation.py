@@ -899,7 +899,7 @@ class Compiler(object):
 
                 macros[define] = (extend is not None, names)
 
-    def __call__(self, macro, global_scope=True):
+    def __call__(self, macro, global_scope=True, debug=False):
         root = copy.deepcopy(self.tree).getroot()
 
         if not isinstance(root, Element):
@@ -954,7 +954,11 @@ class Compiler(object):
         stream.symbol_mapping['_init_default'] = generation.initialize_default
 
         # add code-generation lookup globals
-        stream.symbol_mapping.update(codegen.lookup_globals)
+        if debug:
+            lookup = codegen.lookup_attr_debug
+        else:
+            lookup = codegen.lookup_attr
+        stream.symbol_mapping['_lookup_attr'] = lookup
 
         if global_scope:
             assignments = (

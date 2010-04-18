@@ -10,7 +10,7 @@ Suite
 The ``Suite`` class compiles a source code suite and makes a code
 object available.
 
-  >>> from chameleon.core.codegen import lookup_globals, Suite
+  >>> from chameleon.core.codegen import Suite
   >>> suite = Suite("""\
   ... print 'Hello World!'
   ... """)
@@ -19,16 +19,20 @@ object available.
 
 Syntax extension: Dictionary lookup using dot operator
 ------------------------------------------------------
-  
+
 We allow attribute access to dictionary entries to minimize verbosity
 in templates. It works by wrapping the get attribute nodes in a method
 that tries a dictionary lookup if attribute lookup failed.
+
+  >>> from chameleon.core.config import SYMBOLS
+  >>> from chameleon.core.codegen import lookup_attr
+  >>> lookup_globals = {SYMBOLS.lookup_attr: lookup_attr}
 
   >>> suite = Suite("""\
   ... a = {'b': 1}
   ... assert a['b'] == a.b
   ... """)
-  >>> exec suite.source in lookup_globals.copy()
+  >>> exec suite.source in lookup_globals
 
 Syntax extension: Dynamic scoping
 ---------------------------------
@@ -37,4 +41,4 @@ Syntax extension: Dynamic scoping
   ... econtext = {'a': 1}
   ... assert a == 1
   ... """)
-  >>> exec suite.source in lookup_globals.copy()
+  >>> exec suite.source in lookup_globals

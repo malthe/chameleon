@@ -3,6 +3,12 @@ Changes
 
 In next release...
 
+- Added parameter ``debug`` to template constructor to enable debug
+  mode. The default value is taken from the ``CHAMELEON_DEBUG``
+  environment value and defaults to ``False``.
+
+  The use of debug mode is recommended during development.
+
 - Improved exception output in debug-mode; for nested usage, sections
   now carry the correct filename.
 

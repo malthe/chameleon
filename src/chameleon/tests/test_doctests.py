@@ -24,7 +24,7 @@ class CoreTests(unittest.TestCase):
     def __new__(self, test):
         from chameleon.core import config
         config.DISK_CACHE = False
-        config.DEBUG_MODE = True
+        config.DEBUG_MODE = False
         config.STRICT_MODE = True
         return getattr(self, test)()
 

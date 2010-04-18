@@ -301,8 +301,6 @@ elsewhere).
   >>> print content(another=another, form=form)
   Traceback (most recent call last):
    ...
-  RuntimeError: Caught exception rendering template.
-   ...
   KeyError: 'extra_info'
 
   >>> body = """\
@@ -502,7 +500,7 @@ Exception while evaluating expression:
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
   ...   <span tal:content="range()" />
-  ... </div>""").render()
+  ... </div>""", debug=True).render()
   Traceback (most recent call last):
     ...
   RuntimeError: Caught exception rendering template.
@@ -515,7 +513,7 @@ Exception while evaluating definition:
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
   ...   <span tal:define="dummy range()" />
-  ... </div>""").render()
+  ... </div>""", debug=True).render()
   Traceback (most recent call last):
     ...
   RuntimeError: Caught exception rendering template.
@@ -528,7 +526,7 @@ Exception while evaluating interpolation:
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
   ...   <span>${range()}</span>
-  ... </div>""").render()
+  ... </div>""", debug=True).render()
   Traceback (most recent call last):
     ...
   RuntimeError: Caught exception rendering template.
@@ -582,7 +580,7 @@ Interpolation:
   >>> PageTemplate("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml">
   ...   ${print 'Hello world'}
-  ... </html>""").render()
+  ... </html>""", debug=True).render()
   Traceback (most recent call last):
    ...
       print 'Hello world'
@@ -595,7 +593,7 @@ Variable definition:
   >>> PageTemplate("""\
   ... <html xmlns="http://www.w3.org/1999/xhtml"
   ...       tal:define="dummy print 'Hello world'">
-  ... </html>""").render()
+  ... </html>""", debug=True).render()
   Traceback (most recent call last):
    ...
       print 'Hello world'

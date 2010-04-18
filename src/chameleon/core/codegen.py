@@ -61,15 +61,6 @@ def lookup_attr_debug(obj, key):
             except KeyError:
                 raise e
 
-if config.DEBUG_MODE:
-    lookup_globals = {
-        '_lookup_attr': lookup_attr_debug,
-        }
-else:
-    lookup_globals = {
-        '_lookup_attr': lookup_attr,
-        }
-
 class TemplateASTTransformer(ASTTransformer):
     def __init__(self, globals):
         self.locals = [CONSTANTS]
@@ -169,14 +160,14 @@ class TemplateASTTransformer(ASTTransformer):
 
         ## This should be spellable as
         ##         return ast.Call(
-        ##             ast.Name('_lookup_attr', ast.Load()),
+        ##             ast.Name(config.SYMBOLS.lookup_attr, ast.Load()),
         ##             [self.visit(node.value), ast.Str(node.attr)],
         ##             [], None, None)
         ## .. except Python 2.5 doesn't allow it.
 
         call = ast.Call()
         name = ast.Name()
-        name.id = '_lookup_attr'
+        name.id = config.SYMBOLS.lookup_attr
         name.ctx = ast.Load()
         call.func = name
         string = ast.Str()

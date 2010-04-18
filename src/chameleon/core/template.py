@@ -36,6 +36,10 @@ class Template(object):
 
     To provide a custom translation function, use the ``translate``
     parameter.
+
+    The ``debug`` flag can be set to ``True`` to enable detailed error
+    reporting. This is recommended for development, but should be
+    disabled in production.
     """
 
     format = 'xml'
@@ -47,7 +51,8 @@ class Template(object):
     translate = staticmethod(i18n.fast_translate)
 
     def __init__(self, body, parser, format=None, doctype=None,
-                 encoding=None, omit_default_prefix=True, translate=None):
+                 encoding=None, omit_default_prefix=True,
+                 translate=None, debug=config.DEBUG_MODE):
         if encoding is not None:
             self.encoding = encoding
 
@@ -55,7 +60,7 @@ class Template(object):
             # in debug-mode we initialize a filecache to a named
             # temporary file; this makes step-debugging through
             # generated template code possible
-            if config.DEBUG_MODE:
+            if debug:
                 self.registry = filecache.TemplateCache(
                     tempfile.NamedTemporaryFile('w').name, 0)
             else:
@@ -73,6 +78,7 @@ class Template(object):
         self.parser = parser
         self.body = body
         self.omit_default_prefix = omit_default_prefix
+        self.debug = debug
         self.signature = sha(";".join(map(str, (
             type(parser).__name__, format,
             encoding, omit_default_prefix,
@@ -182,7 +188,8 @@ class Template(object):
         econtext.setdefault(config.SYMBOLS.translate, self.translate)
 
         __traceback_info__ = (self,)
-        if config.DEBUG_MODE is False:
+
+        if self.debug is False:
             return func(econtext, rcontext)
         try:
             return func(econtext, rcontext)
@@ -220,16 +227,19 @@ class TemplateFile(Template):
     current-working-directory-relative) filename as ``filename``. If
     ``auto_reload`` is true, each time the template is rendered, it
     will be recompiled if it has been changed since the last
-    rendering."""
+    rendering.
+
+    The ``debug`` flag can be set to ``True`` to enable detailed error
+    reporting. This is recommended for development, but should be
+    disabled in production.
+    """
 
     content_type = None
     global_registry = {}
 
-    def __init__(self, filename, parser, format=None, doctype=None,
-                 encoding=None, translate=None, auto_reload=config.DEBUG_MODE):
-        if encoding is not None:
-            self.encoding = encoding
-
+    def __init__(self, filename, parser, format=None,
+                 doctype=None, encoding=None, translate=None,
+                 auto_reload=config.DEBUG_MODE, debug=config.DEBUG_MODE):
         # compute absolute filename
         self.filename = filename = os.path.abspath(
             os.path.normpath(os.path.expanduser(filename)))
@@ -247,8 +257,8 @@ class TemplateFile(Template):
 
         # initialize template
         Template.__init__(
-            self, None, parser, format=format,
-            doctype=doctype, translate=translate)
+            self, None, parser, format=format, encoding=encoding,
+            doctype=doctype, translate=translate, debug=debug)
 
         # read template (note that if we're unable to read the file,
         # we set ``auto_reload`` to true)

@@ -82,6 +82,7 @@ class SYMBOLS(object):
     msgid = '_msgid'
     re_amp = '_re_amp'
     raise_exc = '_raise_exc'
+    lookup_attr = '_lookup_attr'
 
     # transient
     _slots = TRANSIENT_SYMBOL

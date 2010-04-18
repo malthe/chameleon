@@ -230,9 +230,6 @@ augmented with information useful for debugging.
 Note that the compiler must run in debug-mode to get this
 functionality.
 
-  >>> from chameleon.core import config
-  >>> config.DEBUG_MODE = True
-
 To test the error handler, we'll try to call a symbol `dummy`; for
 technical reasons, we must wrap this in an encoded pickle---this is
 due to our test setup.
@@ -243,7 +240,7 @@ due to our test setup.
 
   >>> template = Template("""\
   ... <div meta:replace="%s" />""" % encodestring(dumps(value('dummy()'))),
-  ... mock_parser)
+  ... mock_parser, debug=True)
 
 First, a simple example where a ``NameError`` exception is raised in a
 function which we'll call from inside the template.
