@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+1.2.3 (released 2010-04-19)
+---------------------------
 
 - Added parameter ``debug`` to template constructor to enable debug
   mode. The default value is taken from the ``CHAMELEON_DEBUG``
