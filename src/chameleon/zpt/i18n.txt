@@ -513,14 +513,17 @@ Passing German:
     </span>
   </div>
 
-Tag attributes which are messages:
+Tag attributes which are messages (even with interpolation, but only
+if there's no surrounding text).
 
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
   ...   <div title="Simple Title"
   ...        tal:attributes="title monthname">
-  ...     Text
+  ...     <img alt="${monthname}" src="#" />
+  ...     <img alt="${abc | monthname}" src="#" />
+  ...     <img alt="not translated: ${monthname}" src="#" />
   ...   </div>
   ... </div>"""
   >>> template = PageTemplate(body)
@@ -529,7 +532,9 @@ Tag attributes which are messages:
   >>> print template.render(target_language='de', monthname=monthname)
   <div xmlns="http://www.w3.org/1999/xhtml">
     <div title="Mock translation of 'month_nov'.">
-      Text
+      <img alt="Mock translation of 'month_nov'." src="#" />
+      <img alt="Mock translation of 'month_nov'." src="#" />
+      <img alt="not translated: month_nov" src="#" />
     </div>
   </div>
 
