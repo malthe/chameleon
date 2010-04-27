@@ -513,6 +513,26 @@ Passing German:
     </span>
   </div>
 
+Tag attributes which are messages:
+
+  >>> body = """\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  ...   <div title="Simple Title"
+  ...        tal:attributes="title monthname">
+  ...     Text
+  ...   </div>
+  ... </div>"""
+  >>> template = PageTemplate(body)
+  >>> from zope.i18nmessageid import Message
+  >>> monthname = Message(u'month_nov', domain="test", default=u"November")
+  >>> print template.render(target_language='de', monthname=monthname)
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <div title="Mock translation of 'month_nov'.">
+      Text
+    </div>
+  </div>
+
 Translation of tag content and tag attributes
 ---------------------------------------------
 

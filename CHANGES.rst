@@ -1,6 +1,10 @@
 Changes
 =======
 
+In next release...
+
+- Translate attributes that are messages.
+
 1.2.3 (released 2010-04-19)
 ---------------------------
 

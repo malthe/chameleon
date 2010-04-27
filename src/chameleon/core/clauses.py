@@ -674,17 +674,27 @@ class Tag(object):
                     temp, repr(default_string)))
                 stream.outdent()
 
-                stream.write("if %s is None or %s is False:" % (temp, temp))
+                # ignore trivial values
+                stream.write("if %s is not None and %s is not False:" % (
+                    temp, temp))
                 stream.indent()
-                stream.write("pass")
+
+                # translate non-basic values
+                stream.write(
+                    "if %s.__class__ not in (str, unicode, int, float):" % temp)
+                stream.indent()
+                stream.write("%s = unicode(%s)" % (
+                    temp, translate_expression(temp) % (
+                    stream.symbols.as_dict())))
                 stream.outdent()
-                stream.write("else:")
-                stream.indent()
 
                 # if an encoding is specified, we need to check
                 # whether we're dealing with unicode strings or not,
                 # before writing out the attribute
+                stream.write("else:")
+                stream.indent()
                 stream.ensure_unicode(temp)
+                stream.outdent()
 
                 # escape expression
                 stream.escape(temp, escape_double_quote=True)
