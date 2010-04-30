@@ -43,7 +43,7 @@ def interpolate(string, translator):
 
     m = match_interpolate(string, translator)
     if m is None:
-        return (string,)
+        return (string.replace('\\$', '$'),)
 
     prefix = m.group('prefix')
     parts = []

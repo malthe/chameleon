@@ -3,6 +3,9 @@ Changes
 
 In next release...
 
+- Fixed issue where an interpolation escape would indeed escape
+  interpolation, but also display in the output. [sklein]
+
 - Translate attributes that are messages.
 
 1.2.3 (released 2010-04-19)

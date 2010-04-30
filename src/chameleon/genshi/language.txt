@@ -603,4 +603,15 @@ validate
   
   >>> config.VALIDATION = False
   
+Expression interpolation can be escaped.
+
+  >>> from chameleon.genshi.template import GenshiTemplate
+  >>> print GenshiTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...    He\$llo World!
+  ... </div>""")()
+  <div xmlns="http://www.w3.org/1999/xhtml">
+     He$llo World!
+  </div>
+
 .. _py:with specs: http://genshi.edgewall.org/wiki/Documentation/0.4.x/xml-templates.html#py-with
