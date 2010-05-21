@@ -3,6 +3,17 @@ Changes
 
 In next release...
 
+- Drop list of rarely used builtins from scope (such as ``help``);
+  meanwhile, the builtins that are made available won't be replaced by
+  arguments passed into the template.
+
+  We can change this behavior by adding names to the list of
+  *transient symbols*; however, this is expensive. The right place to
+  do it would be the code stream's dictionary of required symbols, but
+  it's currently a cumbersome solution.
+
+  Consider this a temporary fix.
+
 - Fixed issue where an interpolation escape would indeed escape
   interpolation, but also display in the output. [sklein]
 

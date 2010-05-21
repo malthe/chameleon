@@ -64,7 +64,13 @@ def lookup_attr_debug(obj, key):
 class TemplateASTTransformer(ASTTransformer):
     def __init__(self, globals):
         self.locals = [CONSTANTS]
-        builtin = dir(__builtin__)
+        builtin = "tuple", "list", "dict", \
+                  "str", "unicode", "float", "long", "int", "basestring", \
+                  "isinstance", "issubclass", "type", "super", "object", "id", \
+                  "range", "xrange", "dir", "chr", "ord", "sum", "hash", \
+                  "join", "split", \
+                  "sorted", "len", "filter", "lambda", "reduce", "round", \
+                  "Exception", "eval"
         self.locals.append(set(globals))
         self.locals.append(set(builtin))
         # self.names is an optimization for visitName (so we don't
