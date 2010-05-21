@@ -36,6 +36,20 @@ Usage
   >>> print PageTextTemplate("Hello World!")()
   Hello World!
 
+Arguments
+---------
+
+We can pass in any variable to the template. Builtins are overridden,
+but certain system names are protected.
+
+  >>> print PageTemplate("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml">
+  ...   ${help}
+  ... </div>""", None)(help=u"Help")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    Help
+  </div>
+
 METAL template integration
 --------------------------
 
