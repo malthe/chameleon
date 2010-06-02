@@ -140,7 +140,7 @@ Given this macro::
 
 You can fill the ``name`` slot like so::
 
-        <p metal:use-macro="container/master.html/macros/hello">
+        <p metal:use-macro="container['master.html'].macros.hello">
           Hello <b metal:fill-slot="name">Kevin Bacon</b>
         </p>
 
@@ -184,7 +184,7 @@ Examples
 
 Basic macro usage::
 
-        <p metal:use-macro="other/macros/header"> header macro from
+        <p metal:use-macro="other.macros.header"> header macro from
           defined in other.html template </p>
 
 This example refers to the ``header`` macro defined in the ``other``
