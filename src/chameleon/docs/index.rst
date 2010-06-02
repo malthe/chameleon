@@ -29,7 +29,7 @@ Development
 -----------
 
 To report bugs, use the `Chameleon bug tracker
-<https://bugs.launchpad.net/chameleon>`_. If you've got questions that
+<https://bugs.launchpad.net/chameleon-template-engine>`_. If you've got questions that
 aren't answered by this documentation, please contact the `Repoze
 mailinglist <http://lists.repoze.org/listinfo/repoze-dev>`_.
 
