@@ -294,14 +294,14 @@ behavior of each element with respect to internationalization.
 Let's look at an example to see what this means::
 
     <html i18n:translate='' i18n:domain='EventsCalendar'
-          metal:use-macro='container/master.html/macros/thismonth'>
+          metal:use-macro="container['master.html'].macros.thismonth">
 
       <div metal:fill-slot='additional-notes'>
         <ol tal:condition="context.notes">
           <li tal:repeat="note context.notes">
              <tal:block tal:omit-tag=""
-                        tal:condition="note/heading">
-               <strong tal:content="note/heading">
+                        tal:condition="note.heading">
+               <strong tal:content="note.heading">
                  Note heading goes here
                </strong>
                <br />
