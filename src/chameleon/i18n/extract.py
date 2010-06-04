@@ -16,7 +16,7 @@ class PythonExtractor(object):
         self.msg = None
         self.messages=[]
         tokens = tokenize.generate_tokens(fileobj.readline)
-        for ( ttype, tstring, stup, etup, line) in tokens:
+        for (ttype, tstring, stup, etup, line) in tokens:
             self.state(ttype, tstring, stup[0])
         return self.messages
 
@@ -61,10 +61,7 @@ class PythonExtractor(object):
         elif ttype==tokenize.OP and tstring==")":
             self.addMessage(self.msg)
             self.state = self.stateWaiting
-        else:
-            # Effectively a syntax error, but ignore and reset state
-            self.msg = None
-            self.state = self.stateWaiting
+        # We ignore anything else (ie whitespace, comments, syntax errors, etc.)
 
     def stateInFactoryWaitForParameter(self, ttype, tstring, lineno):
         if ttype==tokenize.OP and tstring==")":
