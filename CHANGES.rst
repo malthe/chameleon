@@ -3,6 +3,12 @@ Changes
 
 In next release...
 
+- ...
+
+
+1.2.4 (released 2010-06-21)
+---------------------------
+
 - Fix in Babel python i18n extractor: correct  handling of messages with a
   newline before the start of a parameter.
 
