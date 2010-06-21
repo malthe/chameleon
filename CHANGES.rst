@@ -3,6 +3,12 @@ Changes
 
 In next release...
 
+- ...
+
+
+1.2.5 (released 2010-06-21)
+---------------------------
+
 - Use a blacklist to filter python builtins available in expressions. This
   fixes the disappearance of many common builtins in the previous release.
 
