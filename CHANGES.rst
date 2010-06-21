@@ -3,6 +3,9 @@ Changes
 
 In next release...
 
+- Fix in Babel python i18n extractor: correct  handling of messages with a
+  newline before the start of a parameter.
+
 - Drop list of rarely used builtins from scope (such as ``help``);
   meanwhile, the builtins that are made available won't be replaced by
   arguments passed into the template.
