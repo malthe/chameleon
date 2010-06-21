@@ -3,8 +3,8 @@ Changes
 
 In next release...
 
-- Add more symbols to the whitelist of python builtins available in
-  expressions.
+- Use a blacklist to filter python builtins available in expressions. This
+  fixes the disappearance of many common builtins in the previous release.
 
 
 1.2.4 (released 2010-06-21)

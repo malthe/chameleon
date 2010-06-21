@@ -62,24 +62,18 @@ def lookup_attr_debug(obj, key):
                 raise e
 
 class TemplateASTTransformer(ASTTransformer):
+    evil_builtin = set(["compile", "eval", "execfile", "help", "input",
+                        "copyright", "credits", "license"])
+    builtin = set(dir(__builtin__)) - evil_builtin
     def __init__(self, globals):
         self.locals = [CONSTANTS]
-        builtin = "tuple", "list", "dict", "bool", \
-                  "str", "unicode", "float", "long", "int", "basestring", \
-                  "isinstance", "issubclass", "type", "super", "object", "id", \
-                  "range", "xrange", "dir", "chr", "ord", "sum", "hash", "bin", \
-                  "set", "frozenset", "min", "max", "pow", "unichr", \
-                  "join", "split", "map", "sum", "zip", "all", "any", \
-                  "sorted", "reversed", "len", "filter", "lambda", "reduce", "round", \
-                  "Exception", "eval", "cmp", "reduce", \
-                  "hasattr", "getattr", "delattr", "setattr", 
         self.locals.append(set(globals))
-        self.locals.append(set(builtin))
+        self.locals.append(set(self.builtin))
         # self.names is an optimization for visitName (so we don't
         # need to flatten the locals every time it's called)
         self.names = set()
         self.names.update(CONSTANTS)
-        self.names.update(builtin)
+        self.names.update(self.builtin)
         self.names.update(globals)
 
     def visit_Assign(self, node):
