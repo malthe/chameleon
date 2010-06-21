@@ -64,7 +64,7 @@ def lookup_attr_debug(obj, key):
 class TemplateASTTransformer(ASTTransformer):
     def __init__(self, globals):
         self.locals = [CONSTANTS]
-        builtin = "tuple", "list", "dict", \
+        builtin = "tuple", "list", "dict", "bool", \
                   "str", "unicode", "float", "long", "int", "basestring", \
                   "isinstance", "issubclass", "type", "super", "object", "id", \
                   "range", "xrange", "dir", "chr", "ord", "sum", "hash", "bin", \
