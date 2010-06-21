@@ -67,10 +67,12 @@ class TemplateASTTransformer(ASTTransformer):
         builtin = "tuple", "list", "dict", \
                   "str", "unicode", "float", "long", "int", "basestring", \
                   "isinstance", "issubclass", "type", "super", "object", "id", \
-                  "range", "xrange", "dir", "chr", "ord", "sum", "hash", \
-                  "join", "split", \
-                  "sorted", "len", "filter", "lambda", "reduce", "round", \
-                  "Exception", "eval"
+                  "range", "xrange", "dir", "chr", "ord", "sum", "hash", "bin", \
+                  "set", "frozenset", "min", "max", "pow", "unichr", \
+                  "join", "split", "map", "sum", "zip", "all", "any", \
+                  "sorted", "reversed", "len", "filter", "lambda", "reduce", "round", \
+                  "Exception", "eval", "cmp", "reduce", \
+                  "hasattr", "getattr", "delattr", "setattr", 
         self.locals.append(set(globals))
         self.locals.append(set(builtin))
         # self.names is an optimization for visitName (so we don't

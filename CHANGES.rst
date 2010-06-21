@@ -3,7 +3,8 @@ Changes
 
 In next release...
 
-- ...
+- Add more symbols to the whitelist of python builtins available in
+  expressions.
 
 
 1.2.4 (released 2010-06-21)
