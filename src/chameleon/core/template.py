@@ -379,6 +379,7 @@ class XIncludes(object):
     def get(self, filename, format):
         if not os.path.isabs(filename):
             filename = os.path.join(self.relpath, filename)        
+        filename = os.path.realpath(filename)
         template = self.registry.get(filename)
         if template is not None:
             return template

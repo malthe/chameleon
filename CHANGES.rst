@@ -3,7 +3,8 @@ Changes
 
 In next release...
 
-- ...
+- Resolve real path before checking the XInclude registry. This fixes
+  cache misses when using relative paths.
 
 
 1.2.5 (released 2010-06-21)
