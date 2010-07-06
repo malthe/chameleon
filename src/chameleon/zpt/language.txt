@@ -571,6 +571,17 @@ Inside tags:
     <img alt="Interpolation expressions are convenient" />
   </div>
 
+Inside comments:
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <!-- Interpolation ${'expressions'} are ${'convenient'}. -->
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <!-- Interpolation expressions are convenient. -->
+  </div>
+
 Spaces:
 
   >>> print render("""\
