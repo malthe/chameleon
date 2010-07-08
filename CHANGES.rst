@@ -4,8 +4,10 @@ Changes
 1.2.8
 -----
 
-- ....
-
+- Make the implementation used for XIncludes minimally hookable by
+  causing ``chameleon.core.template.TemplateFile`` to use symbolic
+  ``self.xincludes_class`` constructor instead of the
+  ``chameleon.core.template.XIncludes`` class directly.
 
 1.2.7 (released 2010-07-08)
 ---------------------------

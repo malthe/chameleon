@@ -221,6 +221,25 @@ class Template(object):
     def render_xinclude(self, **kwargs):
         return self.render_macro("", parameters=kwargs)
 
+class XIncludes(object):
+    """Dynamic XInclude registry providing a ``get``-method that will
+    resolve a filename to a template instance. Format must be
+    explicitly provided."""
+    
+    def __init__(self, registry, relpath, factory):
+        self.registry = registry
+        self.relpath = relpath
+        self.factory = factory
+
+    def get(self, filename, format):
+        if not os.path.isabs(filename):
+            filename = os.path.join(self.relpath, filename)        
+        filename = os.path.realpath(filename)
+        template = self.registry.get(filename)
+        if template is not None:
+            return template
+        return self.factory(filename, format=format)
+
 class TemplateFile(Template):
     """Constructs a template object using the template language
     defined by ``parser``. Must be passed an absolute (or
@@ -236,6 +255,7 @@ class TemplateFile(Template):
 
     content_type = None
     global_registry = {}
+    xincludes_class = XIncludes # hook point
 
     def __init__(self, filename, parser, format=None,
                  doctype=None, encoding=None, translate=None,
@@ -267,7 +287,7 @@ class TemplateFile(Template):
 
         self.auto_reload = auto_reload
         self.global_registry.setdefault(filename, self)
-        self.xincludes = XIncludes(
+        self.xincludes = self.xincludes_class(
             self.global_registry, os.path.dirname(filename), self.clone)
 
     def clone(self, filename, format=None):
@@ -365,25 +385,6 @@ class TemplateFile(Template):
             return os.path.getmtime(self.filename)
         except (IOError, OSError):
             return 0
-
-class XIncludes(object):
-    """Dynamic XInclude registry providing a ``get``-method that will
-    resolve a filename to a template instance. Format must be
-    explicitly provided."""
-    
-    def __init__(self, registry, relpath, factory):
-        self.registry = registry
-        self.relpath = relpath
-        self.factory = factory
-
-    def get(self, filename, format):
-        if not os.path.isabs(filename):
-            filename = os.path.join(self.relpath, filename)        
-        filename = os.path.realpath(filename)
-        template = self.registry.get(filename)
-        if template is not None:
-            return template
-        return self.factory(filename, format=format)
 
 class Macro(object):
     def __init__(self, render):
