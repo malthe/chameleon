@@ -2,8 +2,11 @@ import collections
 import re
 import tokenize
 from chameleon.zpt.language import Parser
+from babel.util import parse_encoding
 
-def safe_eval(s):
+def safe_eval(s, encoding="ascii"):
+    if encoding!="ascii":
+        s = s.decode(encoding)
     return eval(s, {"__builtins__":{}}, {})
 
 
@@ -15,6 +18,7 @@ class PythonExtractor(object):
         self.state = self.stateWaiting
         self.msg = None
         self.messages=[]
+        self.encoding = parse_encoding(fileobj) or "ascii"
         tokens = tokenize.generate_tokens(fileobj.readline)
         for (ttype, tstring, stup, etup, line) in tokens:
             self.state(ttype, tstring, stup[0])
@@ -35,7 +39,7 @@ class PythonExtractor(object):
     def stateWaitForLabel(self, ttype, tstring, lineno):
         # We saw _(, wait for the message label
         if ttype==tokenize.STRING:
-            self.msg.setdefault("label", []).append(safe_eval(tstring))
+            self.msg.setdefault("label", []).append(safe_eval(tstring, self.encoding))
         elif ttype==tokenize.OP and tstring==",":
             self.state=self.stateWaitForDefault
         elif ttype==tokenize.OP and tstring==")":
@@ -52,7 +56,7 @@ class PythonExtractor(object):
     def stateWaitForDefault(self, ttype, tstring, lineno):
         # We saw _("label", now wait for a default translation
         if ttype==tokenize.STRING:
-            self.msg.setdefault("default", []).append(safe_eval(tstring))
+            self.msg.setdefault("default", []).append(safe_eval(tstring, self.encoding))
         elif ttype==tokenize.NAME:
             self._parameter = tstring
             self.state = self.stateInFactoryParameter
@@ -74,7 +78,7 @@ class PythonExtractor(object):
 
     def stateInFactoryParameter(self, ttype, tstring, lineno):
         if ttype==tokenize.STRING:
-            self.msg.setdefault(self._parameter, []).append(safe_eval(tstring))
+            self.msg.setdefault(self._parameter, []).append(safe_eval(tstring, self.encoding))
         elif ttype==tokenize.OP and tstring==",":
             self.state = self.stateInFactoryWaitForParameter
         elif ttype==tokenize.OP and tstring==")":

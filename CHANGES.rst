@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.2.6
+-----
+
+- Update Babel extractor for python to check source file encoding. This
+  fixes problems with non-ASCII strings.
+
+
 1.2.6 (released 2010-06-21)
 ---------------------------
 
