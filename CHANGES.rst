@@ -6,6 +6,9 @@ In next release....
 - Fixed issue where subelements when translated would use the raw
   element attributes, not the derived static attributes.
 
+- Fix handling of i18n:attributes in Babel template extractor.
+
+
 1.2.8
 -----
 

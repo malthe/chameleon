@@ -107,7 +107,7 @@ def extract_xml(fileobj, keywords, comment_tags, options):
     todo = collections.deque([(root, None)])
     while todo:
         (node, domain) = todo.pop()
-        domain = getattr(node, "i18n_domain", domain)
+        domain = getattr(node, "i18n_domain", domain) or domain
 
         attrs = getattr(node, "i18n_attributes", None)
         if attrs:
@@ -115,10 +115,11 @@ def extract_xml(fileobj, keywords, comment_tags, options):
                 value = node.attrib.get(attr, None)
                 if not value:
                     continue
-                if value==label:
-                    yield (1, None, label, [])
+
+                if label:
+                    yield (node.position[0], None, label,  [u"Default: %s" % value])
                 else:
-                    yield (1, None, label, [u"Default: %s" % value])
+                    yield (node.position[0], None, value, [])
 
         label = getattr(node, "i18n_translate", None)
         if label is not None:
