@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release....
+
+- Fixed issue where subelements when translated would use the raw
+  element attributes, not the derived static attributes.
+
 1.2.8
 -----
 

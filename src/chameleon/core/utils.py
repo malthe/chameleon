@@ -255,15 +255,15 @@ def serialize_element(element, encoding, omit):
         yield "<%s" % name
 
         # attributes
-        for key, value in element.attrib.items():
-            yield ' %s="%s"' % (key, escape('"', encoding=encoding))
+        for key, value in element.node.static_attributes.items():
+            yield ' %s="%s"' % (key, escape(value, '"', encoding=encoding))
 
         # elements with no text which have no children are self-closing.
         if element.text is None and len(element) == 0:
             yield ' />'; return
 
         yield '>'
-            
+
     if element.text is not None:
         yield htmlescape(element.text)
 

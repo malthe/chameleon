@@ -629,6 +629,37 @@ Messages that contain the formatting character '%' (edge-case):
     <span>Mock translation of '%'.</span>
   </div>
 
+When a message id is given and ``i18n:name`` is omitted, any contained
+elements are simply dropped:
+
+  >>> template = PageTemplate("""
+  ... <label i18n:translate="label_login_name" i18n:domain="test"
+  ...           tal:attributes="for ac_name">Login Name <input type="text"
+  ...           size="15"
+  ...           class="autofocus"
+  ...           tal:attributes="name ac_name;
+  ...                           id ac_name;
+  ...                           value login_name;"/></label>
+  ... """)
+
+  >>> print template(ac_name="test", login_name="test", target_language='de')
+  <label for="test">Mock translation of 'label_login_name'.</label>
+
+To get the expected result, use ``i18n:name``:
+
+  >>> template = PageTemplate("""
+  ... <label i18n:translate="label_login_name" i18n:domain="test"
+  ...           tal:attributes="for ac_name">Login Name <input type="text"
+  ...           size="15"
+  ...           class="autofocus"
+  ...           i18n:name="input"
+  ...           tal:attributes="name ac_name;
+  ...                           id ac_name;
+  ...                           value login_name;"/></label>
+  ... """)
+  >>> print template(ac_name="test", login_name="test", target_language='de')
+  <label for="test">Mock translation of 'label_login_name' mapping={'input': u'<input type="text" size="15" class="autofocus" name="test" id="test" value="test" />'}.</label>
+
 Translation of non-ASCII tag attributes
 ---------------------------------------
 
