@@ -272,7 +272,7 @@ def serialize_element(element, encoding, omit):
             yield string
 
     if omit is False:
-        yield '</%s>' % name
+        yield '</%s>%s' % (name, element.tail)
 
 def class_hierarchy(cls):
     """Return an unordered sequence of all classes related to cls.

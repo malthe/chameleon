@@ -298,8 +298,9 @@ specific message id, it is left untouched:
     </span>
   </div>
 
-If a message id is supplied, unnamed blocks are rendered as-is.
-  
+If a message id is supplied, unnamed blocks are rendered
+independently:
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
@@ -311,7 +312,7 @@ If a message id is supplied, unnamed blocks are rendered as-is.
   >>> template = GenshiTemplate(body)
   >>> print template.render()
   <div xmlns="http://www.w3.org/1999/xhtml">
-      The book is on the <span>table</span>
+    The book is on the <span>table</span>.
   </div>
 
   >>> print template.render(target_language='de')
@@ -323,7 +324,7 @@ Translation of tag attributes
 -----------------------------
 
 A simple example to start with.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">

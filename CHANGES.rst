@@ -3,11 +3,10 @@ Changes
 
 In next release....
 
-- Fixed issue where subelements when translated would use the raw
-  element attributes, not the derived static attributes.
+- When using unnamed elements in a translation clause, use the element
+  visit function to generate output, rather than static serialization.
 
 - Fix handling of i18n:attributes in Babel template extractor.
-
 
 1.2.8
 -----

@@ -326,14 +326,14 @@ If a message id is supplied, unnamed blocks are rendered as-is.
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:i18n="http://xml.zope.org/namespaces/i18n">
   ...   <span i18n:domain="test" i18n:translate="msg_id" tal:omit-tag="">
-  ...     The book is on the <span>table</span>.
+  ...     The book is on the <span tal:content="'table'" />.
   ...   </span>
   ... </div>"""
 
   >>> template = PageTemplate(body)
   >>> print template.render()
   <div xmlns="http://www.w3.org/1999/xhtml">
-      The book is on the <span>table</span>
+    The book is on the <span>table</span>.
   </div>
 
   >>> print template.render(target_language='de')
@@ -629,8 +629,9 @@ Messages that contain the formatting character '%' (edge-case):
     <span>Mock translation of '%'.</span>
   </div>
 
-When a message id is given and ``i18n:name`` is omitted, any contained
-elements are simply dropped:
+When a message id is given and ``i18n:name`` is omitted from one or
+more elements, only the element text is subjected to translation;
+elements appearing after the element text are rendered individually:
 
   >>> template = PageTemplate("""
   ... <label i18n:translate="label_login_name" i18n:domain="test"
@@ -642,10 +643,17 @@ elements are simply dropped:
   ...                           value login_name;"/></label>
   ... """)
 
+Without passing a language:
+
+  >>> print template(ac_name="test", login_name="test")
+  <label for="test">Login Name <input type="text" size="15" class="autofocus" name="test" id="test" value="test" /></label>
+
+Passing German:
+
   >>> print template(ac_name="test", login_name="test", target_language='de')
   <label for="test">Mock translation of 'label_login_name'.</label>
 
-To get the expected result, use ``i18n:name``:
+To include the element in the translation process, use ``i18n:name``:
 
   >>> template = PageTemplate("""
   ... <label i18n:translate="label_login_name" i18n:domain="test"
@@ -659,6 +667,29 @@ To get the expected result, use ``i18n:name``:
   ... """)
   >>> print template(ac_name="test", login_name="test", target_language='de')
   <label for="test">Mock translation of 'label_login_name' mapping={'input': u'<input type="text" size="15" class="autofocus" name="test" id="test" value="test" />'}.</label>
+
+Without a message id:
+
+  >>> template = PageTemplate("""
+  ... <label i18n:translate="" i18n:domain="test"
+  ...           tal:attributes="for ac_name">Login Name <input type="text"
+  ...           size="15"
+  ...           class="autofocus"
+  ...           tal:attributes="name ac_name;
+  ...                           id ac_name;
+  ...                           value login_name;"/></label>
+  ... """)
+
+Without passing a language:
+
+  >>> print template(ac_name="test", login_name="test")
+  <label for="test">Login Name <input type="text" size="15" class="autofocus" name="test" id="test" value="test" /></label>
+
+Passing German (notice that the translation string is escaped by the
+mock translation domain):
+
+  >>> print template(ac_name="test", login_name="test", target_language='de')
+  <label for="test">Mock translation of 'Login Name &lt;input type="text" size="15" class="autofocus" name="test" id="test" value="test" /&gt;'.</label>
 
 Translation of non-ASCII tag attributes
 ---------------------------------------

@@ -681,11 +681,7 @@ class Node(object):
 
             if msgid:
                 value = types.value(repr(msgid)).replace('%', '%%')
-                if elements:
-                    default = self.symbols.marker
-                else:
-                    default = types.value(repr(
-                        utils.serialize(self.element, omit=True))).replace('%', '%%')
+                default = self.symbols.marker
             else:
                 default = types.template('%(msgid)s')
                 value = types.template("' '.join(%(msgid)s.split())")
@@ -699,7 +695,7 @@ class Node(object):
             result = types.value(self.symbols.result)
             result.symbol_mapping[self.symbols.marker] = i18n.marker
 
-            if msgid and elements:
+            if msgid:
                 condition = types.template('%(result)s is not %(marker)s')
                 _.append(clauses.Condition(
                     condition, [clauses.UnicodeWrite(result)], finalize=True))
@@ -708,20 +704,21 @@ class Node(object):
                 if self.element.text:
                     subclauses.append(clauses.Out(
                         utils.htmlescape(self.element.text)))
+
                 for element in self.element:
                     name = element.node.translation_name
                     if name:
                         value = types.value("%s['%s']" % (mapping, name))
                         subclauses.append(clauses.Write(value))
-                    else:
-                        subclauses.append(clauses.Out(utils.serialize(element)))
 
-                    for part in reversed(element.node.tail):
-                        if isinstance(part, types.expression):
-                            subclauses.append(clauses.Write(part))
-                        else:
-                            subclauses.append(clauses.Out(
-                                utils.htmlescape(part)))
+                        for part in reversed(element.node.tail):
+                            if isinstance(part, types.expression):
+                                subclauses.append(clauses.Write(part))
+                            else:
+                                subclauses.append(clauses.Out(
+                                    utils.htmlescape(part)))
+                    else:
+                        subclauses.append(clauses.Visit(element.node))
 
                 if subclauses:
                     _.append(clauses.Else(subclauses))
