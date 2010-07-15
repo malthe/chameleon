@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release....
+1.2.10 (released 2010-07-15)
+----------------------------
 
 - Fixed an issue where it was not possible to extend a macro by
   providing the template instance.
