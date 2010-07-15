@@ -501,6 +501,32 @@ even the doctype.
     </body>
   </html>
 
+The same goes for ``metal:extend-macro``:
+
+  >>> middle = PageTemplate("""
+  ... <div xmlns="http://www.w3.org/1999/xhtml" metal:extend-macro="inner">
+  ...   <div metal:fill-slot="content">
+  ...     Middle
+  ...   </div>
+  ... </div>""")
+
+  >>> outer = PageTemplate("""
+  ... <div xmlns="http://www.w3.org/1999/xhtml" metal:use-macro="middle">
+  ...   <div metal:fill-slot="content">
+  ...     Outer
+  ...   </div>
+  ... </div>""")
+
+  >>> print outer(inner=main, middle=middle)
+  <!DOCTYPE html ...>
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div>
+        Outer
+      </div>
+    </body>
+  </html>
+
 Error handling
 --------------
 
