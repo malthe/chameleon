@@ -506,23 +506,38 @@ The same goes for ``metal:extend-macro``:
   >>> middle = PageTemplate("""
   ... <div xmlns="http://www.w3.org/1999/xhtml" metal:extend-macro="inner">
   ...   <div metal:fill-slot="content">
-  ...     Middle
+  ...     <span metal:define-slot="sub-content">Middle</span>
   ...   </div>
   ... </div>""")
 
-  >>> outer = PageTemplate("""
+  >>> outer1 = PageTemplate("""
   ... <div xmlns="http://www.w3.org/1999/xhtml" metal:use-macro="middle">
   ...   <div metal:fill-slot="content">
-  ...     Outer
+  ...     <span>Outer</span>
   ...   </div>
   ... </div>""")
 
-  >>> print outer(inner=main, middle=middle)
+  >>> outer2 = PageTemplate("""
+  ... <div xmlns="http://www.w3.org/1999/xhtml" metal:use-macro="middle">
+  ...   <span metal:fill-slot="sub-content">Outer</span>
+  ... </div>""")
+
+  >>> print outer1(inner=main, middle=middle)
   <!DOCTYPE html ...>
   <html xmlns="http://www.w3.org/1999/xhtml">
     <body>
       <div>
-        Outer
+        <span>Outer</span>
+      </div>
+    </body>
+  </html>
+
+  >>> print outer2(inner=main, middle=middle)
+  <!DOCTYPE html ...>
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div>
+        <span>Outer</span>
       </div>
     </body>
   </html>

@@ -1178,8 +1178,8 @@ class Macro(object):
             stream.write("for _name in %s:" % stream.symbols.slots)
             stream.indent()
             if self.extend_except:
-                stream.write("if _name not in %s and _name not in (%s,):" % (
-                    stream.symbols.tmp, ", ".join(map(repr, self.extend_except))))
+                stream.write("if _name not in (%s,):" % (
+                    ", ".join(map(repr, self.extend_except))))
             else:
                 stream.write("if _name not in %s:" % stream.symbols.tmp)
 

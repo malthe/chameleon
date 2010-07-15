@@ -3,8 +3,8 @@ Changes
 
 In next release....
 
-- ...
-
+- Fixed an issue where it was not possible to extend a macro by
+  providing the template instance.
 
 1.2.9 (released 2010-07-09)
 ---------------------------

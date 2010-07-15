@@ -1004,7 +1004,9 @@ class Compiler(object):
                     nsmap[prefix] = namespace
 
             wrapper = self.tree.parser.makeelement(
-                utils.meta_attr('wrapper'), root.attrib.copy(), nsmap=nsmap)
+                utils.meta_attr('wrapper'),
+                utils.get_attributes_from_namespace(root, config.META_NS),
+                nsmap=nsmap)
             wrapper.append(root)
             root = wrapper
 
