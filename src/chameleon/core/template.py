@@ -7,6 +7,7 @@ import i18n
 import config
 import filecache
 import translation
+import threading
 
 try:
     from hashlib import sha1 as sha
@@ -74,6 +75,13 @@ class Template(object):
 
         if translate is not None:
             self.translate = translate
+
+        # set up compile lock; there are reports of concurrency issues
+        # which will probably resolve themselves the easiest by
+        # ensuring single-threaded compilation
+        lock = threading.Lock()
+        self.acquire = lock.acquire
+        self.release = lock.release
 
         self.parser = parser
         self.body = body
@@ -168,7 +176,11 @@ class Template(object):
 
         key = macro, global_scope, self.signature
         if key not in self.registry:
-            source = self.compiler(macro, global_scope)
+            self.acquire()
+            try:
+                source = self.compiler(macro, global_scope)
+            finally:
+                self.release()
             self.registry.add(key, source, self.filename)
             if key not in self.registry:
                 raise RuntimeError(

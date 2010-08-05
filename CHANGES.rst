@@ -1,6 +1,11 @@
 Changes
 =======
 
+- Put a lock around compilation. This should guarantee stability (some
+  reports suggest that there's code in the compilation loop which is
+  not thread-safe) without a drop in performance (GIL is there, in
+  spite all).
+
 1.2.10 (released 2010-07-15)
 ----------------------------
 
