@@ -1,6 +1,13 @@
 Changes
 =======
 
+- Always generate dynamic message ids dynamically when unnamed
+  elements are present.
+
+- Fixed an issue where the presence of an unnamed elements inside an
+  anonymous translation block would result in an error when
+  translation failed.
+
 - Put a lock around compilation. This should guarantee stability (some
   reports suggest that there's code in the compilation loop which is
   not thread-safe) without a drop in performance (GIL is there, in

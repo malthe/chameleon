@@ -609,18 +609,14 @@ class Node(object):
             unnamed_elements = [e for e in self.element
                                 if not e.node.translation_name]
 
-            if unnamed_elements and msgid:
-                elements = ()
-            else:
-                elements = tuple(self.element)
-
-            # if no message id is provided, there are two cases:
-            #
-            # 1) all dynamic content is assigned a translation name
-            # 2) the message id needs to be generated dynamically
-            #
-            if not msgid and not unnamed_elements:
+            if not msgid and named_elements and not unnamed_elements:
                 msgid = self.create_msgid()
+                elements = named_elements
+            else:
+                elements = self.element
+
+            if msgid and not named_elements:
+                elements = ()
 
             if named_elements:
                 mapping = "%s_%d" % (self.symbols.mapping, id(self.element))
@@ -628,8 +624,8 @@ class Node(object):
             else:
                 mapping = 'None'
 
-            if not msgid:
-                text = utils.htmlescape(self.element.text.replace('%', '%%') or "")
+            if unnamed_elements or not msgid:
+                text = utils.htmlescape(self.element.text.replace('%', '%') or "")
                 _.append(clauses.Assign(types.value(repr(text)),
                                         self.symbols.msgid))
 
@@ -748,9 +744,10 @@ class Node(object):
 
         for element in self.element:
             name = element.node.translation_name
-            assert name is not None
-
-            out.write("${%s}" % name)
+            if name is None:
+                out.write(utils.serialize(element, omit=True))
+            else:
+                out.write("${%s}" % name)
             out.write(element.tail)
 
         msgid = out.getvalue().strip()
