@@ -705,7 +705,7 @@ class Node(object):
                     name = element.node.translation_name
                     if name:
                         value = types.value("%s['%s']" % (mapping, name))
-                        subclauses.append(clauses.Write(value))
+                        subclauses.append(clauses.UnicodeWrite(value))
 
                         for part in reversed(element.node.tail):
                             if isinstance(part, types.expression):

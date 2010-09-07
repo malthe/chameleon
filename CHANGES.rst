@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Avoid escaping already computed content from named regions inside a
+  translation block.
+
 - Always generate dynamic message ids dynamically when unnamed
   elements are present.
 
