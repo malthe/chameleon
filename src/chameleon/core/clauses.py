@@ -114,8 +114,9 @@ class Assign(object):
         symbols = stream.symbols.as_dict()
         variable = variable % symbols
 
-        if value.symbol_mapping:
-            stream.symbol_mapping.update(value.symbol_mapping)
+        if isinstance(value, types.expression):
+            if value.symbol_mapping:
+                stream.symbol_mapping.update(value.symbol_mapping)
 
         if isinstance(value, types.template):
             value = types.value(value % symbols)
@@ -157,9 +158,11 @@ class Assign(object):
 
             for i in range(_v_count):
                 stream.restore()
+        elif isinstance(value, basestring):
+            stream.write("%s = %r" % (variable, value))
         else:
             raise TypeError("Can't assign value of type %s" % type(value))
-        
+
     def end(self, stream):
         pass
 

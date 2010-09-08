@@ -342,11 +342,13 @@ tal:omit-tag
   >>> print render("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <span tal:replace="string:Hello, world!" />
   ...   <span tal:replace="string:${greeting}, world!" />
   ...   <img tal:attributes="alt string:Leonardo da Vinci;; Musee du Louvre, 1503;
   ...                        title string:Mona Lisa;" />
   ... </div>""", request=object(), greeting=u'Hello')
   <div xmlns="http://www.w3.org/1999/xhtml">
+    Hello, world!
     Hello, world!
     <img alt="Leonardo da Vinci; Musee du Louvre, 1503" title="Mona Lisa" />
   </div>
@@ -554,7 +556,7 @@ Outside tags:
   >>> print render("""\
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
-  ...   Interpolation ${'expressions'} are ${'convenient'}.
+  ...   ${string:Interpolation} ${'expressions'} are ${'convenient'}.
   ... </div>""")
   <div xmlns="http://www.w3.org/1999/xhtml">
     Interpolation expressions are convenient.

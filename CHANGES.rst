@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Edge-case issue where an expression result was actually not a
+  dynamic value, but a static string (e.g. ``string: Hello``).
+
 1.2.11 (released 2010-09-07)
 ----------------------------
 
