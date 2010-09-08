@@ -1,6 +1,9 @@
 Changes
 =======
 
+1.2.11 (released 2010-09-07)
+----------------------------
+
 - Avoid escaping already computed content from named regions inside a
   translation block.
 
