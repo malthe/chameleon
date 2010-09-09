@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Parser is now able to parse documents which contain non-structured
+  fragments.
+
 - Compiler now reports an error if an expression type is unknown.
 
 - Edge-case issue where an expression result was actually not a

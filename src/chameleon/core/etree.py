@@ -25,7 +25,7 @@ def parse(body, parser, validator):
     while tree is None:
         expat = xml.parsers.expat.ParserCreate()
         expatparser = ExpatParser(parser, body, expat, validator)
-        
+
         try:
             # attempt to parse this body; if we're not successful,
             # this may be because the document source consists of
@@ -67,6 +67,10 @@ def parse(body, parser, validator):
                     continue
 
                 raise
+
+            if code == 2 and expatparser.root is None:
+                body = "<meta:wrapper>%s</meta:wrapper>" % body
+                continue
 
             if code == 9 and expatparser.root is not None:
                 # add the root as a tree fragment and update the body

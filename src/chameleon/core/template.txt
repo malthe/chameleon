@@ -130,7 +130,12 @@ HTML entities
 
 Fragmented documents
 --------------------
-  
+
+  >>> print Template(
+  ...    "This is an <em>example</em> template.",
+  ...    mock_parser)()
+  This is an <em>example</em> template.
+
   >>> print Template("""
   ... <div>
   ...   Hello, world!
