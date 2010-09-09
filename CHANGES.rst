@@ -1,6 +1,9 @@
 Changes
 =======
 
+1.2.12 (released 2010-09-09)
+----------------------------
+
 - Parser is now able to parse documents which contain non-structured
   fragments.
 
