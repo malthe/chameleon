@@ -44,7 +44,7 @@ class Template(object):
     """
 
     format = 'xml'
-    filename = '<string>'
+    filename = ''
     version = 8
     registry = None
     explicit_doctype = None
@@ -62,8 +62,8 @@ class Template(object):
             # temporary file; this makes step-debugging through
             # generated template code possible
             if debug:
-                self.registry = filecache.TemplateCache(
-                    tempfile.NamedTemporaryFile('w').name, 0)
+                self.registry = filecache.TemporaryTemplateCache(
+                    tempfile.mkdtemp(), self.filename, 0)
             else:
                 self.registry = filecache.TemplateRegistry()
 
@@ -285,7 +285,8 @@ class TemplateFile(Template):
                 utils.class_hierarchy(type(self)), key=utils.dotted_name)
             versions = (base.__dict__.get('version') for base in hierarchy)
             version = ".".join(map(str, filter(None, versions)))
-            self.registry = filecache.TemplateCache(filename, version)
+            head, tail = os.path.split(filename)
+            self.registry = filecache.TemplateCache(head, tail, version)
 
         # initialize template
         Template.__init__(

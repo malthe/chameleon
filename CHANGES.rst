@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Fixed issue where the temporary template cache which is set up to
+  aid debugging would not get purged automatically.
+
 1.2.12 (released 2010-09-09)
 ----------------------------
 

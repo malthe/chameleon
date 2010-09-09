@@ -16,17 +16,19 @@ Enable disk-caching for the duration of this test.
   >>> _ = cache_enabler()
 
 Write a template string to a temporary named file.
-  
+
   >>> body = """\
   ... <div xmlns="http://www.w3.org/1999/xhtml">
   ...   Hello World!
   ... </div>"""
 
   >>> from tempfile import NamedTemporaryFile
-  >>> f = NamedTemporaryFile('w')
+  >>> from tempfile import mkdtemp
+  >>> tempdir = mkdtemp()
+  >>> f = NamedTemporaryFile('w', dir=tempdir)
   >>> f.write(body)
   >>> f.seek(0)
-  
+
 Instantiate template from file.
 
   >>> from chameleon.core.template import TemplateFile
@@ -34,7 +36,7 @@ Instantiate template from file.
   >>> template = TemplateFile(f.name, mock_parser)
 
 Verify that the disk-cache is enabled for this file.
-  
+
   >>> template.registry
   <chameleon.core.filecache.TemplateCache object at ...>
 
@@ -47,7 +49,7 @@ Upon first rendering, the cache is written to.
 
   >>> len(template.registry)
   1
-  
+
 Verify that the registry can be restored.
 
   >>> template.registry.clear()
@@ -64,7 +66,9 @@ Truncate the cache file and recover automatically.
 
 Cleanup
 -------
-  
+
 Close temporary file.
-  
+
   >>> f.close()
+  >>> import shutil
+  >>> shutil.rmtree(tempdir)

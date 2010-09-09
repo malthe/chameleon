@@ -6,6 +6,7 @@ import generation
 import doctypes
 import etree
 import config
+import shutil
 import utils
 import types
 import tempfile
@@ -57,7 +58,8 @@ def compile_template(parser, parse_method, body, encoding=None,
     source = compiler(macro, global_scope)
 
     def render(target_language=None, **kwargs):
-        f = tempfile.NamedTemporaryFile(suffix=".py")
+        d = tempfile.mkdtemp()
+        f = tempfile.NamedTemporaryFile(suffix=".py", dir=d)
         try:
             # compile source
             f.write(source)
@@ -75,6 +77,7 @@ def compile_template(parser, parse_method, body, encoding=None,
             result = func(econtext, rcontext)
         finally:
             f.close()
+            shutil.rmtree(d)
 
         return result
     return render

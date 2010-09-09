@@ -15,6 +15,7 @@ except ImportError:
 
 logger = logging.getLogger("Chameleon")
 
+
 class TemplateRegistry(object):
     version = None
     mtime = None
@@ -48,12 +49,13 @@ class TemplateRegistry(object):
     def load(self):
         pass
 
-
     def purge(self):
         self.clear()
 
+
 class TemplateCache(TemplateRegistry):
-    def __init__(self, filename, version):
+    def __init__(self, path, filename, version):
+        self.path = path
         self.filename = filename
         self.version = version
         self.registry = {}
@@ -74,7 +76,7 @@ class TemplateCache(TemplateRegistry):
 
     @property
     def module_filename(self):
-        return self.filename + os.extsep + "py"
+        return os.path.join(self.path, self.filename) + os.extsep + "py"
 
     def load(self):
         filename = self.module_filename
@@ -123,7 +125,7 @@ class TemplateCache(TemplateRegistry):
             module = open(self.module_filename, 'w')
             self.initialize(module)
         try:
-            module.write(source+'\n')
+            module.write(source + '\n')
             module.write("__filename__ = %s\n" % repr(filename))
             module.write("registry[%s] = bind()\n" % repr(key))
         finally:
@@ -137,9 +139,15 @@ class TemplateCache(TemplateRegistry):
 
     def purge(self):
         self.clear()
-        
+
         # write empty file
         module = open(self.module_filename, 'w')
         self.initialize(module)
         module.close()
         py_compile.compile(self.module_filename)
+
+
+class TemporaryTemplateCache(TemplateCache):
+    def __del__(self):
+        import shutil
+        shutil.rmtree(self.path)
