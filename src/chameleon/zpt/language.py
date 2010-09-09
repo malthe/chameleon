@@ -219,7 +219,12 @@ class ZopePageTemplateElement(translation.Element):
         if element is None:
             raise ValueError("Default expression not set.")
 
-        return expressions.lookup_translator(None, element.meta_translator)
+        translator = expressions.lookup_translator(None, element.meta_translator)
+        if translator is None:
+            raise ValueError(
+                "Unknown expression type: %r." % element.meta_translator)
+
+        return translator
 
     metal_define = None
     metal_use = None
