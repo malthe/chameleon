@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Added support for ``attrs`` (read-only dictionary which contains
+  static attributes).
+
 - Fixed issue where the temporary template cache which is set up to
   aid debugging would not get purged automatically.
 

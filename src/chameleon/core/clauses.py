@@ -737,9 +737,22 @@ class Tag(object):
     def end(self, stream):
         if self.cdata:
             stream.out(']]>'); return
-            
+
         if not self.selfclosing:
             stream.out('</%s>' % self.tag)
+
+
+class Attrs(object):
+    def __init__(self, defaults):
+        self.defaults = defaults
+
+    def begin(self, stream):
+        stream.symbol_mapping['_attrs_%d' % id(self)] = self.defaults
+        stream.write("attrs = _attrs_%d" % id(self))
+
+    def end(self, stream):
+        pass
+
 
 class Repeat(object):
     """

@@ -109,6 +109,18 @@ tal:attributes keeps original attributes ordering
     <a rel="self" href="http://python.org" id="link-id" />
   </div>
 
+original attributes are exposed for usage with tal:attributes
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <a rel="self" href="http://repoze.org" id="link-id"
+  ...      tal:attributes="href attrs['href'] + '/chameleon'" />
+  ... </div>""")
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <a rel="self" href="http://repoze.org/chameleon" id="link-id" />
+  </div>
+
 tal:attributes on a TAL-namespace element fails
 
   >>> print render("""\
