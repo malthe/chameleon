@@ -743,12 +743,13 @@ class Tag(object):
 
 
 class Attrs(object):
-    def __init__(self, defaults):
+    def __init__(self, defaults, name):
         self.defaults = defaults
+        self.name = name
 
     def begin(self, stream):
-        stream.symbol_mapping['_attrs_%d' % id(self)] = self.defaults
-        stream.write("attrs = _attrs_%d" % id(self))
+        stream.symbol_mapping[self.name] = self.defaults
+        stream.write("attrs = %s" % self.name)
 
     def end(self, stream):
         pass

@@ -426,7 +426,8 @@ class Node(object):
         # tag
         text = self.text
         if omit is not True:
-            _.append(clauses.Attrs(self.static_attributes))
+            _.append(clauses.Attrs(self.static_attributes,
+                                   "_attrs_%d" % id(self.element)))
             selfclosing = not text and not dynamic and len(self.element) == 0
             tag = clauses.Tag(
                 self.tag, attributes,
