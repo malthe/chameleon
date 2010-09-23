@@ -355,7 +355,7 @@ class Node(object):
                 (clauses.Condition(
                     types.template('isinstance(%(tmp)s, basestring)'),
                     (clauses.Slot(
-                        types.template("%(tmp)s(%(scope)s)"),
+                        types.template("%(tmp)s(%(scope)s, %(repeat)s)"),
                         scope_args),),
                     finalize=True,
                     invert=True),

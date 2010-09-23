@@ -888,7 +888,7 @@ class Repeat(object):
         stream.write("%s = %s" % (
             ", ".join(self.declaration),
             ", ".join((repr(None),)*len(self.declaration))))
-        
+
         if self.repeatdict:
             variable = self.declaration[0]
             assert ',' not in variable
@@ -1137,13 +1137,13 @@ class Callback(object):
         self.visitor = visitor
         self.args = args
         self.newline = newline
-        
+
     def begin(self, stream):
-        stream.write("def %s(%s, %s, **_ignored):" % (
+        stream.write("def %s(%s, _repeat, %s, **_ignored):" % (
             self.name, stream.symbols.scope, self.args))
         stream.indent()
-        stream.write("pass")
-        
+        stream.write("if _repeat: %s.update(_repeat)" % stream.symbols.repeat)
+
         # visit slot node
         self.visitor.begin(stream)
         self.visitor.end(stream)
