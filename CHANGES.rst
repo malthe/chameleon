@@ -1,6 +1,9 @@
 Changes
 =======
 
+1.2.13 (released 2010-09-23)
+----------------------------
+
 - Fixed issue where a repeat variable's entry in the ``repeat`` symbol
   would not get carried over with a macro slot (LP #644712; reported
   by Joshua LaPlace).
