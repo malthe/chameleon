@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Fixed issue with eager loading and template initialization [aikom].
+
 1.2.13 (released 2010-09-23)
 ----------------------------
 

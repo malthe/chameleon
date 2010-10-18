@@ -84,8 +84,8 @@ class Template(object):
         self.release = lock.release
 
         self.parser = parser
-        self.body = body
         self.omit_default_prefix = omit_default_prefix
+        self.body = body
         self.debug = debug
         self.signature = sha(";".join(map(str, (
             type(parser).__name__, format,
