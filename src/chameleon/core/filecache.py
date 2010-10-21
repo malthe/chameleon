@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import py_compile
+import shutil
 
 try:
     from hashlib import sha1 as sha
@@ -149,5 +150,4 @@ class TemplateCache(TemplateRegistry):
 
 class TemporaryTemplateCache(TemplateCache):
     def __del__(self):
-        import shutil
         shutil.rmtree(self.path)
