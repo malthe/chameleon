@@ -121,6 +121,14 @@ original attributes are exposed for usage with tal:attributes
     <a rel="self" href="http://repoze.org/chameleon" id="link-id" />
   </div>
 
+bad format
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <img tal:attributes="src " src="somegif" />
+  ... </div>""")
+
 tal:attributes on a TAL-namespace element fails
 
   >>> print render("""\
