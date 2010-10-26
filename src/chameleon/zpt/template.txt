@@ -489,6 +489,98 @@ Repeat variable is carried through when we fill slots.
     </body>
   </html>
 
+Repeat variable is carried through when we use macros.
+
+  >>> macro = PageTemplate("""
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>
+  ...     <metal:define-macro define-macro="navigation">
+  ...       <li class="repeat"
+  ...             tal:condition="'i' in repeat"
+  ...             tal:content="repeat['i'].number">
+  ...       </li>
+  ...       <li class="define"
+  ...             tal:content="repeat_i.number">
+  ...       </li>
+  ...     </metal:define-macro>
+  ...   </body>
+  ... </html>
+  ... """)
+
+  >>> template = PageTemplate("""
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>
+  ...     <ul>
+  ...       <tal:repeat repeat="i (1, 2, 3)">
+  ...         <tal:define define="repeat_i repeat['i'];">
+  ...           <metal:use-macro use-macro="macro.macros['navigation']" />
+  ...         </tal:define>
+  ...       </tal:repeat>
+  ...     </ul>
+  ...   </body>
+  ... </html>""")
+
+  >>> print template(macro=macro)
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <ul>
+        <li class="repeat">1</li>
+        <li class="define">1</li>
+        <li class="repeat">2</li>
+        <li class="define">2</li>
+        <li class="repeat">3</li>
+        <li class="define">3</li>
+      </ul>
+    </body>
+  </html>
+
+A variable can refer to a value existing from outside a macro when
+assigning.
+
+  >>> macro = PageTemplate("""
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>
+  ...     <metal:define-macro define-macro="navigation">
+  ...       <tal:define define="foo blah|foo|'qux';">
+  ...         <div class="first"
+  ...              tal:content="foo"></div>
+  ...       </tal:define>
+  ...       <tal:define define="foo foo|blah|'qux';">
+  ...         <div class="second"
+  ...              tal:content="foo"></div>
+  ...       </tal:define>
+  ...       <tal:define define="foo foo|'qux';">
+  ...         <div class="third"
+  ...              tal:content="foo"></div>
+  ...       </tal:define>
+  ...       <tal:define define="foo blah|foo|'qux';">
+  ...         <div class="fourth"
+  ...              tal:content="foo"></div>
+  ...       </tal:define>
+  ...     </metal:define-macro>
+  ...   </body>
+  ... </html>
+  ... """)
+
+  >>> template = PageTemplate("""
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>
+  ...     <tal:define define="foo 'bar';">
+  ...       <metal:use-macro use-macro="macro.macros['navigation']" />
+  ...     </tal:define>
+  ...   </body>
+  ... </html>""")
+
+  >>> print template(macro=macro)
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+          <div class="first">bar</div>
+          <div class="second">bar</div>
+          <div class="third">bar</div>
+          <div class="fourth">bar</div>
+    </body>
+  </html>
+
 Doctype declarations
 --------------------
 
