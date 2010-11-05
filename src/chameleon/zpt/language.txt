@@ -128,6 +128,18 @@ bad format
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
   ...   <img tal:attributes="src " src="somegif" />
   ... </div>""")
+  Traceback (most recent call last):
+   ...
+  ValueError: Must have one or more assignment values.
+
+  >>> print render("""\
+  ... <div xmlns="http://www.w3.org/1999/xhtml"
+  ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
+  ...   <img tal:define="src " src="somegif" />
+  ... </div>""")
+  Traceback (most recent call last):
+   ...
+  ValueError: Must have one or more assignment values.
 
 tal:attributes on a TAL-namespace element fails
 

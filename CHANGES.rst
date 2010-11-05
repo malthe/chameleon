@@ -14,6 +14,10 @@ Changes
   element should be replaced/ignored.  (LP#665748)
   [rpatterson]
 
+- Handle some broken TAL syntax with attributes/define with no values
+  given.
+  [rossp]
+
 1.2.13 (released 2010-09-23)
 ----------------------------
 

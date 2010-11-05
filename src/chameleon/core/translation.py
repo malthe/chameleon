@@ -253,6 +253,9 @@ class Node(object):
                 _.append(clauses.Assign(default, self.symbols.default))
 
             for declaration, expression in self.define:
+                if len(expression) == 0:
+                    raise ValueError(
+                        "Must have one or more assignment values.")
                 if self.symbols.remote_scope in self.stream.scope[1]:
                     define = clauses.Define(
                         declaration, expression, self.symbols.remote_scope)
@@ -389,6 +392,8 @@ class Node(object):
             if len(variables) != 1:
                 raise ValueError("Tuple definitions in assignment clause "
                                      "is not supported.")
+            if len(expression) == 0:
+                raise ValueError("Must have one or more assignment values.")
 
             variable = variables[0]
             attributes[variable] = expression
