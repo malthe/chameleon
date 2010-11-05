@@ -3,6 +3,9 @@ Changes
 
 - Fixed issue with eager loading and template initialization [aikom].
 
+- Fix mishandling of XML declaration. (LP#360296)
+  [rpatterson]
+
 1.2.13 (released 2010-09-23)
 ----------------------------
 
