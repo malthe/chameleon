@@ -6,6 +6,10 @@ Changes
 - Fix mishandling of XML declaration. (LP#360296)
   [rpatterson]
 
+- Fix an AttributeError for objects which don't have a '__class__'
+  attribute.
+  [rpatterson]
+
 1.2.13 (released 2010-09-23)
 ----------------------------
 

@@ -684,7 +684,8 @@ class Tag(object):
 
                 # translate non-basic values
                 stream.write(
-                    "if %s.__class__ not in (str, unicode, int, float):" % temp)
+                    "if getattr(%s, '__class__', type(%s)) not in (str, unicode, int, float):"
+                    % (temp, temp))
                 stream.indent()
                 stream.write("%s = unicode(%s)" % (
                     temp, translate_expression(temp) % (
@@ -1009,7 +1010,7 @@ class Write(object):
         expr = temp
 
         stream.write("%s = %s" % (stream.symbols.tmp, expr))
-        write("if %(tmp)s.__class__ not in (str, unicode, int, float):")
+        write("if getattr(%(tmp)s, '__class__', type(%(tmp)s)) not in (str, unicode, int, float):")
         stream.indent()
         write("try:")
         stream.indent()

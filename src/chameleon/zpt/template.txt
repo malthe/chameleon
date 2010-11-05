@@ -578,6 +578,22 @@ assigning.
     </body>
   </html>
 
+  >>> template = PageTemplate("""
+  ... <html xmlns="http://www.w3.org/1999/xhtml">
+  ...   <body>
+  ...     <span tal:content="noclass" />
+  ...   </body>
+  ... </html>""")
+
+  >>> import re
+  >>> noclass = re.compile('.')
+  >>> print template(noclass=noclass)
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+        <span>&lt;_sre.SRE_Pattern object at ...&gt;</span>
+    </body>
+  </html>
+
 Doctype declarations
 --------------------
 
