@@ -162,7 +162,7 @@ XML-support
   ... <div xmlns="http://www.w3.org/1999/xhtml">
   ...   Hello World!
   ... </div>""", mock_parser)()
-  <?xml version="1.0" encoding="..." standalone="no" ?>
+  <?xml version="1.0" ?>
   <div xmlns="http://www.w3.org/1999/xhtml">
     Hello World!
   </div>
@@ -220,11 +220,12 @@ An issue was observed with ``lxml`` where there was a hard limit on
 the length of the namespace declarations. This test is present to
 verify that this issue does not occur.
 
-  >>> len(Template("""\
-  ... <?xml version="1.0" encoding="UTF-8"?>
+  >>> template_str = """\
+  ... <?xml version="1.0" encoding="UTF-8" ?>
   ... <test xmlns="http://test" %s />""" % " ".join(
-  ...     'xmlns:ns%d="ns%d"' % (i, i) for i in range(100)), mock_parser).render())
-  1864
+  ...     'xmlns:ns%d="ns%d"' % (i, i) for i in range(100))
+  >>> len(Template(template_str, mock_parser).render()) == len(template_str)
+  True
 
 Error handling
 --------------

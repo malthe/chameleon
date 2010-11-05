@@ -43,10 +43,17 @@ def compile_xhtml(body):
 def compile_template(parser, parse_method, body, encoding=None,
                      macro=None, global_scope=True, explicit_doctype=None, **kwargs):
     tree = parse_method(body)
-    if '<?xml ' in body:
-        xml_declaration = \
-            """<?xml version="%s" encoding="%s" standalone="no" ?>""" % (
-            tree.docinfo.xml_version, tree.docinfo.encoding)
+    first_line = body.lstrip().split('\n', 1)[0]
+    if first_line.startswith('<?xml '):
+        xml_declaration = (
+            """<?xml version="%s" """ % tree.docinfo.xml_version)
+        if tree.docinfo.encoding:
+            xml_declaration += (
+                """encoding="%s" """ % tree.docinfo.encoding)
+        if 'standalone="' in first_line:
+            xml_declaration += (
+                """standalone="%s" """ % tree.docinfo.standalone)
+        xml_declaration += """?>"""
     else:
         xml_declaration = None
 

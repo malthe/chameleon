@@ -126,10 +126,17 @@ class Template(object):
         # it's not clear from the tree if an XML declaration was
         # present in the document source; the following is a
         # work-around to ensure that output matches input
-        if '<?xml ' in body:
-            xml_declaration = \
-            """<?xml version="%s" encoding="%s" standalone="no" ?>""" % (
-                tree.docinfo.xml_version, tree.docinfo.encoding)
+        first_line = body.lstrip().split('\n', 1)[0]
+        if first_line.startswith('<?xml '):
+            xml_declaration = (
+                """<?xml version="%s" """ % tree.docinfo.xml_version)
+            if tree.docinfo.encoding:
+                xml_declaration += (
+                    """encoding="%s" """ % tree.docinfo.encoding)
+            if 'standalone="' in first_line:
+                xml_declaration += (
+                    """standalone="%s" """ % tree.docinfo.standalone)
+            xml_declaration += """?>"""
         else:
             xml_declaration = None
 

@@ -39,7 +39,7 @@ XHTML
   ... <html xmlns="http://www.w3.org/1999/xhtml">
   ...   Hello World!
   ... </html>""")
-  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <?xml version="1.0" encoding="UTF-8" ?>
   <!DOCTYPE html>
   <html xmlns="http://www.w3.org/1999/xhtml">
     Hello World!
@@ -177,7 +177,7 @@ XML with Default Namespaces
   ...     <resource path="">ZZZ&nbsp;YYY&nbsp;XXX</resource>
   ...   </resources>
   ... </application>""")
-  <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+  <?xml version="1.0" encoding="UTF-8" ?>
   <!DOCTYPE application [
     <!ENTITY nbsp "\&#160;">
   ]>
