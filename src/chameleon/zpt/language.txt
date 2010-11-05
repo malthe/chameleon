@@ -163,7 +163,7 @@ tal:repeat using builtin name as repeat var
   ... <div xmlns="http://www.w3.org/1999/xhtml"
   ...      xmlns:tal="http://xml.zope.org/namespaces/tal">
   ...   <ul>
-  ...     <li tal:repeat="type range(2)"><span tal:replace="type"/></li>
+  ...     <li tal:repeat="input range(2)"><span tal:replace="input"/></li>
   ...   </ul>
   ... </div>""")
   <div xmlns="http://www.w3.org/1999/xhtml">
