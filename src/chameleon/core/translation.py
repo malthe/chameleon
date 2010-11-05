@@ -300,32 +300,6 @@ class Node(object):
         if self.condition is not None:
             _.append(clauses.Condition(self.condition))
 
-        # repeat
-        if self.repeat is not None:
-            variables, expression = self.repeat
-            newline = True
-            for element in self.element.walk():
-                node = element.node
-                if node and node.omit is False:
-                    break
-            else:
-                newline = False
-
-            if len(variables) > 1:
-                repeat = clauses.Repeat(
-                    variables, expression, repeatdict=False, newline=newline)
-            else:
-                repeat = clauses.Repeat(variables, expression, newline=newline)
-            _.append(repeat)
-
-        # assign
-        if self.assign is not None:
-            for declaration, expression in self.assign:
-                if len(declaration) != 1:
-                    raise ValueError("Can only assign single variable.")
-                variable = declaration[0]
-                _.append(clauses.Assign(expression, variable))
-
         content = self.content
         omit = self.omit
 
@@ -364,6 +338,32 @@ class Node(object):
                  )))
 
             _.append(clauses.Else())
+
+        # repeat
+        if self.repeat is not None:
+            variables, expression = self.repeat
+            newline = True
+            for element in self.element.walk():
+                node = element.node
+                if node and node.omit is False:
+                    break
+            else:
+                newline = False
+
+            if len(variables) > 1:
+                repeat = clauses.Repeat(
+                    variables, expression, repeatdict=False, newline=newline)
+            else:
+                repeat = clauses.Repeat(variables, expression, newline=newline)
+            _.append(repeat)
+
+        # assign
+        if self.assign is not None:
+            for declaration, expression in self.assign:
+                if len(declaration) != 1:
+                    raise ValueError("Can only assign single variable.")
+                variable = declaration[0]
+                _.append(clauses.Assign(expression, variable))
 
         # set dynamic content flag
         dynamic = content or self.translate is not None

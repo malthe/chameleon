@@ -10,6 +10,10 @@ Changes
   attribute.
   [rpatterson]
 
+- When doing metal:fill-slot, any tal:repeat in the metal:define-slot
+  element should be replaced/ignored.  (LP#665748)
+  [rpatterson]
+
 1.2.13 (released 2010-09-23)
 ----------------------------
 
