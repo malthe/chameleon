@@ -62,8 +62,9 @@ class Template(object):
             # temporary file; this makes step-debugging through
             # generated template code possible
             if debug:
+                head, tail = os.path.split(self.filename)
                 self.registry = filecache.TemporaryTemplateCache(
-                    tempfile.mkdtemp(), self.filename, 0)
+                    tempfile.mkdtemp(), tail, 0)
             else:
                 self.registry = filecache.TemplateRegistry()
 
