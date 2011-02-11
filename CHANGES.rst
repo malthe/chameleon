@@ -1,6 +1,9 @@
 Changes
 =======
 
+1.3.0-rc1 (released 2011-02-11)
+-------------------------------
+
 - Fix issue where object identifiers (``id``) would be negative (on
   some platforms).
   [malthe]

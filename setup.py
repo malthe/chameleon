@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 import sys
 
-version = '1.2.13'
+version = '1.3.0-rc1'
 
 install_requires = [
     'setuptools',
@@ -45,9 +45,9 @@ setup(name="Chameleon",
           'i18nize' : [ "lxml", ],
           },
       tests_require=install_requires + [
-          'zope.interface==3.5.2',
-          'zope.component==3.7.1',
-          'zope.i18n==3.7.1',
+          'zope.interface>=3.5.2',
+          'zope.component>=3.7.1',
+          'zope.i18n>=3.7.1',
           'lxml',
           ],
       test_suite="chameleon.tests",
