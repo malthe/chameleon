@@ -432,7 +432,7 @@ class Node(object):
         text = self.text
         if omit is not True:
             _.append(clauses.Attrs(self.static_attributes,
-                                   "_attrs_%d" % id(self.element)))
+                                   "_attrs_%d" % abs(id(self.element))))
             selfclosing = not text and not dynamic and len(self.element) == 0
             tag = clauses.Tag(
                 self.tag, attributes,
@@ -626,7 +626,7 @@ class Node(object):
                 elements = ()
 
             if named_elements:
-                mapping = "%s_%d" % (self.symbols.mapping, id(self.element))
+                mapping = "%s_%d" % (self.symbols.mapping, abs(id(self.element)))
                 _.append(clauses.Assign(types.value('{}'), mapping))
             else:
                 mapping = 'None'

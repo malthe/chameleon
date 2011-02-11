@@ -698,7 +698,7 @@ def format_kwargs(kwargs):
                 "<%s %s at %s>" % (
                     type(value).__name__,
                     getattr(value, '__name__', "-"),
-                    hex(id(value)))))
+                    hex(abs(id(value))))))
 
     return ["%s: %s" % item for item in items]
 

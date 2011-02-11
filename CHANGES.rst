@@ -1,11 +1,17 @@
 Changes
 =======
 
+- Fix issue where object identifiers (``id``) would be negative (on
+  some platforms).
+  [malthe]
+
 - Fix debug mode with disk caching off where temporary caches were created in
   the wrong place (i.e. alongside the file rather than in a temporary
-  directory).  [jinty]
+  directory).
+  [jinty]
 
-- Fixed issue with eager loading and template initialization [aikom].
+- Fixed issue with eager loading and template initialization.
+  [aikom]
 
 - Fix mishandling of XML declaration. (LP#360296)
   [rpatterson]
