@@ -180,6 +180,9 @@ class ExpressionTranslator(object):
         definitions((declaration('variable1'), value('expression1')),
                     (declaration('variable2', global_scope=True), value('expression2')))
 
+        >>> definitions("global_variable1 global_expression1")
+        definitions((declaration('global_variable1'), value('global_expression1')),)
+
         Space, the 'in' operator and '=' may be used to separate
         variable from expression.
 
@@ -220,7 +223,7 @@ class ExpressionTranslator(object):
                 i += 1
 
             global_scope = False
-            if string[i:].startswith('global'):
+            if string[i:].startswith('global '):
                 global_scope = True
                 i += 6
 

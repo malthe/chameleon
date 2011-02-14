@@ -1,6 +1,10 @@
 Changes
 =======
 
+- Fixed issue where a variable assignment to a name that starts with
+  global fails.
+  [malthe]
+
 1.3.0-rc1 (released 2011-02-11)
 -------------------------------
 
