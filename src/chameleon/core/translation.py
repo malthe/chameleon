@@ -332,7 +332,7 @@ class Node(object):
                 (clauses.Condition(
                     types.template('isinstance(%(tmp)s, basestring)'),
                     (clauses.Slot(
-                        types.template("%(tmp)s(%(scope)s, %(repeat)s)"),
+                        types.template("%(tmp)s(%(scope)s)"),
                         scope_args),),
                     finalize=True,
                     invert=True),
@@ -951,7 +951,6 @@ class Compiler(object):
         # set up initialization code
         stream.symbol_mapping['_init_stream'] = generation.initialize_stream
         stream.symbol_mapping['_init_scope'] = generation.initialize_scope
-        stream.symbol_mapping['_init_tal'] = generation.initialize_tal
         stream.symbol_mapping['_init_default'] = generation.initialize_default
 
         # add code-generation lookup globals
@@ -966,8 +965,6 @@ class Compiler(object):
                 clauses.Assign(
                     types.value("_init_stream()"), ("%(out)s", "%(write)s")),
                 clauses.Assign(
-                     types.value("_init_tal()"), ("%(attributes)s", "%(repeat)s")),
-                clauses.Assign(
                     types.value("_init_default()"), '%(default_marker_symbol)s'),
                 clauses.Assign(
                     types.value(repr(None)), '%(default)s'),
@@ -979,8 +976,6 @@ class Compiler(object):
                     types.template(
                         "%(scope)s['%(out)s'], %(scope)s['%(write)s']"),
                     ("%(out)s", "%(write)s")),
-                clauses.Assign(
-                    types.value("_init_tal()"), ("%(attributes)s", "%(repeat)s")),
                 clauses.Assign(
                     types.value("_init_default()"), '%(default_marker_symbol)s'),
                 clauses.Assign(

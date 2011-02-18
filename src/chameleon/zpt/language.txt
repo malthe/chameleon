@@ -6,10 +6,12 @@ languages.
 
   >>> from chameleon.zpt.language import Parser
   >>> from chameleon.core.testing import compile_template
+  >>> from chameleon.core.utils import repeatdict
 
   >>> def render(body, **kwargs):
   ...     parser = Parser()
   ...     func = compile_template(parser, parser, body, **kwargs)
+  ...     kwargs['repeat'] = repeatdict()
   ...     return func(**kwargs)
 
 TAL

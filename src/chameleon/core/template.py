@@ -217,6 +217,9 @@ class Template(object):
             utils.raise_template_exception(kwargs, sys.exc_info())
 
     def render(self, *args, **kwargs):
+        if 'repeat' not in kwargs:
+            kwargs['repeat'] = utils.repeatdict()
+
         if args:
             try:
                 slots, = args

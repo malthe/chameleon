@@ -144,7 +144,7 @@ class MockParser(etree.Parser):
         config.XI_NS: {None: MockXiElement}}
 
     fallback = MockElement
-    
+
 mock_parser = MockParser()
 
 class MockMacros(template.Macros):
@@ -156,11 +156,13 @@ class MockTemplate(object):
         self.body = body
         self.parser = parser
         self.doctype = doctype
-        
+
     @property
     def macros(self):
         def render(name, slots={}, parameters={}):
             parameters[config.SYMBOLS.slots] = slots
+            parameters.setdefault('repeat', utils.repeatdict())
+
             func = compile_template(
                 self.parser, self.parser.parse, self.body,
                 macro=name, global_scope=False, **parameters)

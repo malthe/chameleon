@@ -1140,10 +1140,9 @@ class Callback(object):
         self.newline = newline
 
     def begin(self, stream):
-        stream.write("def %s(%s, _repeat, %s, **_ignored):" % (
+        stream.write("def %s(%s, %s, **_ignored):" % (
             self.name, stream.symbols.scope, self.args))
         stream.indent()
-        stream.write("if _repeat: %s.update(_repeat)" % stream.symbols.repeat)
 
         # visit slot node
         self.visitor.begin(stream)

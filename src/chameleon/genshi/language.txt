@@ -5,11 +5,14 @@ This test demonstrates the compilation of the Genshi language.
 
   >>> import chameleon.genshi.language
   >>> import chameleon.core.testing
+  >>> import chameleon.core.utils
+
   >>> def render(body, encoding=None, **kwargs):
   ...     parser = chameleon.genshi.language.Parser()
   ...     mt = kwargs['match_templates'] = chameleon.genshi.language.MatchTemplates()
   ...     func = chameleon.core.testing.compile_template(
   ...         parser, parser, body, encoding=encoding, **kwargs)
+  ...     kwargs['repeat'] = chameleon.core.utils.repeatdict()
   ...     result = func(**kwargs)
   ...     return mt.process(result)
 

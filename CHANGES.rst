@@ -1,6 +1,11 @@
 Changes
 =======
 
+- Pass ``repeat`` variable around as common template scope
+  variable. This means in particular that we can provide it from
+  outside, allowing choice of implementation.
+  [malthe]
+
 - Fixed issue where Zope 2's unhashable "missing value" would cause
   translation to fail (arguably this value should never be
   translated). In general, it seems reasonable to require message ids
