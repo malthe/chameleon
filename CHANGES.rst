@@ -1,6 +1,11 @@
 Changes
 =======
 
+- Rename insert-method of repeat variable to ``_insert`` to allow
+  simple security policies to protect this object (although outside
+  scope of package).
+  [malthe]
+
 - Pass ``repeat`` variable around as common template scope
   variable. This means in particular that we can provide it from
   outside, allowing choice of implementation.

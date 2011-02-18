@@ -893,7 +893,7 @@ class Repeat(object):
         if self.repeatdict:
             variable = self.declaration[0]
             assert ',' not in variable
-            stream.write("%s, %s = repeat.insert('%s', %s)" % (
+            stream.write("%s, %s = repeat._insert('%s', %s)" % (
                 iterator, length, variable, iterator))
             stream.write("for %s in %s:" % (
                 variable, iterator))

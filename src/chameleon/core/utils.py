@@ -538,7 +538,7 @@ class repeatitem(object):
 class repeatdict(dict):
     __slots__ = ()
 
-    def insert(self, key, iterable):
+    def _insert(self, key, iterable):
         """We coerce the iterable to a tuple and return an iterator
         after registering it in the repeat dictionary."""
 
