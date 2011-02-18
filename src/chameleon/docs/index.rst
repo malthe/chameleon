@@ -38,7 +38,7 @@ the `Repoze Subversion repository
 <http://svn.repoze.org/chameleon/>`_.  To check out the trunk via
 Subversion, use this command::
 
-  $ svn co svn://svn.repoze.org/chameleon/trunk chameleon
+  $ svn co http://svn.repoze.org/chameleon/trunk chameleon
 
 Related projects
 ----------------
@@ -46,7 +46,7 @@ Related projects
 An HTML-based language which integrates with ZPT (see `chameleon.html
 <http://pypi.python.org/pypi/chameleon.html>`_)::
 
-  $ svn co svn://svn.repoze.org/chameleon.html/trunk chameleon-html
+  $ svn co http://svn.repoze.org/chameleon.html/trunk chameleon-html
 
 Contents
 ========
