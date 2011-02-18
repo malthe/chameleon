@@ -1,6 +1,12 @@
 Changes
 =======
 
+- Fixed issue where Zope 2's unhashable "missing value" would cause
+  translation to fail (arguably this value should never be
+  translated). In general, it seems reasonable to require message ids
+  hashable.
+  [malthe]
+
 - Fixed issue where a variable assignment to a name that starts with
   global fails.
   [malthe]

@@ -15,6 +15,10 @@ else:
             return
 
         if target_language is not None:
+            try:
+                hash(msgid)
+            except TypeError:
+                return
             result = translate(
                 msgid, domain=domain, mapping=mapping, context=context,
                 target_language=target_language, default=default)
