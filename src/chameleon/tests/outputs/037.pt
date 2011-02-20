@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <title>Master template</title>
+  </head>
+  <body>
+    <div id="content">
+
+    <span>ok</span>
+
+    </div>
+    <div id="footer">
+
+    </div>
+  </body>
+</html>

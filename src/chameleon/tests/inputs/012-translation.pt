@@ -1,0 +1,21 @@
+<html>
+  <body>
+    <div i18n:translate="">
+      Hello world!
+    </div>
+    <div i18n:translate="hello_world">
+      Hello world!
+    </div>
+    <div i18n:translate="">
+      <sup>Hello world!</sup>
+    </div>
+    <div i18n:translate="">
+      Hello <em i18n:name="first">${'world'}</em>!
+      Goodbye <em i18n:name="second">${'planet'}</em>!
+    </div>
+    <div i18n:translate="hello_goodbye">
+      Hello <em i18n:name="first">${'world'}</em>!
+      Goodbye <em i18n:name="second">${'planet'}</em>!
+    </div>
+  </body>
+</html>

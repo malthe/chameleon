@@ -1,0 +1,14 @@
+<html>
+  <body>
+    <ul>
+      <tal:item repeat="i (1, 2, 3)"><li tal:content="i" /></tal:item>
+      <span tal:omit-tag="" tal:repeat="j (1, 2, 3)"><li tal:content="j" /></span>
+      <tal:count>
+        <tal:count-loop repeat="count (1, 2, 3)">
+          <span tal:replace="count"
+                /><tal:comma condition="not repeat['count'].end">,</tal:comma>
+       </tal:count-loop>
+      </tal:count>.
+    </ul>
+  </body>
+</html>

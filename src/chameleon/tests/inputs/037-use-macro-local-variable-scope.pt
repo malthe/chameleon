@@ -1,0 +1,5 @@
+<html metal:use-macro="load('032-master-template.pt').macros['main']" >
+  <metal:content metal:fill-slot="content">
+    <span tal:condition="content is None">ok</span>
+  </metal:content>
+</html>

@@ -1,0 +1,11 @@
+<html>
+  <body>
+    <table>
+      <tr tal:repeat="i (1,2)">
+        <td tal:repeat="j (1,2)">
+          [${i},${j}]
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+<html>
+  <body>
+    <tal:first>
+      <tal:second>
+        ${'first'}
+      </tal:second>
+      second
+    </tal:first>
+    <tal:block condition="True">
+      ok
+    </tal:block>
+    <tal:block condition="False">
+      bad
+    </tal:block>
+  </body>
+</html>

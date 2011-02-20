@@ -1,0 +1,16 @@
+<html>
+  <body i18n:domain="old">
+    <div i18n:domain="new" i18n:translate="">
+      Hello world!
+    </div>
+    <div i18n:translate="">
+      Hello world!
+    </div>
+    <div class="test" i18n:domain="new" i18n:attributes="class">
+      Hello world!
+    </div>
+    <div class="test" i18n:domain="new" i18n:attributes="class test_msgid">
+      Hello world!
+    </div>
+  </body>
+</html>

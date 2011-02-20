@@ -1,0 +1,22 @@
+<html>
+  <body>
+    <div i18n:translate="">
+      Hello
+      <tal:nested condition="True">
+        <span i18n:name="world">world!</span>
+      </tal:nested>
+    </div>
+    <div i18n:translate="hello">
+      Hello
+      <tal:nested condition="True">
+        <span i18n:name="world">world!</span>
+      </tal:nested>
+    </div>
+    <div i18n:translate="">
+      Goodbye
+      <tal:nested condition="False">
+        <span i18n:name="world">world!</span>
+      </tal:nested>
+    </div>
+  </body>
+</html>

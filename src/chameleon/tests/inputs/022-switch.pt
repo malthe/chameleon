@@ -1,0 +1,13 @@
+<html>
+  <body>
+    <div tal:switch="True">
+      <span tal:case="False">bad</span>
+      <span tal:case="True">ok</span>
+      <span tal:case="not not True">ok</span>
+    </div>
+    <div tal:switch="True">
+      <span tal:case="False">bad</span>
+      <span tal:case="default">ok</span>
+    </div>
+  </body>
+</html>

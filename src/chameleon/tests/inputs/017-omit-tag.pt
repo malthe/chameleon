@@ -1,0 +1,12 @@
+<html>
+  <body>
+    <div tal:omit-tag="">Hello world!</div>
+    <div tal:omit-tag="">1
+      Hello world!
+   2</div>3
+   4<div tal:omit-tag="True">Hello world!</div>
+    <div tal:omit-tag="False">Hello world!</div>
+    <div class="omitted" tal:omit-tag="True">Hello world!</div>
+    <div class="${'omitted'}" tal:omit-tag="True">Hello world!</div>
+  </body>
+</html>

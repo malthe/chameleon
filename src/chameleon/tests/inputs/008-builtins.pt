@@ -1,0 +1,8 @@
+<html>
+  <body>
+    ${nothing}
+    <div tal:attributes="class string:dynamic" class="static">
+      ${attrs['class']}
+    </div>
+  </body>
+</html>

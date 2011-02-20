@@ -1,0 +1,5 @@
+<html>
+  <body>
+    <div>Price: <span>Per kilo <em>12.5</em> ('Per kilo ${amount}' translation into 'en')</span> ('Price: ${price}' translation into 'en')</div>
+  </body>
+</html>

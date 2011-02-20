@@ -1,0 +1,16 @@
+<html>
+  <body>
+    <div tal:content="'Hello world!'" />
+    <div tal:content="'Hello world!'" />1
+   2<div tal:content="'Hello world!'" />
+    <div tal:content="'Hello world!'" />3
+    <div tal:content="'Hello world!'">4</div>5
+   6<div tal:content="'Hello world!'"></div>
+    <div tal:content="1" />
+    <div tal:content="1.0" />
+    <div tal:content="True" />
+    <div tal:content="False" />
+    <div tal:content="0" />
+    <div tal:content="None" />
+  </body>
+</html>

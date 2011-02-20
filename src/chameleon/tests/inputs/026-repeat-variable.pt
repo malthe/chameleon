@@ -1,0 +1,14 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal">
+  <ul>
+    <li tal:attributes="class repeat['i'].even()+repeat['i'].odd()"
+        tal:repeat="i range(3)"><span tal:replace="str(i)" /></li>
+  </ul>
+  <ul>
+    <li tal:attributes="class repeat['i'].even+repeat['i'].odd"
+        tal:repeat="i range(3)"><span tal:replace="str(i)" /></li>
+  </ul>
+  <ul>
+    <li tal:repeat="i range(3)"><span tal:condition="repeat['i'].even" tal:replace="repeat['i'].even" /><span tal:condition="repeat['i'].odd" tal:replace="repeat['i'].odd" /></li>
+  </ul>
+</div>

@@ -1,0 +1,12 @@
+<html>
+  <body>
+    <div>Hello world! ('Hello world!' translation into 'en' with domain 'new')</div>
+    <div>Hello world! ('Hello world!' translation into 'en' with domain 'old')</div>
+    <div class="test ('test' translation into 'en' with domain 'new')">
+      Hello world!
+    </div>
+    <div class="test ('test_msgid' translation into 'en' with domain 'new')">
+      Hello world!
+    </div>
+  </body>
+</html>

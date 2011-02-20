@@ -1,0 +1,7 @@
+<div>
+  <tal:example replace="'Hello World!'" />
+  <tal:example tal:replace="'Hello World!'" />
+  <tal:div content="'Hello World!'" />
+  <tal:multiple repeat="i range(3)" replace="i" />
+  <tal:div condition="True">True</tal:div>
+</div>

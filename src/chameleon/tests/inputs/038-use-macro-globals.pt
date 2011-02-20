@@ -1,0 +1,6 @@
+<metal:globals use-macro="load('039-globals.pt')"  />
+<html>
+  <body>
+    <span tal:condition="content is None">ok</span>
+  </body>
+</html>

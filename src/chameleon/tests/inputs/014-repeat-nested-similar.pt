@@ -1,0 +1,7 @@
+<html>
+  <body>
+    <span tal:repeat="i (3,4)">
+      <span tal:repeat="j (3,4)">[${i},${j}]</span>
+    </span>
+  </body>
+</html>

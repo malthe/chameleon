@@ -1,0 +1,7 @@
+<html>
+  <body>
+    <div tal:repeat="(i, j) ((1, 2), (3, 4))">
+      ${repeat['i', 'j'].number}, ${i}, ${j}
+    </div>
+  </body>
+</html>

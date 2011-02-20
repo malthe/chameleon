@@ -1,0 +1,12 @@
+<html>
+  <body tal:define="text 'Hello world!'">
+    ${text}
+    $text
+  </body>
+  <tal:check condition="exists: text">
+    bad
+  </tal:check>
+  <tal:check condition="not: exists: text">
+    ok
+  </tal:check>
+</html>

@@ -1,0 +1,6 @@
+<html>
+  <body class="ltr">
+    <img src="${'#'}" alt="copyright (c) ${2010}" />
+    <img src="${None}" />
+  </body>
+</html>

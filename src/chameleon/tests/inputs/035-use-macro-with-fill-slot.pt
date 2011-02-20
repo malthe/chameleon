@@ -1,0 +1,5 @@
+<html metal:use-macro="load('032-master-template.pt').macros['main']">
+  <title metal:fill-slot="title" tal:define="kind 'New'">
+    ${kind} title
+  </title>
+</html>

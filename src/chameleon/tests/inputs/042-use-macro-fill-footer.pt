@@ -1,0 +1,3 @@
+<html metal:use-macro="load('032-master-template.pt').macros['main']">
+  <metal:footer fill-slot="body-footer">New footer</metal:footer>
+</html>

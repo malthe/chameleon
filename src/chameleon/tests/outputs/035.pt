@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>
+    New title
+  </title>
+  </head>
+  <body>
+    <div id="content">
+
+        <!-- content here -->
+
+    </div>
+    <div id="footer">
+
+    </div>
+  </body>
+</html>

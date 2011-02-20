@@ -1,0 +1,5 @@
+<html>
+  <body tal:on-error="string:error">
+    <div tal:content="undefined" />
+  </body>
+</html>

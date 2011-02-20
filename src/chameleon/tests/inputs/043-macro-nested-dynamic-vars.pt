@@ -1,0 +1,19 @@
+<html>
+  <body>
+    <tal:macros condition="0">
+
+      <metal:outer define-macro="outer">
+        <metal:inner use-macro="template.macros['inner']" />
+      </metal:outer>
+
+      <metal:inner define-macro="inner">
+        ${title}
+      </metal:inner>
+
+    </tal:macros>
+
+    <div tal:define="title string:My title"
+         metal:use-macro="template.macros['outer']"
+         />
+  </body>
+</html>

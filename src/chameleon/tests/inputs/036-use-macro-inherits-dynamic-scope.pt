@@ -1,0 +1,2 @@
+<html tal:define="title string:New title"
+      metal:use-macro="load('032-master-template.pt').macros['main']" />

@@ -1,0 +1,9 @@
+<html>
+  <body>
+    <div>Hello world! ('Hello world!' translation into 'en')</div>
+    <img alt="Hello world! ('Hello world!' translation into 'en')" />
+    <img alt="Hello world! ('hello_world' translation into 'en')" />
+    <img alt="Hello world! ('Hello world!' translation into 'en')" />
+    <img alt="Hello world! ('hello_world' translation into 'en')" />
+  </body>
+</html>

@@ -1,0 +1,9 @@
+<html>
+  <body>
+    <div tal:content="text message" />
+    <div tal:content="structure message" />
+    <div tal:content="text string:${message}" />
+    <div tal:content="structure string:${message}" />
+    ${message}
+  </body>
+</html>

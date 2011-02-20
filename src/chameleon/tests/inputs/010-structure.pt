@@ -1,0 +1,7 @@
+<html>
+  <body>
+    <div tal:content="text string:1 &lt; 2" />
+    <div tal:content="structure string:2 &lt; 3" />
+    <div tal:content="structure '%d &lt; %d' % (3, 4)" />
+  </body>
+</html>

@@ -1,0 +1,10 @@
+<html>
+  <body>
+    <img class="default" tal:attributes="class default" />
+    <img tal:attributes="class default" />
+    <span tal:content="default">Default</span>
+    <span tal:content="default">
+      <em>${'Computed default'}</em>
+    </span>
+  </body>
+</html>

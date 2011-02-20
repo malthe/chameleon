@@ -1,0 +1,10 @@
+<html>
+  <body>
+    <div i18n:translate="">
+      Price:
+      <span i18n:name="price" i18n:translate="">
+        Per kilo <em i18n:name="amount">${12.5}</em>
+      </span>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      metal:define-macro="master"
+      template-macros="${' '.join(template.macros.names)}"
+      macros="${' '.join(macros.names)}">
+    <metal:block tal:define="foo 'foo'">
+      ${foo}
+      <div metal:define-slot="content" tal:replace="None">
+         <!-- will be replaced -->
+      </div>
+      <span template-macros="${' '.join(template.macros.names)}"
+            macros="${' '.join(macros.names)}">
+         <!-- demonstrate difference between
+              `template` and `macros` symbol -->
+      </span>
+    </metal:block>
+</html>

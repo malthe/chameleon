@@ -1,0 +1,73 @@
+__version__ = '2.0-dev'
+
+import os
+import sys
+
+from distribute_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup, find_packages
+from setuptools.command.test import test
+
+here = os.path.abspath(os.path.dirname(__file__))
+README = open(os.path.join(here, 'README.rst')).read()
+CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
+
+install_requires = []
+
+version = sys.version_info[:3]
+if version < (2, 7, 0):
+    install_requires.append("ordereddict")
+
+class Benchmark(test):
+    description = "Run benchmarks"
+    user_options = []
+    test_suite = None
+
+    def initialize_options(self):
+        """init options"""
+        pass
+
+    def finalize_options(self):
+        """finalize options"""
+
+        self.distribution.tests_require = [
+            'zope.pagetemplate',
+            'zope.component',
+            'zope.i18n',
+            'zope.testing']
+
+    def run(self):
+        test.run(self)
+        self.with_project_on_sys_path(self.run_benchmark)
+
+    def run_benchmark(self):
+        from chameleon import benchmark
+        print("running benchmark...")
+
+        benchmark.start()
+
+setup(
+    name="Chameleon",
+    version=__version__,
+    description="Fast XML template engine for Python.",
+    long_description="\n\n".join((README, CHANGES)),
+    classifiers=[
+       "Development Status :: 3 - Alpha",
+       "Intended Audience :: Developers",
+       "Programming Language :: Python",
+      ],
+    author="Malthe Borch",
+    author_email="mborch@gmail.com",
+    license='BSD-like (http://repoze.org/license.html)',
+    packages=find_packages('src'),
+    package_dir = {'': 'src'},
+    include_package_data=True,
+    install_requires=install_requires,
+    zip_safe=False,
+    test_suite="chameleon.tests",
+    cmdclass={
+        'benchmark': Benchmark,
+        }
+    )
+

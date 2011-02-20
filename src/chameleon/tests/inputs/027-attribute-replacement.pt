@@ -1,0 +1,11 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal">
+  <span id="test"
+        class="dummy"
+        onClick=""
+        tal:define="a 'abc'"
+        tal:attributes="class 'def' + a + default; style 'hij'; onClick 'alert();;'"
+        tal:content="a + 'ghi'" />
+  <span tal:replace="'Hello World!'">Hello <b>Universe</b>!</span>
+  <span tal:replace="'Hello World!'"><b>Hello Universe!</b></span>
+</div>

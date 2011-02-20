@@ -1,0 +1,8 @@
+<html>
+  <body>
+    <div tal:repeat="text ('Hello', 'Goodbye')">
+      <span tal:repeat="char ('!', '.')">${text}${char}</span>
+    </div>
+    <tal:check condition="not: exists: text">ok</tal:check>
+  </body>
+</html>

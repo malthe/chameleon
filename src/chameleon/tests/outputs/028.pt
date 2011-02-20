@@ -1,0 +1,7 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal">
+  <option selected="True"></option>
+  <option></option>
+  <input checked="True" />
+  <input />
+</div>

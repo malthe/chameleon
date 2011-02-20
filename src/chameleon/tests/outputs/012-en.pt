@@ -1,0 +1,9 @@
+<html>
+  <body>
+    <div>Hello world! ('Hello world!' translation into 'en')</div>
+    <div>Hello world! ('hello_world' translation into 'en')</div>
+    <div><sup>Hello world!</sup> ('<sup>Hello world!</sup>' translation into 'en')</div>
+    <div>Hello <em>world</em>! Goodbye <em>planet</em>! ('Hello ${first}! Goodbye ${second}!' translation into 'en')</div>
+    <div>Hello <em>world</em>! Goodbye <em>planet</em>! ('hello_goodbye' translation into 'en')</div>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal">
+  <option tal:attributes="selected True"></option>
+  <option tal:attributes="selected None"></option>
+  <input tal:attributes="checked True" />
+  <input tal:attributes="checked False" />
+</div>

@@ -1,0 +1,13 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  <div i18n:translate="" tal:omit-tag="">
+      <span i18n:name="monthname"
+            i18n:translate=""
+            tal:content="'october'"
+            tal:omit-tag="">monthname</span>
+      <span i18n:name="year"
+            i18n:translate=""
+            tal:content="1982"
+            tal:omit-tag="">year</span>
+  </div>
+</div>

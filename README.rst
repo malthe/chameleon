@@ -1,0 +1,72 @@
+Overview
+========
+
+Chameleon is an HTML/XML [1]_ template language compiler.
+
+It includes a feature-complete engine for the Zope Page Templates
+(ZPT) language.
+
+The software is released on PyPi. To download and install the latest
+release::
+
+  $ easy-install -U Chameleon
+
+
+What's New in 2.x
+------------------
+
+The 2.x series is a complete rewrite of the library and supports both
+Python 2.7+ and Python 3.1+ with a single source code.
+
+For most users it should be an easy upgrade, however note that at
+present, there is no engine for the Genshi language.
+
+New parser
+~~~~~~~~~~
+
+This series features a new parser, implemented in pure Python. It
+parses both HTML and XML inputs (the previous parser relied on the
+expat system library and was more strict about its input).
+
+Language support
+~~~~~~~~~~~~~~~~
+
+The 2.x series supports a couple of new constructs:
+
+1) Support for the ``tal:on-error`` from the reference specification
+has been added.
+
+2) Inspired by the Genshi language, a pair of new attributes has been
+added: ``tal:switch`` and ``tal:case``, allowing flexible conditions.
+
+Expression engine
+~~~~~~~~~~~~~~~~~
+
+The expression engine has been redesigned to make it easier to
+understand and extend.
+
+The engine is built on the new ``ast`` module.
+
+Performance
+~~~~~~~~~~~
+
+The compiler output has been optimized for complex templates. For most
+applications, the engine should perform similarly to the 1.x
+series.
+
+Very simple templates with tight loops (such as that of the "big
+table" benchmark) will see a decrease in performance. The compiler is
+optimized for dynamic variable scope and this lowers performance for
+templates that require only a static scope.
+
+
+License and Copyright
+---------------------
+
+This software is made available as-is under a BSD-like license
+[2]_ (see included copyright notice).
+
+.. [1] There is currently no support for unstructured documents.
+
+.. [2] Licensed under the `Repoze <http://repoze.org/license.html>`_
+       license.
