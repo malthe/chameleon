@@ -1,0 +1,6 @@
+<html>
+  <body>
+    <pre tal:content="string:amp=&amp;amp; lt=&amp;lt;"  />
+    <pre tal:content="structure string:amp=&amp;amp; lt=&amp;lt;"  />
+  </body>
+</html>
