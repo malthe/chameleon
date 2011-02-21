@@ -696,7 +696,7 @@ class Compiler(object):
 
         return [
             ast.TryExcept(
-                body=template("_slot = econtext[NAME]", NAME=ast.Str(name)),
+                body=template("_slot = econtext.pop(NAME)", NAME=ast.Str(name)),
                 handlers=[ast.ExceptHandler(
                     None,
                     None,
