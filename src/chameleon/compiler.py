@@ -168,8 +168,7 @@ def emit_convert_and_escape(
                 if '&' in target:
                     if ';' in target:
                         target = re_amp.sub('&amp', target)
-                    else:
-                        target = target.replace('&', '&amp;')
+                    target = target.replace('&', '&amp;')
                 if '<' in target:
                     target = target.replace('<', '&lt;')
                 if '>' in target:
