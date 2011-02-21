@@ -267,4 +267,4 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 diff = checker.output_difference(
                     example, got, 0)
                 self.fail("(%s) - \n%s\n\nCode:\n%s" % (
-                    name, diff.rstrip('\n'), template.source))
+                    name, diff.rstrip('\n'), template.source.encode('utf-8')))
