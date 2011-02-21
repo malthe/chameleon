@@ -1,0 +1,6 @@
+<html metal:define-macro="extended"
+      metal:extend-macro="load('032-master-template.pt').macros['main']">
+  <metal:footer fill-slot="body-footer">
+    <span metal:define-slot="kind">New</span> footer
+  </metal:footer>
+</html>

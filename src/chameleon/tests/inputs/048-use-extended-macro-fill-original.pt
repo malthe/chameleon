@@ -1,0 +1,5 @@
+<html metal:use-macro="load('046-extend-macro.pt').macros['extended']">
+  <metal:footer fill-slot="body-footer">
+    Extended footer
+  </metal:footer>
+</html>
