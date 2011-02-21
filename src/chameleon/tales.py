@@ -377,8 +377,6 @@ class StringExpr(object):
                 except ExpressionError:
                     m = self.regex.search(m.group()[:-2])
                     if m is None:
-                        exc = sys.exc_info()[1]
-                        exc.offset += text.pos
                         raise
                 else:
                     break
