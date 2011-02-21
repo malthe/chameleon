@@ -736,7 +736,7 @@ class Compiler(object):
 
         return body
 
-    def visit_UseMacro(self, node):
+    def visit_UseExternalMacro(self, node):
         callbacks = []
 
         for slot in node.slots:
@@ -758,9 +758,16 @@ class Compiler(object):
                     body=body or [ast.Pass()],
                 ))
 
-            callbacks += template(
-                "econtext[KEY] = NAME", NAME=name, KEY=ast.Str(name)
-                )
+            if node.extend:
+                callbacks += template(
+                    "econtext.setdefault(KEY, NAME)",
+                    NAME=name, KEY=ast.Str(name)
+                    )
+            else:
+                callbacks += template(
+                    "econtext[KEY] = NAME",
+                    NAME=name, KEY=ast.Str(name)
+                    )
 
         assignment = self._engine(node.expression, store("_macro"))
 

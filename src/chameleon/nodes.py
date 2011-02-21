@@ -1,10 +1,10 @@
 from .astutil import Node
 
 
-class UseMacro(Node):
-    """Use external macro."""
+class UseExternalMacro(Node):
+    """Extend external macro."""
 
-    _fields = "expression", "slots"
+    _fields = "expression", "slots", "extend"
 
 
 class Sequence(Node):

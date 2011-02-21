@@ -124,13 +124,19 @@ class MacroProgram(ElementProgram):
 
         # Include macro
         use_macro = ns.get((METAL, 'use-macro'))
-        if use_macro is not None:
+        extend_macro = ns.get((METAL, 'extend-macro'))
+        if use_macro or extend_macro:
             slots = []
             self._use_macro.append(slots)
-            inner = nodes.UseMacro(
-                nodes.Expression(use_macro),
-                slots
-                )
+
+            if use_macro:
+                inner = nodes.UseExternalMacro(
+                    nodes.Expression(use_macro), slots, False
+                    )
+            else:
+                inner = nodes.UseExternalMacro(
+                    nodes.Expression(extend_macro), slots, True
+                    )
         # -or- include tag
         else:
             content = nodes.Sequence(body)
