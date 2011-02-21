@@ -26,6 +26,7 @@ except ImportError:
 try:
     # optional library: `zope.interface`
     import interfaces
+    import zope.interface
 except ImportError:
     interfaces = None
 
@@ -150,7 +151,7 @@ def prepare_attributes(attrs, dyn_attributes, ns_attributes, drop_ns):
 
 class RepeatItem(object):
     if interfaces is not None:
-        interfaces.implements(interfaces.ITALESIterator)
+        zope.interface.implements(interfaces.ITALESIterator)
 
     __slots__ = "length", "_iterator"
 
