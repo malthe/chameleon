@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE application [
+  <!ENTITY nbsp "\&#160;">
+]>
+<application xmlns="http://research.sun.com/wadl/2006/10"
+             xsi:schemaLocation="http://research.sun.com/wadl/2006/10/wadl.xsd"
+             xmlns:wadl="http://research.sun.com/wadl/2006/10"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:tal="http://xml.zope.org/namespaces/tal">
+  <resources tal:define="path '/'">
+    <resource path="${path}">ZZZ&nbsp;YYY&nbsp;XXX</resource>
+  </resources>
+</application>

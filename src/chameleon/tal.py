@@ -17,6 +17,7 @@ import re
 from .exc import LanguageError
 from .utils import descriptorint
 from .utils import descriptorstr
+from .namespaces import XMLNS_NS
 
 try:
     from collections import OrderedDict
@@ -118,7 +119,11 @@ def parse_defines(clause):
 def prepare_attributes(attrs, dyn_attributes, ns_attributes, drop_ns):
     drop = set([attribute['name'] for attribute, (ns, value)
                 in zip(attrs, ns_attributes)
-                if ns in drop_ns])
+                if ns in drop_ns or (
+                    ns == XMLNS_NS and
+                    attribute['value'] in drop_ns
+                    )
+                ])
 
     attributes = OrderedDict()
 
