@@ -14,9 +14,13 @@
 """Support classes for generating code from abstract syntax trees."""
 
 import ast
+import threading
 
-from copy import copy as copy_node
-
+# This would ideally be a ``weakref.WeakKeyDictionary``, but certain
+# platforms do not support making weak refs to the AST nodes in
+# ``ast``. Instead, we use a thread-local dictionary and make sure to
+# do proper book-keeping.
+node_annotations = threading.local().__dict__
 
 __docformat__ = 'restructuredtext en'
 
@@ -26,26 +30,26 @@ def parse(source, mode='eval'):
 
 
 def load(name):
-    return ast.Name(name, ast.Load())
+    return ast.Name(id=name, ctx=ast.Load())
 
 
 def store(name):
-    return ast.Name(name, ast.Store())
+    return ast.Name(id=name, ctx=ast.Store())
 
 
 def param(name):
-    return ast.Name(name, ast.Param())
+    return ast.Name(id=name, ctx=ast.Param())
 
 
 def delete(name):
-    return ast.Name(name, ast.Del())
+    return ast.Name(id=name, ctx=ast.Del())
 
 
-def subscript(name, target, ctx):
+def subscript(name, value, ctx):
     return ast.Subscript(
-        target,
-        ast.Index(ast.Str(name)),
-        ctx,
+        value=value,
+        slice=ast.Index(value=ast.Str(s=name)),
+        ctx=ctx,
         )
 
 
@@ -66,10 +70,11 @@ def swap(root, replacement, name):
         if (isinstance(node, ast.Name) and
             isinstance(node.ctx, ast.Load) and
             node.id == name):
-            copy(replacement, node)
+            assert hasattr(replacement, '_fields')
+            node_annotations.setdefault(node, replacement)
 
 
-class Node(ast.AST):
+class Node(object):
     """AST baseclass that gives us a convenient initialization
     method. We explicitly declare and use the ``_fields`` attribute."""
 
@@ -93,7 +98,7 @@ class Node(ast.AST):
             )
 
 
-class Builtin(Node, ast.Name):
+class Builtin(Node):
     """Represents a Python builtin.
 
     Used when a builtin is used internally by the compiler, to avoid
@@ -106,17 +111,13 @@ class Builtin(Node, ast.Name):
     ctx = ast.Load()
 
 
-class Undefined(Node, ast.Expr):
-    _fields = "id",
-
-
-class Symbol(Node, ast.expr):
+class Symbol(Node):
     """Represents an importable symbol."""
 
     _fields = "value",
 
 
-class Static(Node, ast.expr):
+class Static(Node):
     """Represents a static value."""
 
     _fields = "value", "name"
@@ -124,7 +125,7 @@ class Static(Node, ast.expr):
     name = None
 
 
-class Comment(Node, ast.stmt):
+class Comment(Node):
     _fields = "text", "space", "stmt"
 
     stmt = None
@@ -791,115 +792,24 @@ class ASTCodeGenerator(object):
         self._write(')')
 
 
-class ASTTransformer(object):
-    """General purpose base class for AST transformations.
-
-    Every visitor method can be overridden to return an AST node that has been
-    altered or replaced in some way.
-    """
-
+class AnnotationAwareVisitor(ast.NodeVisitor):
     def visit(self, node):
-        if node is None:
-            return None
+        annotation = node_annotations.get(node)
+        if annotation is not None:
+            assert hasattr(annotation, '_fields')
+            node = annotation
 
-        if type(node) is tuple:
-            return tuple([self.visit(n) for n in node])
-
-        visitor = getattr(self, 'visit_%s' % node.__class__.__name__, None)
-        if visitor is not None:
-            return visitor(node)
-
-        if isinstance(node, ast.AST):
-            return self._clone(node)
+        result = super(AnnotationAwareVisitor, self).visit(node)
 
         return node
 
-    def _clone(self, node):
-        clone = copy_node(node)
-        for name in getattr(clone, '_attributes', ()):
-            try:
-                setattr(clone, 'name', getattr(node, name))
-            except AttributeError:
-                pass
-        for name in clone._fields:
-            try:
-                value = getattr(node, name)
-            except AttributeError:
-                pass
-            else:
-                if value is None:
-                    pass
-                elif isinstance(value, list):
-                    value = [self.visit(x) for x in value]
-                elif isinstance(value, tuple):
-                    value = tuple(self.visit(x) for x in value)
-                else:
-                    value = self.visit(value)
-                setattr(clone, name, value)
-        return clone
-
-    def _leave(self, node):
-        return node
-
-    visit_Module = _clone
-    visit_Interactive = _clone
-    visit_Expression = _clone
-    visit_Suite = _clone
-
-    visit_FunctionDef = _clone
-    visit_ClassDef = _clone
-    visit_Return = _clone
-    visit_Delete = _clone
-    visit_Assign = _clone
-    visit_AugAssign = _clone
-    visit_Print = _clone
-    visit_For = _clone
-    visit_While = _clone
-    visit_If = _clone
-    visit_With = _clone
-    visit_Raise = _clone
-    visit_TryExcept = _clone
-    visit_TryFinally = _clone
-    visit_Assert = _clone
-    visit_ExceptHandler = _clone
-
-    visit_Import = _clone
-    visit_ImportFrom = _clone
-    visit_Exec = _clone
-    visit_Global = _clone
-    visit_Expr = _clone
-
-    visit_BoolOp = _clone
-    visit_BinOp = _clone
-    visit_UnaryOp = _clone
-    visit_Lambda = _clone
-    visit_IfExp = _clone
-    visit_Dict = _clone
-    visit_ListComp = _clone
-    visit_GeneratorExp = _clone
-    visit_Yield = _clone
-    visit_Compare = _clone
-    visit_Call = _clone
-    visit_Repr = _clone
-
-    visit_Attribute = _clone
-    visit_Subscript = _clone
-    visit_Name = _clone
-    visit_List = _clone
-    visit_Tuple = _clone
-
-    visit_comprehension = _clone
-    visit_excepthandler = _clone
-    visit_arguments = _clone
-    visit_keyword = _clone
-    visit_alias = _clone
-
-    visit_Slice = _clone
-    visit_ExtSlice = _clone
-    visit_Index = _clone
+    def apply_transform(self, node):
+        result = self.transform(node)
+        if result is not node:
+            node_annotations[node] = result
 
 
-class NameLookupRewriteTransformer(ast.NodeTransformer):
+class NameLookupRewriteVisitor(AnnotationAwareVisitor):
     def __init__(self, transform):
         self.transform = transform
         self.transformed = set()
@@ -910,10 +820,10 @@ class NameLookupRewriteTransformer(ast.NodeTransformer):
 
     def visit_Name(self, node):
         self.transformed.add(node.id)
-        return self.transform(node)
+        self.apply_transform(node)
 
 
-class ItemLookupOnAttributeErrorTransformer(ast.NodeTransformer):
+class ItemLookupOnAttributeErrorVisitor(AnnotationAwareVisitor):
     def __init__(self, transform):
         self.transform = transform
 
@@ -922,6 +832,4 @@ class ItemLookupOnAttributeErrorTransformer(ast.NodeTransformer):
 
         # Only apply transform for name values
         if isinstance(node.value, ast.Name) and isinstance(node.ctx, ast.Load):
-            return self.transform(node)
-
-        return node
+            self.apply_transform(node)

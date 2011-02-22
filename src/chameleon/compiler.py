@@ -27,12 +27,11 @@ from .astutil import store
 from .astutil import param
 from .astutil import swap
 from .astutil import subscript
-from .astutil import NameLookupRewriteTransformer
+from .astutil import node_annotations
+from .astutil import NameLookupRewriteVisitor
 from .astutil import Comment
-from .astutil import Static
 from .astutil import Symbol
 from .astutil import Builtin
-from .astutil import Node
 
 from .codegen import TemplateCodeGenerator
 from .codegen import template
@@ -60,24 +59,15 @@ COMPILER_INTERNALS_OR_DISALLOWED = set([
     "decode",
     "convert",
     "str",
+    "int",
+    "float",
+    "long",
     "len",
+    "None",
+    "True",
+    "False",
     ])
 
-
-RE_AMP = Static(
-    template(
-        "re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')",
-        re=Symbol(re),
-        mode="eval")
-        )
-
-RE_REDUCE_WS = Static(
-    template(
-        "functools.partial(re.compile(r'\s+').sub, ' ')",
-        re=Symbol(re),
-        functools=Symbol(functools),
-        mode="eval")
-    )
 
 RE_MANGLE = re.compile('[\-: ]')
 
@@ -110,7 +100,7 @@ def store_rcontext(name):
 
 
 @template
-def emit_node(node, append="append"):  # pragma: no cover
+def emit_node(node):  # pragma: no cover
     append(node)
 
 
@@ -139,8 +129,8 @@ def emit_translate(target, msgid, default=None):  # pragma: no cover
 
 @template
 def emit_convert_and_escape(
-    target, msgid, quote=ast.Str("\0"), str=str, long=long,
-    native=bytes, re_amp=RE_AMP):  # pragma: no cover
+    target, msgid, quote=ast.Str(s="\0"), str=str, long=long,
+    native=bytes):  # pragma: no cover
     if target is None:
         pass
     elif target is False:
@@ -203,10 +193,10 @@ class ExpressionCompiler(object):
         stmts = self.translate(expression, target)
 
         # Apply dynamic name rewrite transform to each statement
-        transform = NameLookupRewriteTransformer(self._dynamic_transform)
+        visitor = NameLookupRewriteVisitor(self._dynamic_transform)
 
         for stmt in stmts:
-            transform(stmt)
+            visitor(stmt)
 
         return stmts
 
@@ -217,9 +207,9 @@ class ExpressionCompiler(object):
         cached = self.cache.get(expression)
 
         if cached is not None:
-            stmts = [ast.Assign([target], cached)]
+            stmts = [ast.Assign(targets=[target], value=cached)]
         elif isinstance(expression, ast.expr):
-            stmts = [ast.Assign([target], expression)]
+            stmts = [ast.Assign(targets=[target], value=expression)]
             self.cache[expression] = target
         else:
             # The engine interface supports simple strings, which
@@ -240,6 +230,11 @@ class ExpressionCompiler(object):
 
     @classmethod
     def _dynamic_transform(cls, node):
+        # Don't rewrite nodes that have an annotation
+        annotation = node_annotations.get(node)
+        if annotation is not None:
+            return node
+
         name = node.id
 
         # Don't rewrite names that begin with an underscore; they are
@@ -258,7 +253,7 @@ class ExpressionCompiler(object):
             return template(
                 "econtext.get(key, name)",
                 mode="eval",
-                key=ast.Str(name),
+                key=ast.Str(s=name),
                 name=name
                 )
 
@@ -275,7 +270,8 @@ class ExpressionCompiler(object):
     def visit_Marker(self, node, target):
         self.markers.add(node.name)
 
-        return [ast.Assign([target], load("_marker_%s" % node.name))]
+        return [ast.Assign(targets=[target],
+                           value=load("_marker_%s" % node.name))]
 
     def visit_Identity(self, node, target):
         expression = self.translate(node.expression, "_expression")
@@ -301,11 +297,21 @@ class ExpressionCompiler(object):
 
     def visit_Translate(self, node, target):
         if node.msgid is not None:
-            msgid = ast.Str(node.msgid)
+            msgid = ast.Str(s=node.msgid)
         else:
             msgid = target
         return self.translate(node.node, target) + \
                emit_translate(target, msgid, default=target)
+
+    def visit_Static(self, node, target):
+        value = load("dummy")
+        node_annotations[value] = node
+        return [ast.Assign(targets=[target], value=value)]
+
+    def visit_Builtin(self, node, target):
+        value = load("dummy")
+        node_annotations[value] = node
+        return [ast.Assign(targets=[target], value=value)]
 
 
 class Compiler(object):
@@ -343,8 +349,19 @@ class Compiler(object):
         # package as module
         module = ast.Module([])
 
+        # Back up static annoations
+        node_annotations_backup = node_annotations.copy()
+
         # For symbolic nodes (deprecated?)
+        module.body += template("import re")
+        module.body += template("import functools")
         module.body += template("_marker = object()")
+        module.body += template(
+            r"re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
+        )
+        module.body += template(
+            r"re_whitespace = functools.partial(re.compile('\s+').sub, ' ')",
+        )
 
         # Visit template program
         module.body += self.visit(program)
@@ -359,6 +376,10 @@ class Compiler(object):
 
         ast.fix_missing_locations(module)
         generator = TemplateCodeGenerator(module)
+
+        # Clear node annotations
+        node_annotations.clear()
+        node_annotations.update(node_annotations_backup)
 
         return generator.code
 
@@ -404,9 +425,9 @@ class Compiler(object):
         # Resolve defaults
         for name in self.defaults:
             body += template(
-                "name = econtext[key]",
-                name=name, key=ast.Str(name)
-                )
+                "NAME = econtext[KEY]",
+                NAME=name, KEY=ast.Str(s=name)
+            )
 
         # Visit macro body
         body += itertools.chain(*tuple(map(self.visit, node.body)))
@@ -429,12 +450,12 @@ class Compiler(object):
         yield function
 
     def visit_Text(self, node):
-        return emit_node(ast.Str(node.value))
+        return emit_node(ast.Str(s=node.value))
 
     def visit_Domain(self, node):
         backup = "_previous_i18n_domain_%d" % id(node)
         return template("BACKUP = _i18n_domain", BACKUP=backup) + \
-               template("_i18n_domain = NAME", NAME=ast.Str(node.name)) + \
+               template("_i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
                self.visit(node.node) + \
                template("_i18n_domain = BACKUP", BACKUP=backup)
 
@@ -447,12 +468,13 @@ class Compiler(object):
         body += [ast.TryExcept(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
-                ast.Tuple(
-                    [Builtin(cls.__name__) for cls in self.exceptions],
-                    ast.Load()),
-                None,
-                template("del stream[fallback:]", fallback=fallback) + \
-                self.visit(node.fallback),
+                type=ast.Tuple(
+                    elts=[Builtin(cls.__name__) for cls in self.exceptions],
+                    ctx=ast.Load()),
+                name=None,
+                body=(template("del stream[fallback:]", fallback=fallback) + \
+                      self.visit(node.fallback)
+                      ),
                 )]
             )]
 
@@ -491,8 +513,9 @@ class Compiler(object):
     def visit_Assignment(self, node):
         if len(node.names) != 1:
             target = ast.Tuple(
-                [store_econtext(name)
-                 for name in node.names], ast.Store
+                elts=[store_econtext(name)
+                 for name in node.names],
+                ctx=ast.Store(),
                 )
         else:
             name = node.names[0]
@@ -510,7 +533,7 @@ class Compiler(object):
         for name in node.names:
             if not node.local:
                 assignment += template(
-                    "rcontext[KEY] = _value", KEY=ast.Str(name)
+                    "rcontext[KEY] = _value", KEY=ast.Str(s=name)
                     )
 
         return assignment
@@ -544,6 +567,8 @@ class Compiler(object):
         target = "_condition"
         assignment = self._engine(node.expression, target)
 
+        assert assignment
+
         for stmt in assignment:
             yield stmt
 
@@ -555,7 +580,7 @@ class Compiler(object):
 
         test = load(target)
 
-        yield ast.If(test, body, orelse)
+        yield ast.If(test=test, body=body, orelse=orelse)
 
     def visit_Translate(self, node):
         """Translation.
@@ -579,14 +604,15 @@ class Compiler(object):
 
         # Visit body to generate the message body
         code = self.visit(node.node)
-        swap(ast.Suite(code), load(append), "append")
+        swap(ast.Suite(body=code), load(append), "append")
         body += code
 
         # Reduce white space and assign as message id
         msgid = identifier("msgid", id(node))
         body += template(
-            "msgid = reduce_whitespace(''.join(stream)).strip()",
-            msgid=msgid, stream=stream, reduce_whitespace=RE_REDUCE_WS)
+            "msgid = re_whitespace(''.join(stream)).strip()",
+            msgid=msgid, stream=stream
+        )
 
         default = msgid
 
@@ -598,8 +624,14 @@ class Compiler(object):
 
             for name in names:
                 stream, append = self._get_translation_identifiers(name)
-                keys.append(ast.Str(name))
-                values.append(template("''.join(s)", s=stream, mode="eval"))
+                keys.append(ast.Str(s=name))
+                values.append(load(stream))
+
+                # Initialize value
+                body.insert(
+                    0, ast.Assign(
+                        targets=[store(stream)],
+                        value=ast.Str(s=fast_string(""))))
 
             mapping = ast.Dict(keys=keys, values=values)
         else:
@@ -607,7 +639,7 @@ class Compiler(object):
 
         # if this translation node has a name, use it as the message id
         if node.msgid:
-            msgid = ast.Str(node.msgid)
+            msgid = ast.Str(s=node.msgid)
 
         # emit the translation expression
         body += template(
@@ -622,26 +654,29 @@ class Compiler(object):
         return body
 
     def visit_Start(self, node):
-        line, column = node.prefix.location
+        try:
+            line, column = node.prefix.location
+        except AttributeError:
+            line, column = 0, 0
 
         yield Comment(
             " %s%s ... (%d:%d)\n"
             " --------------------------------------------------------" % (
                 node.prefix, node.name, line, column))
 
-        for stmt in emit_node(ast.Str(node.prefix + node.name)):
+        for stmt in emit_node(ast.Str(s=node.prefix + node.name)):
             yield stmt
 
         for attribute in node.attributes:
             for stmt in self.visit(attribute):
                 yield stmt
 
-        for stmt in emit_node(ast.Str(node.suffix)):
+        for stmt in emit_node(ast.Str(s=node.suffix)):
             yield stmt
 
     def visit_End(self, node):
         for stmt in emit_node(ast.Str(
-            node.prefix + node.name + node.space + node.suffix)):
+            s=node.prefix + node.name + node.space + node.suffix)):
             yield stmt
 
     def visit_Attribute(self, node):
@@ -650,13 +685,13 @@ class Compiler(object):
         target = identifier("attr", node.name)
         body += self._engine(node.expression, store(target)) + \
                 emit_convert_and_escape(target, target,
-                                        quote=ast.Str(node.quote)
+                                        quote=ast.Str(s=node.quote)
                                         )
 
         f = node.space + node.name + node.eq + node.quote + "%s" + node.quote
         body += template(
             "if TARGET is not None: append(FORMAT % TARGET)",
-            FORMAT=ast.Str(f),
+            FORMAT=ast.Str(s=f),
             TARGET=target,
             )
 
@@ -695,11 +730,9 @@ class Compiler(object):
 
         return [
             ast.TryExcept(
-                body=template("_slot = econtext.pop(NAME)", NAME=ast.Str(name)),
+                body=template("_slot = econtext.pop(KEY)", KEY=ast.Str(s=name)),
                 handlers=[ast.ExceptHandler(
-                    None,
-                    None,
-                    body or [ast.Pass()],
+                    body=body or [ast.Pass()],
                     )],
                 orelse=template("_slot(stream, econtext.copy(), econtext)"),
                 )
@@ -726,12 +759,15 @@ class Compiler(object):
 
         # generate code
         code = self.visit(node.node)
-        swap(ast.Suite(code), load(append), "append")
+        swap(ast.Suite(body=code), load(append), "append")
         body += code
 
         # output msgid
         text = Text('${%s}' % node.name)
         body += self.visit(text)
+
+        # Concatenate stream
+        body += template("stream = ''.join(stream)", stream=stream)
 
         return body
 
@@ -760,12 +796,12 @@ class Compiler(object):
             if node.extend:
                 callbacks += template(
                     "econtext.setdefault(KEY, NAME)",
-                    NAME=name, KEY=ast.Str(name)
+                    NAME=name, KEY=ast.Str(s=name)
                     )
             else:
                 callbacks += template(
                     "econtext[KEY] = NAME",
-                    NAME=name, KEY=ast.Str(name)
+                    NAME=name, KEY=ast.Str(s=name)
                     )
 
         assignment = self._engine(node.expression, store("_macro"))
@@ -790,13 +826,15 @@ class Compiler(object):
 
         if len(node.names) > 1:
             targets = [
-                ast.Tuple([
+                ast.Tuple(elts=[
                     subscript(fast_string(name), load(context), ast.Store())
-                    for name in node.names], ast.Store)
+                    for name in node.names], ctx=ast.Store())
                 for context in contexts
                 ]
 
-            key = ast.Tuple([ast.Str(name) for name in node.names], ast.Load())
+            key = ast.Tuple(
+                elts=[ast.Str(s=name) for name in node.names],
+                ctx=ast.Load())
         else:
             name = node.names[0]
             targets = [
@@ -804,10 +842,10 @@ class Compiler(object):
                 for context in contexts
                 ]
 
-            key = ast.Str(node.names[0])
+            key = ast.Str(s=node.names[0])
 
         index = identifier("_index", id(node))
-        assignment = [ast.Assign(targets, load("_item"))]
+        assignment = [ast.Assign(targets=targets, value=load("_item"))]
 
         # Make repeat assignment in outer loop
         names = node.names
@@ -822,10 +860,11 @@ class Compiler(object):
 
         # Set a trivial default value for each name assigned to make
         # sure we assign a value even if the iteration is empty
-        outer += [ast.Assign([
-            store_econtext(name)
-            for name in node.names], Builtin("None"))
-                  ]
+        outer += [ast.Assign(
+            targets=[store_econtext(name)
+                     for name in node.names],
+            value=load("None"))
+              ]
 
         # Compute inner body
         inner = self.visit(node.node)
@@ -836,7 +875,7 @@ class Compiler(object):
         # For items up to N - 1, emit repeat whitespace
         inner += template(
             "if INDEX > 0: append(WHITESPACE)",
-            INDEX=index, WHITESPACE=ast.Str(node.whitespace)
+            INDEX=index, WHITESPACE=ast.Str(s=node.whitespace)
             )
 
         # Main repeat loop
@@ -864,7 +903,7 @@ class Compiler(object):
             for stmt in template(
                 "BACKUP = econtext.get(KEY, _marker)",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(fast_string(name)),
+                KEY=ast.Str(s=fast_string(name)),
                 ):
                 yield stmt
 
@@ -874,6 +913,6 @@ class Compiler(object):
                 "if BACKUP is _marker: del econtext[KEY]\n"
                 "else:                 econtext[KEY] = BACKUP",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(fast_string(name)),
+                KEY=ast.Str(s=fast_string(name)),
                 ):
                 yield stmt

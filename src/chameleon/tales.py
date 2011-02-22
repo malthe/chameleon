@@ -1,18 +1,19 @@
 import re
 import ast
-import sys
 
 from .astutil import parse
 from .astutil import store
-from .astutil import ItemLookupOnAttributeErrorTransformer
+from .astutil import load
+from .astutil import ItemLookupOnAttributeErrorVisitor
 from .codegen import TemplateCodeGenerator
 from .codegen import template
 from .codegen import reverse_builtin_map
 from .astutil import Builtin
 from .astutil import Symbol
-from .tokenize import Token
 from .exc import ExpressionError
 from .utils import decode_htmlentities
+from .tokenize import Token
+from .parser import groupdict
 
 split_parts = re.compile(r'(?<!\\)\|').split
 match_prefix = re.compile(r'^\s*([a-z\-_]+):').match
@@ -39,7 +40,7 @@ def dummy_engine(string, target):
     pos = string.find('{')
     if pos != -1:
         raise ExpressionError("Bad input", string)
-    return [ast.Assign([target], ast.Str(string))]
+    return [ast.Assign(targets=[target], value=ast.Str(s=string))]
 
 
 def test(expression, engine=dummy_engine):
@@ -79,7 +80,7 @@ def transform_attribute(node):
         "lookup(object, name)",
         lookup=Symbol(lookup_attr),
         object=node.value,
-        name=ast.Str(node.attr),
+        name=ast.Str(s=node.attr),
         mode="eval"
         )
 
@@ -205,7 +206,7 @@ class PythonExpr(TalesExpr):
     4
     """
 
-    transform = ItemLookupOnAttributeErrorTransformer(transform_attribute)
+    transform = ItemLookupOnAttributeErrorVisitor(transform_attribute)
 
     def __init__(self, expression):
         self.expression = expression
@@ -222,7 +223,7 @@ class PythonExpr(TalesExpr):
         # Transform attribute lookups to allow fallback to item lookup
         self.transform.visit(value)
 
-        return [ast.Assign([target], value)]
+        return [ast.Assign(targets=[target], value=value)]
 
 
 class NotExpr(object):
@@ -299,7 +300,8 @@ class StringExpr(object):
     returns an integer result.
 
     >>> def engine(expression, target):
-    ...     return [ast.Assign([target], ast.Num(len(expression)))]
+    ...     return [ast.Assign(targets=[target],
+    ...             value=ast.Num(n=len(expression)))]
 
     This will demonstrate how the string expression coerces the
     input to a string.
@@ -317,8 +319,10 @@ class StringExpr(object):
         r'(?<!\\)\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))')
 
     def __init__(self, expression):
+        # The code relies on the expression being a token string
         if not isinstance(expression, Token):
             expression = Token(expression, 0)
+
         self.expression = expression
 
     def __call__(self, name, engine):
@@ -351,31 +355,33 @@ class StringExpr(object):
         text = decode_htmlentities(self.expression)
 
         while text:
-            m = self.regex.search(text)
+            matched = text
+            m = self.regex.search(matched)
             if m is None:
-                nodes.append(ast.Str(text))
+                nodes.append(ast.Str(s=text))
                 break
 
             part = text[:m.start()]
             text = text[m.start():]
 
             if part:
-                node = ast.Str(part)
+                node = ast.Str(s=part)
                 nodes.append(node)
 
             if not body:
                 target = name
             else:
-                target = ast.Name("%s_%d" % (name.id, text.pos), ast.Store())
+                target = store("%s_%d" % (name.id, text.pos))
 
             while True:
-                d = m.groupdict()
+                d = groupdict(m, matched)
                 string = d["expression"] or d["variable"] or ""
 
                 try:
                     body += engine(string, target)
                 except ExpressionError:
-                    m = self.regex.search(m.group()[:-2])
+                    matched = m.group()[:-2]
+                    m = self.regex.search(matched)
                     if m is None:
                         raise
                 else:
@@ -384,7 +390,7 @@ class StringExpr(object):
             # if this is the first expression, use the provided
             # assignment name; otherwise, generate one (here based
             # on the string position)
-            node = ast.Name(target.id, ast.Load())
+            node = load(target.id)
             nodes.append(node)
             text = text[len(m.group()):]
 
@@ -392,10 +398,11 @@ class StringExpr(object):
             target = nodes[0]
         else:
             target = ast.BinOp(
-                ast.Str("%s" * len(nodes)), ast.Mod(),
-                ast.Tuple(nodes, ast.Load()))
+                left=ast.Str(s="%s" * len(nodes)),
+                op=ast.Mod(),
+                right=ast.Tuple(elts=nodes, ctx=ast.Load()))
 
-        body += [ast.Assign([name], target)]
+        body += [ast.Assign(targets=[name], value=target)]
         return body
 
 
@@ -431,13 +438,13 @@ class ExistsExpr(object):
 
         return [
             ast.TryExcept(
-                body,
-                [ast.ExceptHandler(
-                    type=ast.Tuple(classes, ast.Load()),
+                body=body,
+                handlers=[ast.ExceptHandler(
+                    type=ast.Tuple(elts=classes, ctx=ast.Load()),
                     name=None,
                     body=template("target = 0", target=target),
                     )],
-                template("target = 1", target=target)
+                orelse=template("target = 1", target=target)
                 )
             ]
 

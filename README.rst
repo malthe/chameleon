@@ -11,6 +11,14 @@ release::
 
   $ easy-install -U Chameleon
 
+Platforms
+---------
+
+This library has been successfully tested on the following platforms:
+
+* Python 2.7
+* Python 3.1
+* PyPy (fastforward-branch)
 
 What's New in 2.x
 ------------------

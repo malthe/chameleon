@@ -2,6 +2,7 @@ import ast
 import inspect
 import textwrap
 import types
+import copy
 
 try:
     import __builtin__ as builtins
@@ -17,13 +18,14 @@ try:
 except NameError:
     basestring = str
 
-from .astutil import ASTTransformer
 from .astutil import ASTCodeGenerator
 from .astutil import load
 from .astutil import store
 from .astutil import parse
 from .astutil import Builtin
 from .astutil import Symbol
+from .astutil import node_annotations
+
 from .exc import CompilationError
 
 
@@ -38,49 +40,40 @@ def template(function, mode='exec', **kw):
         symbols = dict(zip(args, vargs + defaults))
         symbols.update(kwargs)
 
-        class Transformer(ASTTransformer):
+        class Visitor(ast.NodeVisitor):
             def visit_Name(self, node):
                 value = symbols.get(node.id, self)
+                if value is not self:
+                    if isinstance(value, basestring):
+                        value = load(value)
+                    if isinstance(value, type) or value in reverse_builtin_map:
+                        name = reverse_builtin_map.get(value)
+                        if name is not None:
+                            value = Builtin(name)
+                        else:
+                            value = Symbol(value)
 
-                if value is self:
-                    builtin = getattr(builtins, node.id, None)
-                    if builtin is not None:
-                        return Builtin(node.id)
-                    return node
+                    assert node not in node_annotations
+                    assert hasattr(value, '_fields')
+                    node_annotations[node] = value
 
-                if isinstance(value, ast.Name):
-                    # clone node before modification
-                    return ast.Name(value.id, value.ctx)
+        expr = parse(source, mode=mode)
+        if not isinstance(function, basestring):
+            expr = expr.body[0]
 
-                if isinstance(value, ast.AST):
-                    return value
-
-                if isinstance(value, basestring):
-                    # clone node before modification
-                    return ast.Name(value, node.ctx)
-
-                name = reverse_builtin_map.get(value)
-                if name is not None:
-                    return Builtin(name)
-
-                return Symbol(value)
-
-        transformer = Transformer()
-        return transformer.visit(body).body
+        suite = ast.Suite(body=expr.body)
+        Visitor().visit(suite)
+        return suite.body
 
     if isinstance(function, basestring):
         source = function
         defaults = args = ()
-        body = parse(source, mode=mode)
         return wrapper(**kw)
 
     source = textwrap.dedent(inspect.getsource(function))
     argspec = inspect.getargspec(function)
     args = argspec.args
     defaults = argspec.defaults or ()
-    fdef = parse(source, mode=mode)
-    body = fdef.body[0]
-
     return wrapper
 
 
@@ -117,7 +110,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
         while self.defines:
             name, node = self.defines.popitem()
-            assignment = ast.Assign([store(name)], node)
+            assignment = ast.Assign(targets=[store(name)], value=node)
             self.visit(assignment)
 
         # Make sure we terminate the line printer
@@ -139,7 +132,10 @@ class TemplateCodeGenerator(ASTCodeGenerator):
                     path = value.__module__
                     name = value.__name__
                 stmt = ast.ImportFrom(
-                    path, (ast.alias(name, node.id),), ())
+                    module=path,
+                    names=[ast.alias(name=name, asname=node.id)],
+                    level=0,
+                )
             else:
                 raise TypeError(value)
 
@@ -177,7 +173,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
             # we come up with a unique symbol based on the class name
             name = "_%s" % getattr(value, '__name__', str(value))
             node = load(name)
-            self.imports[value] = ast.Name(node.id, ast.Store())
+            self.imports[value] = store(node.id)
 
         return node
 
@@ -208,3 +204,10 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
         node = self.define(name, node.value)
         self.visit(node)
+
+    def visit_Name(self, node):
+        annotation = node_annotations.get(node)
+        if annotation is None:
+            super(TemplateCodeGenerator, self).visit_Name(node)
+        else:
+            self.visit(annotation)

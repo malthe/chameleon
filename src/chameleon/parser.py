@@ -34,16 +34,38 @@ match_xml_declaration = re.compile(r'^<\?xml(?=[ /])', re.DOTALL)
 log = logging.getLogger('chameleon.parser')
 
 
+def groups(m, token):
+    result = []
+    for i, group in enumerate(m.groups()):
+        if group is not None:
+            j, k = m.span(i + 1)
+            group = token[j:k]
+
+        result.append(group)
+
+    return tuple(result)
+
+
+def groupdict(m, token):
+    d = m.groupdict()
+    for name, value in d.items():
+        if value is not None:
+            i, j = m.span(name)
+            d[name] = token[i:j]
+
+    return d
+
+
 def match_tag(token, regex=match_tag_prefix_and_name):
     m = regex.match(token)
-    d = m.groupdict()
+    d = groupdict(m, token)
 
     end = m.end()
     token = token[end:]
 
     attrs = d['attrs'] = []
     for m in match_single_attribute.finditer(token):
-        attr = m.groupdict()
+        attr = groupdict(m, token)
         alt_value = attr.pop('alt_value', None)
         if alt_value is not None:
             attr['value'] = alt_value

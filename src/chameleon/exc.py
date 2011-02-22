@@ -3,6 +3,9 @@ from .tokenize import Token
 
 class TemplateError(Exception):
     def __init__(self, msg, token):
+        if not isinstance(token, Token):
+            token = Token(token, 0)
+
         self.msg = msg
         self.token = token
         self.filename = token.filename

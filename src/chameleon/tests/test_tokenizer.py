@@ -34,3 +34,10 @@ class TokenizerTest(TestCase):
                 diff = checker.output_difference(
                     example, got, 0)
                 self.fail("(%s) - \n%s" % (f.name, diff))
+
+    def test_token(self):
+        from chameleon.tokenize import Token
+        token = Token("abc", 1)
+
+        self.assertTrue(isinstance(token[1:], Token))
+        self.assertEqual(token[1:].pos, 2)

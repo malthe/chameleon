@@ -13,11 +13,13 @@
 ##############################################################################
 
 import re
+import copy
 
 from .exc import LanguageError
 from .utils import descriptorint
 from .utils import descriptorstr
 from .namespaces import XMLNS_NS
+from .parser import groups
 
 try:
     from collections import OrderedDict
@@ -74,7 +76,7 @@ def parse_attributes(clause):
         if not m:
             raise LanguageError(
                 "Bad syntax in attributes.", clause)
-        name, expr = m.groups()
+        name, expr = groups(m, part)
         if name in attrs:
             raise LanguageError(
                 "Duplicate attribute name in attributes.", part)
@@ -90,7 +92,7 @@ def parse_substitution(clause):
         raise LanguageError(
             "Invalid content substitution syntax.", clause)
 
-    key, expression = m.groups()
+    key, expression = groups(m, clause)
     if not key:
         key = "text"
 
@@ -172,7 +174,10 @@ class RepeatItem(object):
     except AttributeError:
         @property
         def index(self):
-            remaining = self._iterator.__length_hint__()
+            try:
+                remaining = self._iterator.__length_hint__()
+            except AttributeError:
+                remaining = len(tuple(copy.copy(self._iterator)))
             return self.length - remaining - 1
     else:
         @property

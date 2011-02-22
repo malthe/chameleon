@@ -507,7 +507,7 @@ class MacroProgram(ElementProgram):
 
             # Otherwise, it's a static attribute.
             else:
-                value = ast.Str(text)
+                value = ast.Str(s=text)
 
             # If translation is required, wrap in a translation
             # clause
@@ -520,8 +520,8 @@ class MacroProgram(ElementProgram):
             # If value is non-static, wrap attribute in a definition
             # clause for the "default" value
             if not isinstance(value, ast.Str):
-                default = ast.Str(text) if text is not None \
-                          else Builtin("None")
+                default = ast.Str(s=text) if text is not None \
+                          else ast.Name(id="None", ctx=ast.Load())
                 attribute = nodes.Define(
                     [nodes.Assignment(["default"], default, True)],
                     attribute,
