@@ -16,7 +16,7 @@ Platforms
 
 This library has been successfully tested on the following platforms:
 
-* Python 2.7
+* Python 2.6
 * Python 3.1
 * PyPy (fastforward-branch)
 
@@ -24,7 +24,7 @@ What's New in 2.x
 ------------------
 
 The 2.x series is a complete rewrite of the library and supports both
-Python 2.7+ and Python 3.1+ with a single source code.
+Python 2.6+ and Python 3.1+ with a single source code.
 
 For most users it should be an easy upgrade, however note that at
 present, there is no engine for the Genshi language.

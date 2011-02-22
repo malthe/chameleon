@@ -2,8 +2,12 @@ import os
 import shutil
 import tempfile
 
-from unittest import TestCase
 from functools import wraps
+
+try:
+    from unittest2 import TestCase
+except ImportError:
+    from unittest import TestCase
 
 try:
     str = unicode

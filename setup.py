@@ -18,6 +18,7 @@ install_requires = []
 version = sys.version_info[:3]
 if version < (2, 7, 0):
     install_requires.append("ordereddict")
+    install_requires.append("unittest2")
 
 class Benchmark(test):
     description = "Run benchmarks"
