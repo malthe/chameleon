@@ -159,8 +159,8 @@ class BaseTemplate(object):
         return sha.hexdigest()
 
     def _compile(self, program):
-        compiler = Compiler(self.engine)
-        return compiler(program)
+        compiler = Compiler(self.engine, program)
+        return compiler.code
 
 
 class BaseTemplateFile(BaseTemplate):

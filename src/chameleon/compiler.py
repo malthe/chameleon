@@ -333,7 +333,7 @@ class Compiler(object):
         'convert': Builtin("str"),
         }
 
-    def __init__(self, engine):
+    def __init__(self, engine, node):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
@@ -345,43 +345,20 @@ class Compiler(object):
             self._markers
             )
 
-    def __call__(self, program):
-        # package as module
-        module = ast.Module([])
-
         # Back up static annoations
         node_annotations_backup = node_annotations.copy()
 
-        # For symbolic nodes (deprecated?)
-        module.body += template("import re")
-        module.body += template("import functools")
-        module.body += template("_marker = object()")
-        module.body += template(
-            r"re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
-        )
-        module.body += template(
-            r"re_whitespace = functools.partial(re.compile('\s+').sub, ' ')",
-        )
+        try:
+            module = ast.Module([])
+            module.body += self.visit(node)
+            ast.fix_missing_locations(module)
+            generator = TemplateCodeGenerator(module)
+        finally:
+            # Clear and restore node annotations
+            node_annotations.clear()
+            node_annotations.update(node_annotations_backup)
 
-        # Visit template program
-        module.body += self.visit(program)
-
-        # Prepend module-wide marker values
-        for marker in self._markers:
-            module.body[:] = template(
-                "MARKER = CLS()",
-                MARKER=store("_marker_%s" % marker),
-                CLS=Placeholder,
-                ) + module.body
-
-        ast.fix_missing_locations(module)
-        generator = TemplateCodeGenerator(module)
-
-        # Clear node annotations
-        node_annotations.clear()
-        node_annotations.update(node_annotations_backup)
-
-        return generator.code
+        self.code = generator.code
 
     def visit(self, node):
         if node is None:
@@ -408,12 +385,35 @@ class Compiler(object):
                 yield stmt
 
     def visit_MacroProgram(self, node):
-        for macro in node.macros:
-            for stmt in self.visit(macro):
-                yield stmt
+        body = []
 
-        for stmt in self.visit_Macro(node):
-            yield stmt
+        body += template("import re")
+        body += template("import functools")
+        body += template("_marker = object()")
+        body += template(
+            r"re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
+        )
+        body += template(
+            r"re_whitespace = "
+            r"functools.partial(re.compile('\s+').sub, ' ')",
+        )
+
+        # Visit defined macros
+        for macro in node.macros:
+            body += self.visit(macro)
+
+        # Visit (implicit) main macro
+        body += self.visit_Macro(node)
+
+        # Prepend module-wide marker values
+        for marker in self._markers:
+            body[:] = template(
+                "MARKER = CLS()",
+                MARKER=store("_marker_%s" % marker),
+                CLS=Placeholder,
+                ) + body
+
+        return body
 
     def visit_Macro(self, node):
         body = []
