@@ -86,7 +86,7 @@ def mangle(string):
 
 
 def load_econtext(name):
-    return subscript(name, load("econtext"), ast.Load())
+    return template("getitem(KEY)", KEY=ast.Str(name), mode="eval")
 
 
 def store_econtext(name):
@@ -251,7 +251,7 @@ class ExpressionCompiler(object):
         # the dynamic context, then fall back to the global.
         if name in cls.global_fallback:
             return template(
-                "econtext.get(key, name)",
+                "get(key, name)",
                 mode="eval",
                 key=ast.Str(s=name),
                 name=name
@@ -420,12 +420,14 @@ class Compiler(object):
 
         # Initialization
         body += template("append = stream.append")
+        body += template("getitem = econtext.__getitem__")
+        body += template("get = econtext.get")
         body += template("_i18n_domain = None")
 
         # Resolve defaults
         for name in self.defaults:
             body += template(
-                "NAME = econtext[KEY]",
+                "NAME = getitem(KEY)",
                 NAME=name, KEY=ast.Str(s=name)
             )
 
@@ -511,16 +513,6 @@ class Compiler(object):
                emit_node(load(name))
 
     def visit_Assignment(self, node):
-        if len(node.names) != 1:
-            target = ast.Tuple(
-                elts=[store_econtext(name)
-                 for name in node.names],
-                ctx=ast.Store(),
-                )
-        else:
-            name = node.names[0]
-            target = store_econtext(name)
-
         for name in node.names:
             if name in COMPILER_INTERNALS_OR_DISALLOWED:
                 raise TranslationError(
@@ -528,7 +520,16 @@ class Compiler(object):
                     )
 
         assignment = self._engine(node.expression, store("_value"))
-        assignment += template("target = _value", target=target)
+
+        if len(node.names) != 1:
+            target = ast.Tuple(
+                elts=[store_econtext(name) for name in node.names],
+                ctx=ast.Store(),
+            )
+        else:
+            target = store_econtext(node.names[0])
+
+        assignment.append(ast.Assign(targets=[target], value=load("_value")))
 
         for name in node.names:
             if not node.local:
@@ -777,7 +778,9 @@ class Compiler(object):
         for slot in node.slots:
             name = "_slot_%s" % mangle(slot.name)
 
-            body = self.visit(slot.node)
+            body = template("getitem = econtext.__getitem__") + \
+                   template("get = econtext.get") + \
+                   self.visit(slot.node)
 
             callbacks.append(
                 ast.FunctionDef(
@@ -854,7 +857,7 @@ class Compiler(object):
                 self._engine(node.expression, store("_iterator"))
 
         outer += template(
-            "_iterator, INDEX = econtext['repeat'](key, _iterator)",
+            "_iterator, INDEX = getitem('repeat')(key, _iterator)",
             key=key, INDEX=index
             )
 
@@ -901,7 +904,7 @@ class Compiler(object):
     def _enter_assignment(self, names, local):
         for name in names:
             for stmt in template(
-                "BACKUP = econtext.get(KEY, _marker)",
+                "BACKUP = get(KEY, _marker)",
                 BACKUP=identifier("backup_%s" % name, id(names)),
                 KEY=ast.Str(s=fast_string(name)),
                 ):
