@@ -731,7 +731,8 @@ class Compiler(object):
 
         return [
             ast.TryExcept(
-                body=template("_slot = econtext.pop(KEY)", KEY=ast.Str(s=name)),
+                body=template("_slot = getitem(KEY).pop()",
+                              KEY=ast.Str(s=name)),
                 handlers=[ast.ExceptHandler(
                     body=body or [ast.Pass()],
                     )],
@@ -796,16 +797,23 @@ class Compiler(object):
                     body=body or [ast.Pass()],
                 ))
 
+            key = ast.Str(s=name)
+
             if node.extend:
-                callbacks += template(
-                    "econtext.setdefault(KEY, NAME)",
-                    NAME=name, KEY=ast.Str(s=name)
-                    )
+                update_body = None
             else:
-                callbacks += template(
-                    "econtext[KEY] = NAME",
-                    NAME=name, KEY=ast.Str(s=name)
-                    )
+                update_body = template("_slots.append(NAME)", NAME=name)
+
+            callbacks.append(
+                ast.TryExcept(
+                    body=template("_slots = getitem(KEY)", KEY=key),
+                    handlers=[ast.ExceptHandler(
+                        body=template(
+                            "_slots = econtext[KEY] = [NAME]",
+                            KEY=key, NAME=name
+                        ))],
+                    orelse=update_body
+                    ))
 
         assignment = self._engine(node.expression, store("_macro"))
 

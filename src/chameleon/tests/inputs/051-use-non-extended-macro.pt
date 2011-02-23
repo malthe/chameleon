@@ -1,0 +1,5 @@
+<html metal:use-macro="load('050-define-macro-and-use-not-extend.pt').macros['main']">
+  <metal:content fill-slot="content">
+    <span>Filled content</span>
+  </metal:content>
+</html>
