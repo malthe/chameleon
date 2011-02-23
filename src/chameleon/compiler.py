@@ -86,7 +86,7 @@ def mangle(string):
 
 
 def load_econtext(name):
-    return template("getitem(KEY)", KEY=ast.Str(name), mode="eval")
+    return template("getitem(KEY)", KEY=ast.Str(s=name), mode="eval")
 
 
 def store_econtext(name):
