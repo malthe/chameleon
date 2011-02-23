@@ -1,0 +1,8 @@
+<html metal:define-macro="main"
+      metal:use-macro="load('032-master-template.pt').macros['main']">
+  <metal:content fill-slot="content">
+    <span i18n:domain="mydomain" i18n:translate="">
+       Translated content
+    </span>
+  </metal:content>
+</html>

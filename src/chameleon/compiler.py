@@ -791,8 +791,9 @@ class Compiler(object):
                             param("stream"),
                             param("econtext"),
                             param("rcontext"),
+                            param("_i18n_domain"),
                             ],
-                        defaults=[],
+                        defaults=[load("_i18n_domain")],
                         ),
                     body=body or [ast.Pass()],
                 ))
