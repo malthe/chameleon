@@ -154,17 +154,18 @@ def emit_convert_and_escape(
             except RuntimeError:
                 target = target()
             else:
-                # character escape
-                if '&' in target:
-                    if ';' in target:
-                        target = re_amp.sub('&amp', target)
-                    target = target.replace('&', '&amp;')
-                if '<' in target:
-                    target = target.replace('<', '&lt;')
-                if '>' in target:
-                    target = target.replace('>', '&gt;')
-                if quote in target:
-                    target = target.replace(quote, '&#34;')
+                if re_needs_escape(target) is not None:
+                    # character escape
+                    if '&' in target:
+                        if ';' in target:
+                            target = re_amp.sub('&amp', target)
+                        target = target.replace('&', '&amp;')
+                    if '<' in target:
+                        target = target.replace('<', '&lt;')
+                    if '>' in target:
+                        target = target.replace('>', '&gt;')
+                    if quote in target:
+                        target = target.replace(quote, '&#34;')
 
 
 class ExpressionCompiler(object):
@@ -391,8 +392,11 @@ class Compiler(object):
         body += template("import functools")
         body += template("_marker = object()")
         body += template(
-            r"re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
+            r"g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
         )
+        body += template(
+            r"g_re_needs_escape = re.compile(r'[&<>\"\']').search")
+
         body += template(
             r"re_whitespace = "
             r"functools.partial(re.compile('\s+').sub, ' ')",
@@ -423,6 +427,8 @@ class Compiler(object):
         body += template("getitem = econtext.__getitem__")
         body += template("get = econtext.get")
         body += template("_i18n_domain = None")
+        body += template("re_amp = g_re_amp")
+        body += template("re_needs_escape = g_re_needs_escape")
 
         # Resolve defaults
         for name in self.defaults:
