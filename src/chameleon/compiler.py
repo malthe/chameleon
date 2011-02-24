@@ -534,7 +534,7 @@ class Compiler(object):
         for name in node.names:
             if not node.local:
                 assignment += template(
-                    "rcontext[KEY] = _value", KEY=ast.Str(s=name)
+                    "rcontext[KEY] = _value", KEY=ast.Str(s=fast_string(name))
                     )
 
         return assignment
@@ -544,11 +544,9 @@ class Compiler(object):
         self._scopes.append(scope)
 
         for assignment in node.assignments:
-            names = assignment.names
-            local = assignment.local
-
-            for stmt in self._enter_assignment(names, local):
-                yield stmt
+            if assignment.local:
+                for stmt in self._enter_assignment(assignment.names):
+                    yield stmt
 
             for stmt in self.visit(assignment):
                 yield stmt
@@ -556,8 +554,10 @@ class Compiler(object):
         for stmt in self.visit(node.node):
             yield stmt
 
-        for stmt in self._leave_assignment(names):
-            yield stmt
+        for assignment in node.assignments:
+            if assignment.local:
+                for stmt in self._leave_assignment(assignment.names):
+                    yield stmt
 
         self._scopes.pop()
 
@@ -862,8 +862,11 @@ class Compiler(object):
         # Make repeat assignment in outer loop
         names = node.names
         local = node.local
-        outer = list(self._enter_assignment(names, local)) + \
-                self._engine(node.expression, store("_iterator"))
+
+        outer = self._engine(node.expression, store("_iterator"))
+
+        if local:
+            outer[:] = list(self._enter_assignment(names)) + outer
 
         outer += template(
             "_iterator, INDEX = getitem('repeat')(key, _iterator)",
@@ -897,8 +900,10 @@ class Compiler(object):
             body=assignment + inner,
             )]
 
-        # Finally, clean up assignment
-        outer += self._leave_assignment(names)
+        # Finally, clean up assignment if it's local
+        if outer:
+            outer += self._leave_assignment(names)
+
         self._scopes.pop()
 
         return outer
@@ -910,7 +915,7 @@ class Compiler(object):
         append = identifier("append_%d" % prefix, name)
         return stream, append
 
-    def _enter_assignment(self, names, local):
+    def _enter_assignment(self, names):
         for name in names:
             for stmt in template(
                 "BACKUP = get(KEY, _marker)",
