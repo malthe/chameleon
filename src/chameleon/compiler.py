@@ -665,15 +665,20 @@ class Compiler(object):
             " --------------------------------------------------------" % (
                 node.prefix, node.name, line, column))
 
-        for stmt in emit_node(ast.Str(s=node.prefix + node.name)):
-            yield stmt
-
-        for attribute in node.attributes:
-            for stmt in self.visit(attribute):
+        if node.attributes:
+            for stmt in emit_node(ast.Str(s=node.prefix + node.name)):
                 yield stmt
 
-        for stmt in emit_node(ast.Str(s=node.suffix)):
-            yield stmt
+            for attribute in node.attributes:
+                for stmt in self.visit(attribute):
+                    yield stmt
+
+            for stmt in emit_node(ast.Str(s=node.suffix)):
+                yield stmt
+        else:
+            for stmt in emit_node(
+                ast.Str(s=node.prefix + node.name + node.suffix)):
+                yield stmt
 
     def visit_End(self, node):
         for stmt in emit_node(ast.Str(
