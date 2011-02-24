@@ -1,0 +1,5 @@
+<html>
+  <body>
+    <a tal:attributes="href string:@@view">test</a>
+  </body>
+</html>
