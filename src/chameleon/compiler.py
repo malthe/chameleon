@@ -352,7 +352,7 @@ class Compiler(object):
             )
 
         # Back up static annoations
-        node_annotations_backup = node_annotations.__dict__.copy()
+        backup = node_annotations.__dict__.copy()
 
         try:
             module = ast.Module([])
@@ -361,8 +361,9 @@ class Compiler(object):
             generator = TemplateCodeGenerator(module)
         finally:
             # Clear and restore node annotations
-            node_annotations.__dict__.clear()
-            node_annotations.__dict__.update(node_annotations_backup)
+            d = node_annotations.__dict__
+            d.clear()
+            d.update(backup)
 
         self.code = generator.code
 
