@@ -93,6 +93,9 @@ class BaseTemplate(object):
     else:
         output_stream_factory = list
 
+    # Compatibility with 1.x API
+    debug = DEBUG_MODE
+
     def __init__(self, body, **kwargs):
         self.__dict__.update(kwargs)
 
