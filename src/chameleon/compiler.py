@@ -352,7 +352,7 @@ class Compiler(object):
             )
 
         # Back up static annoations
-        node_annotations_backup = node_annotations.copy()
+        node_annotations_backup = dict(node_annotations)
 
         try:
             module = ast.Module([])
