@@ -65,9 +65,8 @@ def template(function, mode='exec', **kw):
         if not isinstance(function, basestring):
             expr = expr.body[0]
 
-        suite = ast.Suite(body=expr.body)
-        Visitor().visit(suite)
-        return suite.body
+        Visitor().visit(expr)
+        return expr.body
 
     if isinstance(function, basestring):
         source = function
