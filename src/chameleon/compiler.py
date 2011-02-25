@@ -9,8 +9,9 @@ except ImportError:
     from chameleon import ast24 as ast
 
 try:
-    fast_string = bytes = str
+    fast_string = str
     str = unicode
+    bytes = fast_string
 except NameError:
     long = int
     basestring = str
