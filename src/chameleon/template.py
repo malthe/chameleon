@@ -100,8 +100,7 @@ class BaseTemplate(object):
         self.cook(body)
 
     def __call__(self, **kwargs):
-        stream = self.render(**kwargs)
-        return "".join(stream)
+        return self.render(**kwargs)
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.filename)
@@ -134,7 +133,7 @@ class BaseTemplate(object):
         econtext = kwargs.pop('econtext', False) or Scope(kwargs)
         self.cook_check()
         self._render(stream, econtext, kwargs)
-        return stream
+        return "".join(stream)
 
     def sniff_type(self, text):
         """Return 'text/xml' if text appears to be XML, otherwise

@@ -278,12 +278,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 })
 
             try:
-                stream = template.render(**params)
-                tokens = tuple(stream)
-                try:
-                    got = "".join(tokens)
-                except TypeError:
-                    raise TypeError(repr(tokens))
+                got = template.render(**params)
             except:
                 import traceback
                 e = traceback.format_exc()
