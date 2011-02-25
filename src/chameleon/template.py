@@ -128,7 +128,7 @@ class BaseTemplate(object):
     def cook_check(self):
         assert self._cooked
 
-    def translate(self, body):
+    def parse(self, body):
         raise NotImplementedError("Must be implemented by subclass.")
 
     def render(self, **kwargs):
@@ -150,7 +150,7 @@ class BaseTemplate(object):
                 return "text/xml"
 
     def _cook(self, body, digest):
-        program = self.translate(body)
+        program = self.parse(body)
         source = self._compile(program)
 
         if self.keep_source:
@@ -280,7 +280,7 @@ class BaseTemplateFile(BaseTemplate):
         if cooked is None:
             log.debug('cache miss: %s' % self.filename)
             try:
-                nodes = self.translate(body)
+                nodes = self.parse(body)
                 source = self._compile(nodes)
 
                 if DEBUG_MODE:

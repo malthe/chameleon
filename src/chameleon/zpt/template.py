@@ -53,13 +53,14 @@ class PageTemplate(BaseTemplate):
 
     def __init__(self, *args, **kwargs):
         super(PageTemplate, self).__init__(*args, **kwargs)
+        self.__dict__.update(kwargs)
         self.macros = Macros(self)
 
     @property
     def engine(self):
         return TalesEngine(self.expression_types, self.default_expression)
 
-    def translate(self, body):
+    def parse(self, body):
         escape = True if self.mode == "xml" else False
         return Program(body, self.mode, self.filename, escape=escape)
 
