@@ -237,7 +237,7 @@ class ExpressionCompiler(object):
     @classmethod
     def _dynamic_transform(cls, node):
         # Don't rewrite nodes that have an annotation
-        annotation = node_annotations.get(node)
+        annotation = node_annotations.__dict__.get(node)
         if annotation is not None:
             return node
 
@@ -311,12 +311,12 @@ class ExpressionCompiler(object):
 
     def visit_Static(self, node, target):
         value = load("dummy")
-        node_annotations[value] = node
+        node_annotations.__dict__[value] = node
         return [ast.Assign(targets=[target], value=value)]
 
     def visit_Builtin(self, node, target):
         value = load("dummy")
-        node_annotations[value] = node
+        node_annotations.__dict__[value] = node
         return [ast.Assign(targets=[target], value=value)]
 
 
@@ -352,7 +352,7 @@ class Compiler(object):
             )
 
         # Back up static annoations
-        node_annotations_backup = dict(node_annotations)
+        node_annotations_backup = node_annotations.__dict__.copy()
 
         try:
             module = ast.Module([])
@@ -361,8 +361,8 @@ class Compiler(object):
             generator = TemplateCodeGenerator(module)
         finally:
             # Clear and restore node annotations
-            node_annotations.clear()
-            node_annotations.update(node_annotations_backup)
+            node_annotations.__dict__.clear()
+            node_annotations.__dict__.update(node_annotations_backup)
 
         self.code = generator.code
 

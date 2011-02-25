@@ -24,7 +24,7 @@ import threading
 # platforms do not support making weak refs to the AST nodes in
 # ``ast``. Instead, we use a thread-local dictionary and make sure to
 # do proper book-keeping.
-node_annotations = threading.local().__dict__
+node_annotations = threading.local()
 
 __docformat__ = 'restructuredtext en'
 
@@ -75,7 +75,7 @@ def swap(root, replacement, name):
             isinstance(node.ctx, ast.Load) and
             node.id == name):
             assert hasattr(replacement, '_fields')
-            node_annotations.setdefault(node, replacement)
+            node_annotations.__dict__.setdefault(node, replacement)
 
 
 class Node(object):
@@ -798,19 +798,17 @@ class ASTCodeGenerator(object):
 
 class AnnotationAwareVisitor(ast.NodeVisitor):
     def visit(self, node):
-        annotation = node_annotations.get(node)
+        annotation = node_annotations.__dict__.get(node)
         if annotation is not None:
             assert hasattr(annotation, '_fields')
             node = annotation
 
-        result = super(AnnotationAwareVisitor, self).visit(node)
-
-        return node
+        super(AnnotationAwareVisitor, self).visit(node)
 
     def apply_transform(self, node):
         result = self.transform(node)
         if result is not node:
-            node_annotations[node] = result
+            node_annotations.__dict__[node] = result
 
 
 class NameLookupRewriteVisitor(AnnotationAwareVisitor):
