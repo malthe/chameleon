@@ -34,8 +34,9 @@ from .utils import DebuggingOutputStream
 from .utils import Scope
 
 try:
-    byte_string = bytes = str
+    byte_string = str
     str = unicode
+    bytes = byte_string
 except NameError:
     def byte_string(string):
         return string.encode('utf-8')
