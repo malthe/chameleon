@@ -107,6 +107,10 @@ class PageTextTemplate(PageTemplate):
 class PageTextTemplateFile(PageTemplateFile):
     mode = "text"
 
+    def render(self, *args, **kwargs):
+        result = super(PageTextTemplateFile, self).render(*args, **kwargs)
+        return result.encode(self.encoding or 'utf-8')
+
 
 class Macro(object):
     __slots__ = "include",
