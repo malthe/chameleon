@@ -1,11 +1,15 @@
 import re
-import ast
 import itertools
 import functools
 import logging
 
 try:
-    fast_string = str
+    import ast
+except ImportError:
+    from chameleon import ast24 as ast
+
+try:
+    fast_string = bytes = str
     str = unicode
 except NameError:
     long = int

@@ -1,4 +1,8 @@
-import ast
+try:
+    import ast
+except ImportError:
+    from chameleon import ast24 as ast
+
 import inspect
 import textwrap
 import types
@@ -72,8 +76,8 @@ def template(function, mode='exec', **kw):
 
     source = textwrap.dedent(inspect.getsource(function))
     argspec = inspect.getargspec(function)
-    args = argspec.args
-    defaults = argspec.defaults or ()
+    args = argspec[0]
+    defaults = argspec[3] or ()
     return wrapper
 
 

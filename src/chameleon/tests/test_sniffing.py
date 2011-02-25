@@ -2,6 +2,15 @@ import tempfile
 import unittest
 
 
+try:
+    str = unicode
+    def safe_encode(string):
+        return string.decode('utf-8').encode('utf-8')
+except NameError:
+    def safe_encode(string):
+        return string.encode('utf-8')
+
+
 class TypeSniffingTestCase(unittest.TestCase):
     def get_template(self, text):
         f = tempfile.NamedTemporaryFile(suffix=".html")
@@ -125,35 +134,36 @@ class TypeSniffingTestCase(unittest.TestCase):
                                 "text/xml")
 
     def test_html_default_encoding(self):
-        body = b"<html><head><title>" \
-               b"\xd0\xa2\xd0\xb5\xd1\x81\xd1\x82" \
-               b"</title></head></html>"
+        body = safe_encode(
+            '<html><head><title>' \
+            '\xc3\x90\xc2\xa2\xc3\x90\xc2\xb5' \
+            '\xc3\x91\xc2\x81\xc3\x91\xc2\x82' \
+            '</title></head></html>')
 
         template = self.get_template(body)
-        self.assertEqual(
-            template.body, body.decode('utf-8'))
+        self.assertEqual(template.body, body.decode('utf-8'))
 
     def test_html_encoding_by_meta(self):
-        body = b"<html><head><title>" \
-               b"\xd2\xe5\xf1\xf2" \
-               b'</title><meta http-equiv="Content-Type"' \
-               b' content="text/html; charset=windows-1251"/>' \
-               b"</head></html>"
+        body = safe_encode(
+            '<html><head><title>' \
+            '\xc3\x92\xc3\xa5\xc3\xb1\xc3\xb2' \
+            '</title><meta http-equiv="Content-Type"' \
+            ' content="text/html; charset=windows-1251"/>' \
+            "</head></html>")
 
         template = self.get_template(body)
-        self.assertEqual(
-            template.body, body.decode('windows-1251'))
+        self.assertEqual(template.body, body.decode('windows-1251'))
 
     def test_xhtml(self):
-        body = b"<html><head><title>" \
-               b"\xd2\xe5\xf1\xf2" \
-               b'</title><meta http-equiv="Content-Type"' \
-               b' content="text/html; charset=windows-1251"/>' \
-               b"</head></html>"
+        body = safe_encode(
+            '<html><head><title>' \
+            '\xc3\x92\xc3\xa5\xc3\xb1\xc3\xb2' \
+            '</title><meta http-equiv="Content-Type"' \
+            ' content="text/html; charset=windows-1251"/>' \
+            "</head></html>")
 
         template = self.get_template(body)
-        self.assertEqual(
-            template.body, body.decode('windows-1251'))
+        self.assertEqual(template.body, body.decode('windows-1251'))
 
 
 def test_suite():

@@ -1,5 +1,3 @@
-import re
-
 try:
     from collections import OrderedDict
 except ImportError:
@@ -10,13 +8,8 @@ try:
 except NameError:
     long = int
 
-from .exc import LanguageError
-from .exc import ParseError
 from .tokenize import iter_xml
 from .parser import ElementParser
-from .utils import decode_htmlentities
-from .compiler import identifier
-from .nodes import *
 from .namespaces import XML_NS
 from .namespaces import XMLNS_NS
 

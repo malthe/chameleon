@@ -13,7 +13,11 @@
 
 """Support classes for generating code from abstract syntax trees."""
 
-import ast
+try:
+    import ast
+except ImportError:
+    from chameleon import ast24 as ast
+
 import threading
 
 # This would ideally be a ``weakref.WeakKeyDictionary``, but certain

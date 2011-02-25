@@ -26,6 +26,12 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+
+try:
+    next
+except NameError:
+    from chameleon.py25 import next
+
 try:
     # optional library: `zope.interface`
     import interfaces

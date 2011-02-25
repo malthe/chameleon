@@ -1,3 +1,5 @@
+import sys
+
 from unittest import TestCase
 
 
@@ -15,8 +17,9 @@ class TokenizerTest(TestCase):
             from ..utils import read_encoded
             try:
                 want = read_encoded(source)
-            except UnicodeDecodeError as e:
-                self.fail("%s - %s" % (e, filename))
+            except UnicodeDecodeError:
+                exc = sys.exc_info()[1]
+                self.fail("%s - %s" % (exc, filename))
 
             from ..tokenize import iter_xml
             try:

@@ -1,5 +1,10 @@
 import re
-import ast
+import sys
+
+try:
+    import ast
+except ImportError:
+    from chameleon import ast24 as ast
 
 from .astutil import parse
 from .astutil import store
@@ -14,6 +19,12 @@ from .exc import ExpressionError
 from .utils import decode_htmlentities
 from .tokenize import Token
 from .parser import groupdict
+
+try:
+    from .py26 import lookup_attr
+except SyntaxError:
+    from .py25 import lookup_attr
+
 
 split_parts = re.compile(r'(?<!\\)\|').split
 match_prefix = re.compile(r'^\s*([a-z\-_]+):').match
@@ -59,20 +70,6 @@ def test(expression, engine=dummy_engine):
         result = str(result)
 
     return result
-
-
-def lookup_attr(obj, key):
-    try:
-        return getattr(obj, key)
-    except AttributeError as exc:
-        try:
-            get = obj.__getitem__
-        except AttributeError:
-            raise exc
-        try:
-            return get(key)
-        except KeyError:
-            raise exc
 
 
 def transform_attribute(node):
@@ -217,7 +214,8 @@ class PythonExpr(TalesExpr):
 
         try:
             value = parse(decoded, 'eval').body
-        except SyntaxError as exc:
+        except SyntaxError:
+            exc = sys.exc_info()[1]
             raise ExpressionError(exc.msg, decoded)
 
         # Transform attribute lookups to allow fallback to item lookup
@@ -514,7 +512,8 @@ class TalesEngine(object):
 
         try:
             return self.factories[prefix]
-        except KeyError as e:
+        except KeyError:
+            exc = sys.exc_info()[1]
             raise LookupError(
-                "Unknown expression type: %s." % str(e)
+                "Unknown expression type: %s." % str(exc)
                 )

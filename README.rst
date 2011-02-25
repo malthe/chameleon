@@ -16,15 +16,15 @@ Platforms
 
 This library has been successfully tested on the following platforms:
 
-* Python 2.6
-* Python 3.1
-* PyPy (fastforward-branch)
+* Python 2.5, 2.6, 2.7
+* Python 3.1, 3.2
+* PyPy
 
 What's New in 2.x
 ------------------
 
 The 2.x series is a complete rewrite of the library and supports both
-Python 2.6+ and Python 3.1+ with a single source code.
+Python 2.5+ and Python 3.1+ with a single source code.
 
 For most users it should be an easy upgrade, however note that at
 present, there is no engine for the Genshi language.
@@ -53,7 +53,8 @@ Expression engine
 The expression engine has been redesigned to make it easier to
 understand and extend.
 
-The engine is built on the new ``ast`` module.
+The engine is built on the ``ast`` module (available since Python 2.6;
+backports included for Python 2.5).
 
 Performance
 ~~~~~~~~~~~

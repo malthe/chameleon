@@ -1,6 +1,6 @@
-import io
 import os
 import re
+import sys
 import atexit
 import hashlib
 import shutil
@@ -34,17 +34,22 @@ from .utils import DebuggingOutputStream
 from .utils import Scope
 
 try:
+    byte_string = bytes = str
     str = unicode
 except NameError:
-    pass
+    def byte_string(string):
+        return string.encode('utf-8')
+
 
 XML_PREFIXES = [
-    b"<?xml",                      # ascii, utf-8
-    b"\xef\xbb\xbf<?xml",          # utf-8 w/ byte order mark
-    b"\0<\0?\0x\0m\0l",            # utf-16 big endian
-    b"<\0?\0x\0m\0l\0",            # utf-16 little endian
-    b"\xfe\xff\0<\0?\0x\0m\0l",    # utf-16 big endian w/ byte order mark
-    b"\xff\xfe<\0?\0x\0m\0l\0",    # utf-16 little endian w/ byte order mark
+    byte_string(prefix) for prefix in(
+        "<?xml",                      # ascii, utf-8
+        "\xef\xbb\xbf<?xml",          # utf-8 w/ byte order mark
+        "\0<\0?\0x\0m\0l",            # utf-16 big endian
+        "<\0?\0x\0m\0l\0",            # utf-16 little endian
+        "\xfe\xff\0<\0?\0x\0m\0l",    # utf-16 big endian w/ byte order mark
+        "\xff\xfe<\0?\0x\0m\0l\0",    # utf-16 little endian w/ byte order mark
+        )
     ]
 
 XML_PREFIX_MAX_LENGTH = max(map(len, XML_PREFIXES))
@@ -246,10 +251,8 @@ class BaseTemplateFile(BaseTemplate):
 
             # for HTML, we really want the file read in text mode:
             fd.close()
-            fd = io.open(
-                self.filename, encoding=encoding or self.default_encoding
-                )
-            body = fd.read()
+            fd = open(self.filename, 'rb')
+            body = fd.read().decode(encoding or self.default_encoding)
             fd.close()
 
         return body
@@ -281,7 +284,8 @@ class BaseTemplateFile(BaseTemplate):
                     source = "# filename: %s\n#\n%s" % (self.filename, source)
 
                 cooked = self.loader.build(source, name)
-            except TemplateError as exc:
+            except TemplateError:
+                exc = sys.exc_info()[1]
                 exc.filename = self.filename
                 raise
         else:

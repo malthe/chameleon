@@ -1,4 +1,7 @@
-import ast
+try:
+    import ast
+except ImportError:
+    from chameleon import ast24 as ast
 
 try:
     str = unicode
@@ -15,7 +18,6 @@ from ..namespaces import I18N_NS as I18N
 from ..namespaces import TAL_NS as TAL
 from ..namespaces import METAL_NS as METAL
 
-from ..astutil import Builtin
 from ..astutil import Static
 from ..astutil import parse
 

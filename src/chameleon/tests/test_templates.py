@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import tempfile
 
@@ -123,7 +124,8 @@ class ZopePageTemplatesTest(RenderTestCase):
                 from ..exc import TemplateError
                 try:
                     self.factory(body)
-                except TemplateError as exc:
+                except TemplateError:
+                    exc = sys.exc_info()[1]
                     return func(self, body, exc)
                 else:
                     self.fail("Expected exception.")
@@ -135,7 +137,8 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_default_is_not_a_string(self, template):
         try:
             template()
-        except RuntimeError as exc:
+        except RuntimeError:
+            exc = sys.exc_info()[1]
             self.assertTrue('symbolic value' in str(exc))
         else:
             self.fail("Expected error.")
@@ -149,17 +152,18 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
 
     def test_custom_encoding_for_str_or_bytes(self):
-        template = self.factory(
-            b"<div>\xd2\xe5\xf1\xf2${text}</div>".decode('windows-1251'),
-            encoding="windows-1251")
+        string = '<div>\xd0\xa2\xd0\xb5\xd1\x81\xd1\x82${text}</div>'
+        try:
+            string = string.decode('utf-8')
+        except AttributeError:
+            pass
 
-        text = b"\xd2\xe5\xf1\xf2"
+        template = self.factory(string, encoding="windows-1251")
+
+        text = '\u0422\u0435\u0441\u0442'.encode('windows-1251')
         rendered = template(text=text)
 
-        self.assertEqual(
-            rendered.encode('windows-1251'),
-            b"<div>\xd2\xe5\xf1\xf2\xd2\xe5\xf1\xf2</div>"
-            )
+        self.assertEqual(rendered, string.replace('${text}', text.decode('windows-1251')))
 
 
 class ZopeTemplatesTestSuite(RenderTestCase):
