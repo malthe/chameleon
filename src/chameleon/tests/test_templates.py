@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+import re
 import os
 import sys
 import shutil
@@ -14,6 +17,11 @@ try:
     str = unicode
 except:
     pass
+
+
+class Message(object):
+    def __str__(self):
+        return "message"
 
 
 class TemplateFileTestCase(TestCase):
@@ -152,7 +160,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
 
     def test_custom_encoding_for_str_or_bytes(self):
-        string = '<div>\xd0\xa2\xd0\xb5\xd1\x81\xd1\x82${text}</div>'
+        string = '<div>Тест${text}</div>'
         try:
             string = string.decode('utf-8')
         except AttributeError:
@@ -160,10 +168,19 @@ class ZopePageTemplatesTest(RenderTestCase):
 
         template = self.factory(string, encoding="windows-1251")
 
-        text = '\u0422\u0435\u0441\u0442'.encode('windows-1251')
-        rendered = template(text=text)
+        text = 'Тест'
 
-        self.assertEqual(rendered, string.replace('${text}', text.decode('windows-1251')))
+        try:
+            text = text.decode('utf-8')
+        except AttributeError:
+            pass
+
+        rendered = template(text=text.encode('windows-1251'))
+
+        self.assertEqual(
+            rendered,
+            string.replace('${text}', text)
+            )
 
 
 class ZopeTemplatesTestSuite(RenderTestCase):
@@ -174,10 +191,9 @@ class ZopeTemplatesTestSuite(RenderTestCase):
         def cleanup(path=temp_path):
             shutil.rmtree(path)
 
-    def test_files(self):
+    def test_pt_files(self):
         from ..zpt.template import PageTemplate
         from ..zpt.template import PageTemplateFile
-        from ..loader import TemplateLoader
 
         class Literal(object):
             def __init__(self, s):
@@ -190,11 +206,18 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 raise RuntimeError(
                     "%r is a literal." % self.s)
 
-        class Message(object):
-            def __str__(self):
-                return "message"
+        from chameleon.loader import TemplateLoader
+        loader = TemplateLoader(os.path.join(self.root, "inputs"))
 
-        import re
+        self.run_tests(
+            ".pt", PageTemplate,
+            literal=Literal("<div>Hello world!</div>"),
+            message=Message(),
+            load=loader.bind(PageTemplateFile)
+            )
+
+    def run_tests(self, ext, factory, **kwargs):
+        from chameleon.utils import DebuggingOutputStream
 
         def convert(msgid, **kwargs):
             if isinstance(msgid, Message):
@@ -227,32 +250,29 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 default[len(stripped):]
                 )
 
-        loader = TemplateLoader(os.path.join(self.root, "inputs"))
-
-        from chameleon.utils import DebuggingOutputStream
-
-        for name, source, want, language in self.find_files(".pt"):
+        for name, source, want, language in self.find_files(ext):
             if language is not None:
                 name += '-' + language
 
             self.shortDescription = lambda: name
-            template = PageTemplate(
+            template = factory(
                 source,
                 keep_source=True,
                 output_stream_factory=DebuggingOutputStream,
                 )
 
             import functools
+
+            params = kwargs.copy()
+            params.update({
+                'translate': functools.partial(
+                    translate, target_language=language),
+                'convert': functools.partial(
+                    convert, target_language=language),
+                })
+
             try:
-                stream = template.render(
-                    literal=Literal("<div>Hello world!</div>"),
-                    message=Message(),
-                    translate=functools.partial(
-                        translate, target_language=language),
-                    convert=functools.partial(
-                        convert, target_language=language),
-                    load=loader.bind(PageTemplateFile),
-                    )
+                stream = template.render(**params)
                 tokens = tuple(stream)
                 try:
                     got = "".join(tokens)
