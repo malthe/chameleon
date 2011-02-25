@@ -82,6 +82,7 @@ class RenderTestCase(TestCase):
             path = os.path.join(inputs, filename)
             f = open(path, 'rb')
             got = read_encoded(f.read())
+            f.close()
 
             # if there's no output file, treat document as static and
             # expect intput equal to output
@@ -98,6 +99,7 @@ class RenderTestCase(TestCase):
                 else:
                     g = open(output, 'rb')
                     want = read_encoded(g.read())
+                    g.close()
 
                 name, ext = os.path.splitext(output)
                 basename = os.path.basename(name)
@@ -215,6 +217,10 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             message=Message(),
             load=loader.bind(PageTemplateFile)
             )
+
+    def test_txt_files(self):
+        from ..zpt.template import PageTextTemplate
+        self.run_tests(".txt", PageTextTemplate)
 
     def run_tests(self, ext, factory, **kwargs):
         from chameleon.utils import DebuggingOutputStream

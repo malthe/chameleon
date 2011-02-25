@@ -511,16 +511,22 @@ class Compiler(object):
         return body
 
     def visit_Interpolation(self, node):
-        def escaping_engine(expression, target):
+        if node.escape:
+            def convert(target):
+                return emit_convert_and_escape(target, target)
+        else:
+            convert = emit_convert
+
+        def engine(expression, target):
             node = Expression(expression)
             return self._engine(node, target) + \
-                   emit_convert_and_escape(target, target)
+                   convert(target)
 
         expression = StringExpr(node.value)
 
         name = identifier("content")
 
-        return expression(store(name), escaping_engine) + \
+        return expression(store(name), engine) + \
                emit_node(load(name))
 
     def visit_Assignment(self, node):

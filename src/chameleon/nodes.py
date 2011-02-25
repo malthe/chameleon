@@ -135,6 +135,8 @@ class Text(Node):
 class Interpolation(Text):
     """String interpolation output."""
 
+    _fields = "value", "escape"
+
 
 class Translate(Node):
     """Translate node."""

@@ -13,6 +13,7 @@ class TokenizerTest(TestCase):
                 continue
             f = open(os.path.join(path, filename), 'rb')
             source = f.read()
+            f.close()
 
             from ..utils import read_encoded
             try:

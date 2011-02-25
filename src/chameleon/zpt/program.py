@@ -82,6 +82,9 @@ class MacroProgram(ElementProgram):
         # Internal dictionary of macro definitions
         self._macros = {}
 
+        # Set escape mode (true value means XML-escape)
+        self._escape = kwargs.pop('escape', True)
+
         super(MacroProgram, self).__init__(*args, **kwargs)
 
     @property
@@ -443,7 +446,7 @@ class MacroProgram(ElementProgram):
         self._last = node
 
         if self._interpolation_enabled:
-            return nodes.Interpolation(node)
+            return nodes.Interpolation(node, self._escape)
 
         return nodes.Text(node)
 
@@ -500,7 +503,7 @@ class MacroProgram(ElementProgram):
             # more interpolation expressions, make the attribute
             # dynamic
             if expr is None and text is not None and '${' in text:
-                value = nodes.Interpolation(text)
+                value = nodes.Interpolation(text, True)
 
             # If this expression is non-trivial, the attribute is
             # dynamic (computed)

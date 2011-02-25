@@ -49,6 +49,8 @@ class PageTemplate(BaseTemplate):
 
     encoding = None
 
+    mode = "xml"
+
     def __init__(self, *args, **kwargs):
         super(PageTemplate, self).__init__(*args, **kwargs)
         self.macros = Macros(self)
@@ -58,7 +60,8 @@ class PageTemplate(BaseTemplate):
         return TalesEngine(self.expression_types, self.default_expression)
 
     def translate(self, body):
-        return Program(body, self.filename)
+        escape = True if self.mode == "xml" else False
+        return Program(body, self.mode, self.filename, escape=escape)
 
     def render(self, translate=None, convert=None, decode=None, **kwargs):
         translate = translate if translate is not None else self.translate
@@ -94,6 +97,14 @@ class PageTemplate(BaseTemplate):
 
 class PageTemplateFile(PageTemplate, BaseTemplateFile):
     pass
+
+
+class PageTextTemplate(PageTemplate):
+    mode = "text"
+
+
+class PageTextTemplateFile(PageTemplateFile):
+    mode = "text"
 
 
 class Macro(object):

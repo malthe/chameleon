@@ -9,6 +9,7 @@ except NameError:
     long = int
 
 from .tokenize import iter_xml
+from .tokenize import iter_text
 from .parser import ElementParser
 from .namespaces import XML_NS
 from .namespaces import XMLNS_NS
@@ -20,8 +21,14 @@ class ElementProgram(object):
         'xml': XML_NS,
         }
 
-    def __init__(self, source, filename=None):
-        tokens = iter_xml(source, filename)
+    tokenizers = {
+        'xml': iter_xml,
+        'text': iter_text,
+        }
+
+    def __init__(self, source, mode="xml", filename=None):
+        tokenizer = self.tokenizers[mode]
+        tokens = tokenizer(source, filename)
         parser = ElementParser(tokens, self.DEFAULT_NAMESPACES)
 
         self.body = []

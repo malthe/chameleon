@@ -47,6 +47,7 @@ class ModuleLoader(object):
             log.debug("writing source to disk (%d bytes)." % len(source))
             f = open(name, "w")
             try:
+                f.write("%s\n" % '# -*- coding: utf-8 -*-')
                 f.write(source)
             finally:
                 f.close()

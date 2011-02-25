@@ -72,6 +72,10 @@ def iter_xml(body, filename=None):
         yield Token(string, pos, body, filename)
 
 
+def iter_text(body, filename=None):
+    yield Token(body, 0, body, filename)
+
+
 class Token(str):
     __slots__ = "pos", "source", "filename"
 
