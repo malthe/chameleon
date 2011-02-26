@@ -590,7 +590,7 @@ assigning.
   >>> print template(noclass=noclass)
   <html xmlns="http://www.w3.org/1999/xhtml">
     <body>
-        <span>&lt;_sre.SRE_Pattern object at ...&gt;</span>
+        <span>&lt;...&gt;</span>
     </body>
   </html>
 
