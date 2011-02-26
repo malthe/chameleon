@@ -185,7 +185,7 @@ class Define(object):
     >>> a
     Traceback (most recent call last):
         ...
-    NameError: name 'a' is not defined
+    NameError: ... name 'a' is not defined
     >>> b is not None
     True
 
@@ -207,11 +207,11 @@ class Define(object):
     >>> a
     Traceback (most recent call last):
         ...
-    NameError: name 'a' is not defined
+    NameError: ... name 'a' is not defined
     >>> c
     Traceback (most recent call last):
         ...
-    NameError: name 'c' is not defined
+    NameError: ... name 'c' is not defined
     >>> b is not None and d is not None
     True
 
@@ -234,7 +234,7 @@ class Define(object):
     >>> a
     Traceback (most recent call last):
         ...
-    NameError: name 'a' is not defined
+    NameError: ... name 'a' is not defined
     
     Tuple assignments:
 
