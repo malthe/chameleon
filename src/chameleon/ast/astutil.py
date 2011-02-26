@@ -698,7 +698,9 @@ class ASTTransformer(object):
         for name in getattr(clone, '_attributes', ()):
             try:
                 setattr(clone, 'name', getattr(node, name))
-            except AttributeError:
+            except (AttributeError, TypeError):
+                # pypy will throw TypeError when getattring with a nonstring
+                # name
                 pass
         for name in clone._fields:
             try:

@@ -16,6 +16,7 @@ except ImportError:
     def adapts(*interfaces):
         pass
 
+import copy
 import sys
 import interfaces
 import htmlentitydefs
@@ -372,7 +373,11 @@ class repeatitem(object):
     except AttributeError:
         @property
         def index(self):
-            remaining = self._iterator.__length_hint__()
+            try:
+                remaining = self._iterator.__length_hint__()
+            except AttributeError:
+                # pypy has no __length_hint__ 
+                remaining = len(tuple(copy.copy(self._iterator)))
             return self.length - remaining - 1
     else:
         @property
