@@ -9,6 +9,7 @@ except ImportError:
 from .astutil import parse
 from .astutil import store
 from .astutil import load
+from .astutil import node_annotations
 from .astutil import ItemLookupOnAttributeErrorVisitor
 from .codegen import TemplateCodeGenerator
 from .codegen import template
@@ -222,6 +223,15 @@ class PythonExpr(TalesExpr):
         self.transform.visit(value)
 
         return [ast.Assign(targets=[target], value=value)]
+
+
+class ImportExpr(TalesExpr):
+    def __call__(self, target, engine):
+        string = self.expression.strip().replace('\n', ' ')
+        node = load("dummy")
+        module = __import__(string)
+        node_annotations.__dict__[node] = Symbol(module)
+        return [ast.Assign(targets=[target], value=node)]
 
 
 class NotExpr(object):

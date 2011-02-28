@@ -4,6 +4,7 @@ from ..tales import PythonExpr
 from ..tales import StringExpr
 from ..tales import NotExpr
 from ..tales import ExistsExpr
+from ..tales import ImportExpr
 from ..tal import RepeatDict
 
 from ..template import BaseTemplate
@@ -39,6 +40,7 @@ class PageTemplate(BaseTemplate):
         'string': StringExpr,
         'not': NotExpr,
         'exists': ExistsExpr,
+        'import': ImportExpr,
         }
 
     default_expression = 'python'
