@@ -237,7 +237,7 @@ class ImportExpr(object):
         value = template(
             "RESOLVE(NAME)",
             RESOLVE=Symbol(resolve_dotted),
-            NAME=ast.Str(string),
+            NAME=ast.Str(s=string),
             mode="eval",
             )
         return [ast.Assign(targets=[target], value=value)]
