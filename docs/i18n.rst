@@ -1,0 +1,418 @@
+.. _i18n_chapter:
+
+Internationalization
+====================
+
+Translation of template contents and attributes is supported via the
+``i18n`` namespace and message objects.
+
+Messages
+--------
+
+The translation machinery defines a message as *any object* which is
+not a string or a number and which does not provide an ``__html__``
+method.
+
+When any such object is inserted into the template, the translate
+function is invoked first to see if it needs translation.
+
+Translation function
+--------------------
+
+The simplest way to hook into the translation machinery is to provide
+a translation function to the template constructor or at
+render-time. In either case it should be passed as the keyword
+argument ``translate``.
+
+The function has the following signature:
+
+.. code-block:: python
+
+   def translate(msgid, domain=None, mapping=None, context=None, target_language=None, default=None):
+       ...
+
+It must return a unicode (or *standard* on Python 3) string.
+
+If `zope.i18n <http://pypi.python.org/pypi/zope.i18n>`_ is available, the translation machinery defaults to
+using its translation function. Note that this function requires
+messages to conform to the message class from `zope.i18nmessageid
+<http://pypi.python.org/pypi/zope.i18nmessageid>`_; specifically,
+messages must have attributes ``domain``, ``mapping`` and
+``default``. Example use:
+
+.. code-block:: python
+
+   from zope.i18nmessageid import MessageFactory
+   _ = MessageFactory("food")
+
+   apple = _(u"Apple")
+
+There's currently no further support for other translation frameworks.
+
+Using Zope's translation framework
+-----------------------------------
+
+The translation function from ``zope.i18n`` relies on *translation
+domains* to provide translations.
+
+These are components that are registered for some translation domain
+identifier and which implement a ``translate`` method that translates
+messages for that domain.
+
+.. note:: To register translation domain components, the Zope Component Architecture must be used (see `zope.component <http://pypi.python.org/pypi/zope.component>`_).
+
+The easiest way to configure translation domains is to use the the
+``registerTranslations`` ZCML-directive; this requires the use of the
+`zope.configuration <http://pypi.python.org/pypi/zope.configuration>`_
+package. This will set up translation domains and gettext catalogs
+automatically:
+
+.. code-block:: xml
+
+  <configure xmlns="http://namespaces.zope.org/zope"
+             xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+
+     <i18n:registerTranslations directory="locales" />
+
+  </configure>
+
+The ``./locales`` directory must follow a particular directory
+structure:
+
+.. code-block:: bash
+
+  ./locales/en/LC_MESSAGES
+  ./locales/de/LC_MESSAGES
+  ...
+
+In each of the ``LC_MESSAGES`` directories, one `GNU gettext
+<http://en.wikipedia.org/wiki/GNU_gettext>`_ file in the ``.po``
+format must be present per translation domain:
+
+.. code-block:: po
+
+  # ./locales/de/LC_MESSAGES/food.po
+
+  msgid ""
+  msgstr ""
+  "MIME-Version: 1.0\n"
+  "Content-Type: text/plain; charset=UTF-8\n"
+  "Content-Transfer-Encoding: 8bit\n"
+
+  msgid "Apple"
+  msgstr "Apfel"
+
+It may be necessary to compile the message catalog using the
+``msgfmt`` utility. This will produce a ``.mo`` file.
+
+Translation domains without gettext
+-----------------------------------
+
+The following example demonstrates how to manually set up and
+configure a translation domain for which messages are provided
+directly::
+
+  from zope import component
+  from zope.i18n.simpletranslationdomain import SimpleTranslationDomain
+
+  food = SimpleTranslationDomain("food", {
+      ('de', u'Apple'): u'Apfel',
+      })
+
+  component.provideUtility(food, food.domain)
+
+An example of a custom translation domain class::
+
+  from zope import interface
+
+  class TranslationDomain(object):
+       interface.implements(ITranslationDomain)
+
+       def translate(self, msgid, mapping=None, context=None,
+                    target_language=None, default=None):
+
+           ...
+
+  component.provideUtility(TranslationDomain(), name="custom")
+
+This approach can be used to integrate other translation catalog
+implementations.
+
+.. highlight:: xml
+
+The ``i18n`` Namespace
+----------------------
+
+The 'i18n' namespace URI and recommended prefix are currently defined as::
+
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+
+This is not a URL, but merely a unique identifier.  Do not expect a
+browser to resolve it successfully.
+
+The Attributes
+--------------
+
+The allowable ``i18n`` attributes are:
+
+- ``i18n:translate``
+- ``i18n:domain``
+- ``i18n:source``
+- ``i18n:target``
+- ``i18n:name``
+- ``i18n:attributes``
+- ``i18n:data``
+
+i18n:translate
+~~~~~~~~~~~~~~~
+
+This attribute is used to mark units of text for translation.  If this
+attribute is specified with an empty string as the value, the message
+ID is computed from the content of the element bearing this attribute.
+Otherwise, the value of the element gives the message ID.
+
+i18n:domain
+~~~~~~~~~~~~
+
+The ``i18n:domain`` attribute is used to specify the domain to be used
+to get the translation.  If not specified, the translation services
+will use a default domain.  The value of the attribute is used
+directly; it is not a TALES expression.
+
+i18n:source
+~~~~~~~~~~~
+
+The ``i18n:source`` attribute specifies the language of the text to be
+translated.  The default is ``nothing``, which means we don't provide
+this information to the translation services.
+
+
+i18n:target
+~~~~~~~~~~~
+
+The ``i18n:target`` attribute specifies the language of the
+translation we want to get.  If the value is ``default``, the language
+negotiation services will be used to choose the destination language.
+If the value is ``nothing``, no translation will be performed; this
+can be used to suppress translation within a larger translated unit.
+Any other value must be a language code.
+
+The attribute value is a TALES expression; the result of evaluating
+the expression is the language code or one of the reserved values.
+
+.. note:: ``i18n:target`` is primarily used for hints to text
+   extraction tools and translation teams.  If you had some text that
+   should only be translated to e.g. German, then it probably
+   shouldn't be wrapped in an ``i18n:translate`` span.
+
+i18n:name
+~~~~~~~~~
+
+Name the content of the current element for use in interpolation
+within translated content.  This allows a replaceable component in
+content to be re-ordered by translation.  For example::
+
+    <span i18n:translate=''>
+      <span tal:replace='context.name' i18n:name='name' /> was born in
+      <span tal:replace='context.country_of_birth' i18n:name='country' />.
+    </span>
+
+would cause this text to be passed to the translation service::
+
+    "${name} was born in ${country}."
+
+i18n:attributes
+~~~~~~~~~~~~~~~
+ 
+This attribute will allow us to translate attributes of HTML tags,
+such as the ``alt`` attribute in the ``img`` tag. The
+``i18n:attributes`` attribute specifies a list of attributes to be
+translated with optional message IDs for each; if multiple attribute
+names are given, they must be separated by semi-colons.  Message IDs
+used in this context must not include whitespace.
+
+Note that the value of the particular attributes come either from the
+HTML attribute value itself or from the data inserted by
+``tal:attributes``.
+
+If an attibute is to be both computed using ``tal:attributes`` and
+translated, the translation service is passed the result of the TALES
+expression for that attribute.
+
+An example::
+
+    <img src="http://foo.com/logo" alt="Visit us"
+         tal:attributes="alt context.greeting"
+         i18n:attributes="alt"
+         >
+
+In this example, we let ``tal:attributes`` set the value of the ``alt``
+attribute to the text "Stop by for a visit!".  This text will be
+passed to the translation service, which uses the result of language
+negotiation to translate "Stop by for a visit!" into the requested
+language.  The example text in the template, "Visit us", will simply
+be discarded.
+
+Another example, with explicit message IDs::
+
+    <img src="../icons/uparrow.png" alt="Up"
+         i18n:attributes="src up-arrow-icon; alt up-arrow-alttext"
+         >
+
+Here, the message ID ``up-arrow-icon`` will be used to generate the
+link to an icon image file, and the message ID 'up-arrow-alttext' will
+be used for the "alt" text.
+
+i18n:data
+~~~~~~~~~
+
+Since TAL always returns strings, we need a way in ZPT to translate
+objects, one of the most obvious cases being ``datetime`` objects. The
+``data`` attribute will allow us to specify such an object, and
+``i18n:translate`` will provide us with a legal format string for that
+object.  If ``data`` is used, ``i18n:translate`` must be used to give
+an explicit message ID, rather than relying on a message ID computed
+from the content.
+
+Relation with TAL processing
+----------------------------
+
+The attributes defined in the ``i18n`` namespace modify the behavior
+of the TAL interpreter for the ``tal:attributes``, ``tal:content``,
+``tal:repeat``, and ``tal:replace`` attributes, but otherwise do not
+affect TAL processing.
+
+Since these attributes only affect TAL processing by causing
+translations to occur at specific times, using these with a TAL
+processor which does not support the ``i18n`` namespace degrades well;
+the structural expectations for a template which uses the ``i18n``
+support is no different from those for a page which does not.  The
+only difference is that translations will not be performed in a legacy
+processor.
+
+Relation with METAL processing
+-------------------------------
+
+When using translation with METAL macros, the internationalization
+context is considered part of the specific documents that page
+components are retrieved from rather than part of the combined page.
+This makes the internationalization context lexical rather than
+dynamic, making it easier for a site builder to understand the
+behavior of each element with respect to internationalization.
+
+Let's look at an example to see what this means::
+
+    <html i18n:translate='' i18n:domain='EventsCalendar'
+          metal:use-macro="container['master.html'].macros.thismonth">
+
+      <div metal:fill-slot='additional-notes'>
+        <ol tal:condition="context.notes">
+          <li tal:repeat="note context.notes">
+             <tal:block tal:omit-tag=""
+                        tal:condition="note.heading">
+               <strong tal:content="note.heading">
+                 Note heading goes here
+               </strong>
+               <br />
+             </tal:block>
+             <span tal:replace="note/description">
+               Some longer explanation for the note goes here.
+             </span>
+          </li>
+        </ol>
+      </div>
+
+    </html>
+
+And the macro source::
+
+    <html i18n:domain='CalendarService'>
+      <div tal:replace='python:DateTime().Month()'
+           i18n:translate=''>January</div>
+
+      <!-- really hairy TAL code here ;-) -->
+
+      <div define-slot="additional-notes">
+        Place for the application to add additional notes if desired.
+      </div>
+
+    </html>
+
+Note that the macro is using a different domain than the application
+(which it should be).  With lexical scoping, no special markup needs
+to be applied to cause the slot-filler in the application to be part
+of the same domain as the rest of the application's page components.
+If dynamic scoping were used, the internationalization context would
+need to be re-established in the slot-filler.
+
+
+Extracting translatable message
+-------------------------------
+
+Translators use `PO files
+<http://www.gnu.org/software/hello/manual/gettext/PO-Files.html>`_
+when translating messages. To create and update PO files you need to
+do two things: *extract* all messages from python and templates files
+and store them in a ``.pot`` file, and for each language *update* its
+``.po`` file.  Chameleon facilitates this by providing extractors for
+`Babel <http://babel.edgewall.org/>`_.  To use this you need modify
+``setup.py``. For example:
+
+.. code-block:: python
+
+   from setuptools import setup
+
+   setup(name="mypackage",
+         install_requires = [
+               "Babel",
+               ],
+         message_extractors = { "src": [
+               ("**.py",   "chameleon_python", None ),
+               ("**.pt",   "chameleon_xml", None ),
+               ]},
+         )
+
+This tells Babel to scan the ``src`` directory while using the
+``chameleon_python`` extractor for all ``.py`` files and the
+``chameleon_xml`` extractor for all ``.pt`` files.
+
+You can now use Babel to manage your PO files:
+
+.. code-block:: bash
+
+   python setup.py extract_messages --output-file=i18n/mydomain.pot
+   python setup.py update_catalog \
+             -l nl \
+             -i i18n/mydomain.pot \
+             -o i18n/nl/LC_MESSAGES/mydomain.po
+   python setup.py compile_catalog \
+             --directory i18n --locale nl
+
+You can also configure default options in a ``setup.cfg`` file. For example::
+
+   [compile_catalog]
+   domain = mydomain
+   directory = i18n
+   
+   [extract_messages]
+   copyright_holder = Acme Inc.
+   output_file = i18n/mydomain.pot
+   charset = UTF-8
+
+   [init_catalog]
+   domain = mydomain
+   input_file = i18n/mydomain.pot
+   output_dir = i18n
+
+   [update_catalog]
+   domain = mydomain
+   input_file = i18n/mydomain.pot
+   output_dir = i18n
+   previous = true
+
+You can now use the Babel commands directly::
+
+   python setup.py extract_messages
+   python setup.py update_catalog
+   python setup.py compile_catalog
+
