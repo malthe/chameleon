@@ -67,6 +67,12 @@ class ZPTLoadTests(unittest.TestCase):
         from chameleon.zpt.template import PageTextTemplateFile
         self.assertTrue(isinstance(template, PageTextTemplateFile))
 
+    def test_load_getitem_gets_xml_file(self):
+        loader = self._makeOne()
+        template = loader["hello_world.pt"]
+        from chameleon.zpt.template import PageTemplateFile
+        self.assertTrue(isinstance(template, PageTemplateFile))
+
 
 def test_suite():
     import sys
