@@ -48,6 +48,26 @@ class LoadPageTests(unittest.TestCase, LoadTests):
         return loader.load(filename, template.PageTemplateFile)
 
 
+class ZPTLoadTests(unittest.TestCase):
+    def _makeOne(self, *args, **kwargs):
+        import os
+        here = os.path.join(os.path.dirname(__file__), "inputs")
+        from chameleon.zpt import loader
+        return loader.TemplateLoader(here, **kwargs)
+
+    def test_load_xml(self):
+        loader = self._makeOne()
+        template = loader.load("hello_world.pt", "xml")
+        from chameleon.zpt.template import PageTemplateFile
+        self.assertTrue(isinstance(template, PageTemplateFile))
+
+    def test_load_text(self):
+        loader = self._makeOne()
+        template = loader.load("hello_world.txt", "text")
+        from chameleon.zpt.template import PageTextTemplateFile
+        self.assertTrue(isinstance(template, PageTextTemplateFile))
+
+
 def test_suite():
     import sys
     return unittest.findTestCases(sys.modules[__name__])
