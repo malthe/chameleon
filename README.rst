@@ -36,10 +36,16 @@ This series features a new parser, implemented in pure Python. It
 parses both HTML and XML inputs (the previous parser relied on the
 expat system library and was more strict about its input).
 
-Language support
+Language changes
 ~~~~~~~~~~~~~~~~
 
-The 2.x series supports a couple of new constructs:
+The 2.x engine matches the output of the reference implementation more
+closely (usually exactly). There are less differences altogether; for
+instance, the method of escaping TALES expression (usually a
+semicolon) has been changed to match that of the reference
+implementation.
+
+This series also introduces a number of new language features:
 
 1) Support for the ``tal:on-error`` from the reference specification
 has been added.
