@@ -9,10 +9,10 @@ log = logging.getLogger('chameleon.loader')
 
 
 def cache(func):
-    def load(self, *args):
+    def load(self, *args, **kwargs):
         template = self.registry.get(args)
         if template is None:
-            self.registry[args] = template = func(self, *args)
+            self.registry[args] = template = func(self, *args, **kwargs)
         return template
     return load
 
@@ -37,16 +37,22 @@ class TemplateLoader(object):
         self.kwargs = kwargs
 
     @cache
-    def load(self, filename, klass):
+    def load(self, filename, cls=None):
+        if cls is None:
+            raise ValueError("Unbound template loader.")
+
         if os.path.isabs(filename):
-            return klass(filename, self.parser)
+            return cls(filename, **self.kwargs)
 
         for path in self.search_path:
             path = os.path.join(path, filename)
             if os.path.exists(path):
-                return klass(path, **self.kwargs)
+                return cls(path, **self.kwargs)
 
         raise ValueError("Template not found: %s." % filename)
+
+    def bind(self, cls):
+        return functools.partial(self.load, cls=cls)
 
 
 class MemoryLoader(object):
@@ -109,49 +115,3 @@ class ModuleLoader(object):
             f.close()
 
         return module.__dict__
-
-
-class TemplateLoader(object):
-    """Generic template loader.
-
-    To load templates using relative filenames, pass a sequence of
-    paths (or a single path) as ``search_path``; if ``auto_reload`` is
-    set, templates will be reloaded when modified.
-
-    If ``translate`` is set, it will be used to translate messages.
-    """
-
-    def __init__(self, search_path=None, auto_reload=False, translate=None):
-        if search_path is None:
-            search_path = []
-        if isinstance(search_path, str):
-            search_path = [search_path]
-        self.search_path = search_path
-        self.auto_reload = auto_reload
-        self.registry = {}
-
-    def bind(self, cls):
-        return functools.partial(self.load, cls=cls)
-
-    def load(self, filename, cls=None):
-        inst = self.registry.get(filename)
-        if inst is None:
-            if os.path.isabs(filename):
-                path = filename
-            else:
-                path = self.find(filename)
-
-            inst = cls(path, auto_reload=self.auto_reload)
-            self.registry[filename] = inst
-
-        return inst
-
-    def find(self, filename):
-        paths = (os.path.join(path, filename) for path in self.search_path)
-
-        for path in paths:
-            if os.path.exists(path):
-                return path
-        else:
-            raise ValueError(
-                "Template not found in search path: '%s'.", filename)

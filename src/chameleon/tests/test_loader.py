@@ -2,9 +2,9 @@ import unittest
 
 
 class LoadTests:
-    def _makeOne(self, search_path=None, auto_reload=False, cachedir=None):
+    def _makeOne(self, search_path=None, **kwargs):
         klass = self._getTargetClass()
-        return klass(search_path, auto_reload, cachedir)
+        return klass(search_path, **kwargs)
 
     def _getTargetClass(self):
         from chameleon.loader import TemplateLoader
