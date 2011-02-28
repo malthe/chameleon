@@ -391,6 +391,9 @@ class Compiler(object):
             for stmt in self.visit(node.end):
                 yield stmt
 
+    def visit_Program(self, node):
+        return self.visit_MacroProgram(node)
+
     def visit_MacroProgram(self, node):
         body = []
 
@@ -409,7 +412,7 @@ class Compiler(object):
         )
 
         # Visit defined macros
-        for macro in node.macros:
+        for macro in getattr(node, "macros", ()):
             body += self.visit(macro)
 
         # Visit (implicit) main macro

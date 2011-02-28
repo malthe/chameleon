@@ -126,6 +126,10 @@ class Macro(Node):
     _fields = "name", "body"
 
 
+class Program(Node):
+    _fields = "name", "body"
+
+
 class Text(Node):
     """Static text output."""
 
