@@ -22,6 +22,8 @@ encodings = {
 
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
+module_cache = {}
+
 
 def validate_attributes(attributes, namespace, whitelist):
     for ns, name in attributes:
@@ -73,6 +75,39 @@ def decode_htmlentities(string):
 
     # preserve input token data
     return string.replace(string, decoded)
+
+
+# Taken from zope.dottedname
+def _resolve_dotted(name, module=None):
+    name = name.split('.')
+    if not name[0]:
+        if module is None:
+            raise ValueError("relative name without base module")
+        module = module.split('.')
+        name.pop(0)
+        while not name[0]:
+            module.pop()
+            name.pop(0)
+        name = module + name
+
+    used = name.pop(0)
+    found = __import__(used)
+    for n in name:
+        used += '.' + n
+        try:
+            found = getattr(found, n)
+        except AttributeError:
+            __import__(used)
+            found = getattr(found, n)
+
+    return found
+
+
+def resolve_dotted(dotted):
+    if not dotted in module_cache:
+        resolved = _resolve_dotted(dotted)
+        module_cache[dotted] = resolved
+    return module_cache[dotted]
 
 
 class callablestr(str):

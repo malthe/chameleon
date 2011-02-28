@@ -18,6 +18,7 @@ from .astutil import Builtin
 from .astutil import Symbol
 from .exc import ExpressionError
 from .utils import decode_htmlentities
+from .utils import resolve_dotted
 from .tokenize import Token
 from .parser import groupdict
 
@@ -226,12 +227,17 @@ class PythonExpr(TalesExpr):
 
 
 class ImportExpr(TalesExpr):
+    re_dotted = re.compile(r'^[A-Za-z.]+$')
+
     def __call__(self, target, engine):
         string = self.expression.strip().replace('\n', ' ')
-        node = load("dummy")
-        module = __import__(string)
-        node_annotations.__dict__[node] = Symbol(module)
-        return [ast.Assign(targets=[target], value=node)]
+        value = template(
+            "RESOLVE(NAME)",
+            RESOLVE=Symbol(resolve_dotted),
+            NAME=ast.Str(string),
+            mode="eval",
+            )
+        return [ast.Assign(targets=[target], value=value)]
 
 
 class NotExpr(object):
