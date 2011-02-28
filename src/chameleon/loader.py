@@ -7,6 +7,11 @@ import functools
 
 log = logging.getLogger('chameleon.loader')
 
+try:
+    str = unicode
+except NameError:
+    basestring = str
+
 
 def cache(func):
     def load(self, *args, **kwargs):
