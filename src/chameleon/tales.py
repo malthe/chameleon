@@ -198,7 +198,7 @@ class PathExpr(TalesExpr):
             "can be devised.")
 
 
-class PythonExpr(TalesExpr):
+class PythonExpr(object):
     """Python expression compiler.
 
     >>> test(PythonExpr('2+2'))
@@ -226,8 +226,11 @@ class PythonExpr(TalesExpr):
         return [ast.Assign(targets=[target], value=value)]
 
 
-class ImportExpr(TalesExpr):
+class ImportExpr(object):
     re_dotted = re.compile(r'^[A-Za-z.]+$')
+
+    def __init__(self, expression):
+        self.expression = expression
 
     def __call__(self, target, engine):
         string = self.expression.strip().replace('\n', ' ')
