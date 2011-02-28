@@ -9,7 +9,6 @@ except ImportError:
 from .astutil import parse
 from .astutil import store
 from .astutil import load
-from .astutil import node_annotations
 from .astutil import ItemLookupOnAttributeErrorVisitor
 from .codegen import TemplateCodeGenerator
 from .codegen import template

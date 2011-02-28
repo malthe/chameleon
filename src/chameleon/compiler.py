@@ -1,7 +1,7 @@
 import re
 import itertools
-import functools
 import logging
+import threading
 
 try:
     import ast
@@ -237,7 +237,7 @@ class ExpressionCompiler(object):
     @classmethod
     def _dynamic_transform(cls, node):
         # Don't rewrite nodes that have an annotation
-        annotation = node_annotations.__dict__.get(node)
+        annotation = node_annotations.get(node)
         if annotation is not None:
             return node
 
@@ -311,12 +311,12 @@ class ExpressionCompiler(object):
 
     def visit_Static(self, node, target):
         value = load("dummy")
-        node_annotations.__dict__[value] = node
+        node_annotations[value] = node
         return [ast.Assign(targets=[target], value=value)]
 
     def visit_Builtin(self, node, target):
         value = load("dummy")
-        node_annotations.__dict__[value] = node
+        node_annotations[value] = node
         return [ast.Assign(targets=[target], value=value)]
 
 
@@ -339,6 +339,8 @@ class Compiler(object):
         'convert': Builtin("str"),
         }
 
+    lock = threading.Lock()
+
     def __init__(self, engine, node):
         self._scopes = [set()]
         self._expression_cache = {}
@@ -351,8 +353,11 @@ class Compiler(object):
             self._markers
             )
 
-        # Back up static annoations
-        backup = node_annotations.__dict__.copy()
+        if isinstance(node_annotations, dict):
+            self.lock.acquire()
+            backup = node_annotations.copy()
+        else:
+            backup = None
 
         try:
             module = ast.Module([])
@@ -360,10 +365,10 @@ class Compiler(object):
             ast.fix_missing_locations(module)
             generator = TemplateCodeGenerator(module)
         finally:
-            # Clear and restore node annotations
-            d = node_annotations.__dict__
-            d.clear()
-            d.update(backup)
+            if backup is not None:
+                node_annotations.clear()
+                node_annotations.update(backup)
+                self.lock.release()
 
         self.code = generator.code
 

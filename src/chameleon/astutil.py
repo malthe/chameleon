@@ -18,13 +18,20 @@ try:
 except ImportError:
     from chameleon import ast24 as ast
 
-import threading
+import logging
+import weakref
 
-# This would ideally be a ``weakref.WeakKeyDictionary``, but certain
-# platforms do not support making weak refs to the AST nodes in
-# ``ast``. Instead, we use a thread-local dictionary and make sure to
-# do proper book-keeping.
-node_annotations = threading.local()
+node_annotations = weakref.WeakKeyDictionary()
+
+try:
+    node_annotations[ast.Name()] = None
+except TypeError:
+    logging.debug(
+        "Unable to create weak references to AST nodes. " \
+        "A lock will be used around compilation loop."
+        )
+
+    node_annotations = {}
 
 __docformat__ = 'restructuredtext en'
 
@@ -75,7 +82,7 @@ def swap(root, replacement, name):
             isinstance(node.ctx, ast.Load) and
             node.id == name):
             assert hasattr(replacement, '_fields')
-            node_annotations.__dict__.setdefault(node, replacement)
+            node_annotations.setdefault(node, replacement)
 
 
 class Node(object):
@@ -798,7 +805,7 @@ class ASTCodeGenerator(object):
 
 class AnnotationAwareVisitor(ast.NodeVisitor):
     def visit(self, node):
-        annotation = node_annotations.__dict__.get(node)
+        annotation = node_annotations.get(node)
         if annotation is not None:
             assert hasattr(annotation, '_fields')
             node = annotation
@@ -808,7 +815,7 @@ class AnnotationAwareVisitor(ast.NodeVisitor):
     def apply_transform(self, node):
         result = self.transform(node)
         if result is not node:
-            node_annotations.__dict__[node] = result
+            node_annotations[node] = result
 
 
 class NameLookupRewriteVisitor(AnnotationAwareVisitor):

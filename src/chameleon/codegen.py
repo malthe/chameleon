@@ -57,10 +57,9 @@ def template(function, mode='exec', **kw):
                         else:
                             value = Symbol(value)
 
-                    d = node_annotations.__dict__
-                    assert node not in d
+                    assert node not in node_annotations
                     assert hasattr(value, '_fields')
-                    d[node] = value
+                    node_annotations[node] = value
 
         expr = parse(source, mode=mode)
         if not isinstance(function, basestring):
@@ -182,7 +181,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         return node
 
     def visit(self, node):
-        annotation = node_annotations.__dict__.get(node)
+        annotation = node_annotations.get(node)
         if annotation is None:
             super(TemplateCodeGenerator, self).visit(node)
         else:
