@@ -181,6 +181,13 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
         return node
 
+    def visit(self, node):
+        annotation = node_annotations.__dict__.get(node)
+        if annotation is None:
+            super(TemplateCodeGenerator, self).visit(node)
+        else:
+            self.visit(annotation)
+
     def visit_Comment(self, node):
         if node.stmt is None:
             self._new_line()
@@ -208,10 +215,3 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
         node = self.define(name, node.value)
         self.visit(node)
-
-    def visit_Name(self, node):
-        annotation = node_annotations.__dict__.get(node)
-        if annotation is None:
-            super(TemplateCodeGenerator, self).visit_Name(node)
-        else:
-            self.visit(annotation)
