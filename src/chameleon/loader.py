@@ -5,7 +5,48 @@ import py_compile
 import logging
 import functools
 
-log = logging.getLogger('chameleon.compiler')
+log = logging.getLogger('chameleon.loader')
+
+
+def cache(func):
+    def load(self, *args):
+        template = self.registry.get(args)
+        if template is None:
+            self.registry[args] = template = func(self, *args)
+        return template
+    return load
+
+
+class TemplateLoader(object):
+    """Template loader class.
+
+    To load templates using relative filenames, pass a sequence of
+    paths (or a single path) as ``search_path``.
+
+    Additional keyword-arguments will be passed on to the template
+    constructor.
+    """
+
+    def __init__(self, search_path=None, **kwargs):
+        if search_path is None:
+            search_path = []
+        if isinstance(search_path, basestring):
+            search_path = [search_path]
+        self.search_path = search_path
+        self.registry = {}
+        self.kwargs = kwargs
+
+    @cache
+    def load(self, filename, klass):
+        if os.path.isabs(filename):
+            return klass(filename, self.parser)
+
+        for path in self.search_path:
+            path = os.path.join(path, filename)
+            if os.path.exists(path):
+                return klass(path, **self.kwargs)
+
+        raise ValueError("Template not found: %s." % filename)
 
 
 class MemoryLoader(object):
