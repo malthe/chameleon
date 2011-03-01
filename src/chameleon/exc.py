@@ -97,11 +97,11 @@ class RenderError(TemplateError):
         for error in self.flatten():
             expression, line, column, filename, exc = error
             out += traceback.format_exception_only(type(exc), exc)
-
             out.append(" - Expression: \"%s\"" % expression)
             out.append(" - Filename:   %s" % (filename or "<string>"))
             out.append(" - Location:   (%d:%d)" % (line, column))
-            out.append(" - Arguments:  %s" % "\n".join(formatted))
+
+        out.append(" - Arguments:  %s" % "\n".join(formatted))
 
         return "\n".join(out)
 
