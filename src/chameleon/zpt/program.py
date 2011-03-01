@@ -26,14 +26,17 @@ from .. import metal
 from .. import i18n
 from .. import nodes
 
-from ..utils import validate_attributes
 from ..exc import LanguageError
 from ..exc import ParseError
+from ..exc import CompilationError
 
 try:
     str = unicode
 except NameError:
     long = int
+
+
+missing = object()
 
 
 def skip(node):
@@ -46,7 +49,11 @@ def wrap(node, *wrappers):
     return node
 
 
-missing = object()
+def validate_attributes(attributes, namespace, whitelist):
+    for ns, name in attributes:
+        if ns == namespace and name not in whitelist:
+            raise CompilationError("Bad attribute '%s' for namespace '%s'." % (
+                name, ns))
 
 
 class MacroProgram(ElementProgram):
