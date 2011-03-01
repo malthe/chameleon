@@ -29,10 +29,6 @@ except SyntaxError:
 
 split_parts = re.compile(r'(?<!\\)\|').split
 match_prefix = re.compile(r'^\s*([a-z\-_]+):').match
-match_path_ = re.compile(
-    r'^((nocall|not):\s*)*([A-Za-z_][A-Za-z0-9_:]*)' +
-    r'(/[?A-Za-z_@\-+][?A-Za-z0-9_@\-\.+/:]*)*$')
-substitute_segment = re.compile(r'\?[A-Za-z][A-Za-z0-9_]+')
 
 
 try:
