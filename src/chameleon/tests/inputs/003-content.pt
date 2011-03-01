@@ -12,5 +12,6 @@
     <div tal:content="False" />
     <div tal:content="0" />
     <div tal:content="None" />
+    <div tal:replace="content" />
   </body>
 </html>

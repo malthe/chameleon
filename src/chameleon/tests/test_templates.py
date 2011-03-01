@@ -214,6 +214,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
         self.run_tests(
             ".pt", PageTemplate,
             literal=Literal("<div>Hello world!</div>"),
+            content="<div>Hello world!</div>",
             message=Message(),
             load=loader.bind(PageTemplateFile)
             )
