@@ -34,6 +34,7 @@ match_path_ = re.compile(
     r'(/[?A-Za-z_@\-+][?A-Za-z0-9_@\-\.+/:]*)*$')
 substitute_segment = re.compile(r'\?[A-Za-z][A-Za-z0-9_]+')
 
+
 try:
     from __builtin__ import basestring
 except ImportError:
@@ -106,6 +107,15 @@ class TalesExpr(object):
 
     Subclasses must implement ``translate`` which assigns a value for
     a given expression.
+
+    >>> class PythonPipeExpr(TalesExpr):
+    ...     def translate(self, expression, target):
+    ...         compiler = PythonExpr(expression)
+    ...         return compiler(target, dummy_engine)
+
+    >>> test(PythonPipeExpr('foo | bar | 42'))
+    42
+
     """
 
     exceptions = NameError, \
