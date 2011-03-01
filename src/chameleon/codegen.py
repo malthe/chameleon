@@ -128,7 +128,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
             if isinstance(value, types.ModuleType):
                 stmt = ast.Import(
-                    [ast.alias(value.__name__, node.id)])
+                    names=[ast.alias(name=value.__name__, asname=node.id)])
             elif hasattr(value, '__name__'):
                 path = reverse_builtin_map.get(value)
                 if path is None:
