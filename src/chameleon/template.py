@@ -26,6 +26,7 @@ from .compiler import Compiler
 from .loader import ModuleLoader
 from .loader import MemoryLoader
 from .exc import TemplateError
+from .exc import RenderError
 from .config import DEBUG_MODE
 from .config import AUTO_RELOAD
 from .config import EAGER_PARSING
@@ -40,6 +41,14 @@ try:
 except NameError:
     def byte_string(string):
         return string.encode('utf-8')
+
+version = sys.version_info[:3]
+if version < (3, 0, 0):
+    from .py25 import raise_with_traceback
+else:
+    def raise_with_traceback(exc, tb):
+        exc.__traceback__ = tb
+        raise exc
 
 
 XML_PREFIXES = [
@@ -131,11 +140,31 @@ class BaseTemplate(object):
     def parse(self, body):
         raise NotImplementedError("Must be implemented by subclass.")
 
-    def render(self, **kwargs):
+    def render(self, **rcontext):
         stream = self.output_stream_factory()
-        econtext = kwargs.pop('econtext', False) or Scope(kwargs)
+        econtext = rcontext.pop('econtext', False) or Scope(rcontext)
         self.cook_check()
-        self._render(stream, econtext, kwargs)
+        try:
+            self._render(stream, econtext, rcontext)
+        except:
+            cls, raised, tb = sys.exc_info()
+            errors = rcontext.get('__error__')
+            if errors:
+                exc = RenderError(errors, econtext, rcontext)
+                if not issubclass(cls, RenderError):
+                    try:
+                        new = type(type(exc).__name__, (RenderError, cls), {})
+                        exc.__class__ = new
+                    except TypeError:
+                        # This may not always be possible; let's raise
+                        # the original exception in this case
+                        exc = raised
+                    else:
+                        exc.__dict__.update(raised.__dict__)
+                raise_with_traceback(exc, tb)
+
+            raise
+
         return "".join(stream)
 
     def sniff_type(self, text):

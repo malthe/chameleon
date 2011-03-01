@@ -1,8 +1,6 @@
 import re
 import codecs
 
-from .exc import CompilationError
-
 try:
     import htmlentitydefs
 except ImportError:
@@ -23,13 +21,6 @@ encodings = {
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
 module_cache = {}
-
-
-def validate_attributes(attributes, namespace, whitelist):
-    for ns, name in attributes:
-        if ns == namespace and name not in whitelist:
-            raise CompilationError("Bad attribute '%s' for namespace '%s'." % (
-                name, ns))
 
 
 def read_bom(source):
@@ -108,6 +99,23 @@ def resolve_dotted(dotted):
         resolved = _resolve_dotted(dotted)
         module_cache[dotted] = resolved
     return module_cache[dotted]
+
+
+def format_kwargs(kwargs):
+    items = []
+    for name, value in kwargs.items():
+        if isinstance(value, (int, float, basestring)):
+            items.append((name, value))
+        elif isinstance(value, dict):
+            items.append((name, '{...} (%d)' % len(value)))
+        else:
+            items.append((name,
+                "<%s %s at %s>" % (
+                    type(value).__name__,
+                    getattr(value, '__name__', "-"),
+                    hex(abs(id(value))))))
+
+    return ["%s: %s" % item for item in items]
 
 
 class callablestr(str):

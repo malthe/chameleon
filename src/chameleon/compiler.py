@@ -1,4 +1,5 @@
 import re
+import sys
 import itertools
 import logging
 import threading
@@ -51,6 +52,7 @@ from .config import DEBUG_MODE
 from .exc import TranslationError
 from .utils import DebuggingOutputStream
 from .utils import Placeholder
+from .tokenize import Token
 
 
 log = logging.getLogger('chameleon.compiler')
@@ -267,7 +269,30 @@ class ExpressionCompiler(object):
         return load_econtext(name)
 
     def visit_Expression(self, node, target):
-        return self.engine(node.value, target)
+        stmts = self.engine(node.value, target)
+
+        try:
+            line, column = node.value.location
+            filename = node.value.filename
+        except AttributeError:
+            line, column = 0, 0
+            filename = "<string>"
+
+        return [ast.TryExcept(
+            body=stmts,
+            handlers=[ast.ExceptHandler(
+                body=template(
+                    "rcontext.setdefault('__error__', [])."
+                    "append((expression, line, col, src, sys.exc_info()[1]))\n"
+                    "raise",
+                    expression=ast.Str(s=node.value),
+                    line=ast.Num(n=line),
+                    col=ast.Num(n=column),
+                    src=ast.Str(s=filename),
+                    sys=Symbol(sys),
+                    ),
+                )],
+            )]
 
     def visit_Negate(self, node, target):
         return self.translate(node.value, target) + \

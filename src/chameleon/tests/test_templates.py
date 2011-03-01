@@ -145,9 +145,10 @@ class ZopePageTemplatesTest(RenderTestCase):
 
     @template("""<span tal:content='str(default)'>Default</span>""")
     def test_default_is_not_a_string(self, template):
+        from chameleon.exc import RenderError
         try:
             template()
-        except RuntimeError:
+        except RenderError:
             exc = sys.exc_info()[1]
             self.assertTrue('symbolic value' in str(exc))
         else:

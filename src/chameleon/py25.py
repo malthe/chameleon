@@ -12,5 +12,9 @@ def lookup_attr(obj, key):
             raise exc
 
 
+def raise_with_traceback(exc, tb):
+    raise type(exc), exc, tb
+
+
 def next(iter):
     return iter.next()

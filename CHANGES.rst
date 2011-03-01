@@ -1,6 +1,18 @@
 Changes
 =======
 
+- Added exception handler for exceptions raised while evaluating an
+  expression.
+
+  This handler raises (or attempts to) a new exception of the type
+  ``RenderError``, with an additional base class of the original
+  exception class. The string value of the exception is a formatted
+  error message which includes the expression that caused the
+  exception.
+
+  If we are unable to create the exception class, the original
+  exception is re-raised.
+
 2.0-rc2 (2011-02-28)
 --------------------
 
