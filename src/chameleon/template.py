@@ -119,8 +119,8 @@ class BaseTemplate(object):
 
     @property
     def keep_source(self):
-        # By default, we only save the generated source code if we're in debugging
-        # mode (to save memory).
+        # By default, we only save the generated source code if we're
+        # in debugging mode (to save memory).
         return self.__dict__.get('keep_source', DEBUG_MODE)
 
     def cook(self, body):
