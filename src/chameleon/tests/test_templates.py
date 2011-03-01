@@ -185,6 +185,13 @@ class ZopePageTemplatesTest(RenderTestCase):
             string.replace('${text}', text)
             )
 
+    def test_repr(self):
+        from chameleon.zpt.template import PageTemplateFile
+        template = PageTemplateFile(
+            os.path.join(self.root, 'inputs', 'hello_world.pt')
+            )
+        self.assertTrue(template.filename in repr(template))
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
