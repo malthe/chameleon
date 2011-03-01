@@ -159,7 +159,7 @@ class DebuggingOutputStream(list):
         if not isinstance(value, basestring):
             raise TypeError(value)
 
-        decoded = unicode(value)
+        unicode(value)
         list.append(self, value)
 
 
