@@ -66,12 +66,20 @@ WHITELIST = frozenset([
 def split_parts(arg):
     # Break in pieces at undoubled semicolons and
     # change double semicolons to singles:
-    arg = ENTITY_RE.sub(r'\1;', arg)
+    i = 0
+    while i < len(arg):
+        m = ENTITY_RE.search(arg[i:])
+        if m is None:
+            break
+        arg = arg[:i + m.end()] + ';' + arg[i + m.end():]
+        i += m.end()
+
     arg = arg.replace(";;", "\0")
     parts = arg.split(';')
     parts = [p.replace("\0", ";") for p in parts]
     if len(parts) > 1 and not parts[-1].strip():
         del parts[-1]  # It ended in a semicolon
+
     return parts
 
 
@@ -111,7 +119,7 @@ def parse_defines(clause):
         m = DEFINE_RE.match(part)
         if m is None:
             return
-        context, name, expr = m.group(1, 2, 3)
+        context, name, expr = groups(m, part)
         context = context or "local"
 
         if name.startswith('('):

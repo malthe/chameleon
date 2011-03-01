@@ -27,7 +27,7 @@ except SyntaxError:
     from .py25 import lookup_attr
 
 
-split_parts = re.compile(r'(?<!\\)\|').split
+split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z\-_]+):').match
 
 
@@ -126,13 +126,20 @@ class TalesExpr(object):
     def __call__(self, target, engine):
         remaining = self.expression
         assignments = []
+
         while remaining:
             if match_prefix(remaining) is not None:
                 assignment = engine(remaining, target)
                 remaining = ""
             else:
-                expression = split_parts(remaining, 1)[0]
-                remaining = remaining[len(expression) + 1:]
+                for m in split_parts.finditer(remaining):
+                    expression = remaining[:m.start()]
+                    remaining = remaining[m.end() + 1:]
+                    break
+                else:
+                    expression = remaining
+                    remaining = ""
+
                 expression = expression.replace('\\|', '|')
                 assignment = self.translate(expression, target)
             assignments.append(assignment)
@@ -149,11 +156,11 @@ class TalesExpr(object):
                 body = [ast.TryExcept(
                     body=assignment,
                     handlers=[ast.ExceptHandler(
-                        ast.Tuple(
-                            map(resolve_global, self.exceptions),
-                            ast.Load()),
-                        None,
-                        body,
+                        type=ast.Tuple(
+                            elts=map(resolve_global, self.exceptions),
+                            ctx=ast.Load()),
+                        name=None,
+                        body=body,
                         )],
                     )]
 
@@ -402,7 +409,7 @@ class StringExpr(object):
                 try:
                     body += engine(string, target)
                 except ExpressionError:
-                    matched = m.group()[:-2]
+                    matched = matched[m.start():m.end() - 2]
                     m = self.regex.search(matched)
                     if m is None:
                         raise
