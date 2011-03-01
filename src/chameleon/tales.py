@@ -112,6 +112,9 @@ class TalesExpr(object):
     >>> test(PythonPipeExpr('foo | bar | 42'))
     42
 
+    >>> test(PythonPipeExpr('foo|42'))
+    42
+
     """
 
     exceptions = NameError, \
@@ -134,7 +137,7 @@ class TalesExpr(object):
             else:
                 for m in split_parts.finditer(remaining):
                     expression = remaining[:m.start()]
-                    remaining = remaining[m.end() + 1:]
+                    remaining = remaining[m.end():]
                     break
                 else:
                     expression = remaining
