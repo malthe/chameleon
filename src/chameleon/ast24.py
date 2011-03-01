@@ -129,7 +129,7 @@ for name, cls in _ast.__dict__.items():
         except TypeError:
             pass
 
-class ExceptHandler(AST, _ast.AST):
+class ExceptHandler(AST):
     _fields = "type", "name", "body"
 
 
