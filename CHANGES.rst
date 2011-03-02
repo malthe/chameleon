@@ -1,6 +1,11 @@
 Changes
 =======
 
+Bugfixes:
+
+- Fixed error where ``tal:condition`` would be evaluated after
+  ``tal:repeat``.
+
 Features:
 
 - Python expression is now a TALES expression. That means that the

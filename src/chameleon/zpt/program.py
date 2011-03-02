@@ -369,8 +369,8 @@ class MacroProgram(ElementProgram):
             DEFINE_SLOT,
             DEFINE,
             CASE,
-            REPEAT,
             CONDITION,
+            REPEAT,
             SWITCH,
             )
 
