@@ -52,8 +52,7 @@ def wrap(node, *wrappers):
 def validate_attributes(attributes, namespace, whitelist):
     for ns, name in attributes:
         if ns == namespace and name not in whitelist:
-            raise CompilationError("Bad attribute '%s' for namespace '%s'." % (
-                name, ns))
+            raise CompilationError("Bad attribute for namespace '%s'" % ns, name)
 
 
 class MacroProgram(ElementProgram):
