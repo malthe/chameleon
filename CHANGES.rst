@@ -3,6 +3,10 @@ Changes
 
 Bugfixes:
 
+- Fixed ``atexit`` handler.
+
+  This fixes issue #3.
+
 - If a cache directory is specified, it will now be used even when not
   in debug mode.
 

@@ -80,7 +80,7 @@ def _make_module_loader():
         path = tempfile.mkdtemp()
 
         @atexit.register
-        def cleanup(path=path):
+        def cleanup(path=path, shutil=shutil):
             shutil.rmtree(path)
 
     return ModuleLoader(path)
