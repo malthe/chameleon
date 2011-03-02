@@ -106,7 +106,6 @@ class BaseTemplate(object):
     else:
         output_stream_factory = list
 
-    # Compatibility with 1.x API
     debug = DEBUG_MODE
 
     def __init__(self, body, **kwargs):
@@ -114,6 +113,9 @@ class BaseTemplate(object):
 
         self.content_type = self.sniff_type(body)
         self.cook(body)
+
+        if self.__dict__.get('debug') is True:
+            self.loader = _make_module_loader()
 
     def __call__(self, **kwargs):
         return self.render(**kwargs)
@@ -233,6 +235,11 @@ class BaseTemplateFile(BaseTemplate):
 
         self.filename = filename
         self.auto_reload = kwargs.pop('auto_reload', AUTO_RELOAD)
+
+        self.__dict__.update(kwargs)
+
+        if self.__dict__.get('debug') is True:
+            self.loader = _make_module_loader()
 
         if EAGER_PARSING:
             self.cook_check()

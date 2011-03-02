@@ -12,6 +12,12 @@ Bugfixes:
   any attribute within the TAL namespace. However, only "comment" is
   in common use.
 
+- The template constructor now accepts a flag ``debug`` which puts the
+  template *instance* into debug-mode regardless of the global
+  setting.
+
+  This fixes issue #1.
+
 Features:
 
 - Added exception handler for exceptions raised while evaluating an

@@ -192,6 +192,35 @@ class ZopePageTemplatesTest(RenderTestCase):
             )
         self.assertTrue(template.filename in repr(template))
 
+    def test_default_debug_flag(self):
+        from chameleon.zpt.template import PageTemplateFile
+        from chameleon.config import DEBUG_MODE
+        template = PageTemplateFile(
+            os.path.join(self.root, 'inputs', 'hello_world.pt'),
+            )
+        self.assertEqual(template.debug, DEBUG_MODE)
+        self.assertTrue('debug' not in template.__dict__)
+
+    def test_debug_flag_on_string(self):
+        from chameleon.zpt.template import PageTemplate
+        from chameleon.loader import ModuleLoader
+        template = PageTemplate(
+            open(os.path.join(self.root, 'inputs', 'hello_world.pt')).read(),
+            debug=True,
+            )
+        self.assertTrue(template.debug)
+        self.assertTrue(isinstance(template.loader, ModuleLoader))
+
+    def test_debug_flag_on_file(self):
+        from chameleon.zpt.template import PageTemplateFile
+        from chameleon.loader import ModuleLoader
+        template = PageTemplateFile(
+            os.path.join(self.root, 'inputs', 'hello_world.pt'),
+            debug=True,
+            )
+        self.assertTrue(template.debug)
+        self.assertTrue(isinstance(template.loader, ModuleLoader))
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
