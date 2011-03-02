@@ -125,8 +125,9 @@ class BaseTemplate(object):
 
     def cook(self, body):
         digest = self._digest(body)
+        program = self._cook(body, digest)
 
-        for name, function in self._cook(body, digest).items():
+        for name, function in program.items():
             if not name.startswith('render'):
                 continue
 
