@@ -50,6 +50,7 @@ ENTITY_RE = re.compile(r'(&(#?)(x?)(\d{1,5}|\w{1,8});)')
 
 WHITELIST = frozenset([
     "define",
+    "comment",
     "condition",
     "content",
     "replace",

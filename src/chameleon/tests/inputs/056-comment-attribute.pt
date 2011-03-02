@@ -1,0 +1,7 @@
+<html>
+  <body>
+    <tal:first comment="ignored">
+      Namespace tag
+    </tal:first>
+  </body>
+</html>
