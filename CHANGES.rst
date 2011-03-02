@@ -1,6 +1,17 @@
 Changes
 =======
 
+Features:
+
+- Python expression is now a TALES expression. That means that the
+  pipe operator can be used to chain two or more expressions in a
+  try-except sequence.
+
+  This behavior was ported from the 1.x series. Note that while it's
+  still possible to use the pipe character ("|") in an expression, it
+  must now be escaped.
+
+
 2.0-rc3 (2011-03-02)
 --------------------
 

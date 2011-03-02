@@ -213,20 +213,29 @@ class PathExpr(TalesExpr):
             "can be devised.")
 
 
-class PythonExpr(object):
+class PythonExpr(TalesExpr):
     """Python expression compiler.
 
-    >>> test(PythonExpr('2+2'))
+    >>> test(PythonExpr('2 + 2'))
     4
+
+    The Python expression is a TALES expression. That means we can use
+    the pipe operator:
+
+    >>> test(PythonExpr('foo | 2 + 2 | 5'))
+    4
+
+    To include a pipe character, use a backslash escape sequence:
+
+    >>> test(PythonExpr('\"\|\"'))
+    '|'
+
     """
 
     transform = ItemLookupOnAttributeErrorVisitor(transform_attribute)
 
-    def __init__(self, expression):
-        self.expression = expression
-
-    def __call__(self, target, engine):
-        string = self.expression.strip().replace('\n', ' ')
+    def translate(self, expression, target):
+        string = expression.strip().replace('\n', ' ')
         decoded = decode_htmlentities(string)
 
         try:
