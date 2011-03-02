@@ -88,16 +88,18 @@ class Token(str):
 
     def __getslice__(self, i, j):
         slice = str.__getslice__(self, i, j)
-        return Token(slice, self.pos + i, self.source)
+        return Token(slice, self.pos + i, self.source, self.filename)
 
     def __getitem__(self, index):
         s = str.__getitem__(self, index)
         if isinstance(index, slice):
-            return Token(s, self.pos + (index.start or 0), self.source)
+            return Token(
+                s, self.pos + (index.start or 0), self.source, self.filename)
         return s
 
     def __add__(self, other):
-        return Token(str.__add__(self, other), self.pos, self.source)
+        return Token(
+            str.__add__(self, other), self.pos, self.source, self.filename)
 
     def __eq__(self, other):
         return str.__eq__(self, other)
@@ -107,13 +109,13 @@ class Token(str):
 
     def replace(self, *args):
         s = str.replace(self, *args)
-        return Token(s, self.pos, self.source)
+        return Token(s, self.pos, self.source, self.filename)
 
     def split(self, *args):
         l = str.split(self, *args)
         pos = self.pos
         for i, s in enumerate(l):
-            l[i] = Token(s, pos, self.source)
+            l[i] = Token(s, pos, self.source, self.filename)
             pos += len(s)
         return l
 
@@ -122,11 +124,12 @@ class Token(str):
 
     def lstrip(self, *args):
         s = str.lstrip(self, *args)
-        return Token(s, self.pos + len(self) - len(s), self.source)
+        return Token(
+            s, self.pos + len(self) - len(s), self.source, self.filename)
 
     def rstrip(self, *args):
         s = str.rstrip(self, *args)
-        return Token(s, self.pos, self.source)
+        return Token(s, self.pos, self.source, self.filename)
 
     @property
     def location(self):
@@ -136,4 +139,3 @@ class Token(str):
         body = self.source[:self.pos]
         line = body.count('\n')
         return line + 1, self.pos - body.rfind('\n', 0) - 1
-
