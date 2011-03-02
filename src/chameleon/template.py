@@ -73,6 +73,19 @@ RE_META = re.compile(
 log = logging.getLogger('chameleon.template')
 
 
+def _make_module_loader():
+    if CACHE_DIRECTORY:
+        path = CACHE_DIRECTORY
+    else:
+        path = tempfile.mkdtemp()
+
+        @atexit.register
+        def cleanup(path=path):
+            shutil.rmtree(path)
+
+    return ModuleLoader(path)
+
+
 class BaseTemplate(object):
     """Template base class.
 
@@ -83,17 +96,8 @@ class BaseTemplate(object):
 
     _cooked = False
 
-    if DEBUG_MODE:
-        if CACHE_DIRECTORY:
-            path = CACHE_DIRECTORY
-        else:
-            path = tempfile.mkdtemp()
-
-            @atexit.register
-            def cleanup(path=path):
-                shutil.rmtree(path)
-
-        loader = ModuleLoader(path)
+    if DEBUG_MODE or CACHE_DIRECTORY:
+        loader = _make_module_loader()
     else:
         loader = MemoryLoader()
 

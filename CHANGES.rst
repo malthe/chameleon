@@ -3,6 +3,9 @@ Changes
 
 Bugfixes:
 
+- If a cache directory is specified, it will now be used even when not
+  in debug mode.
+
 - Allow "comment" attribute in the TAL namespace.
 
   This fixes an issue in the sense that the reference engine allows
