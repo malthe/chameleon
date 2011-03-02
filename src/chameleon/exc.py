@@ -14,15 +14,20 @@ class TemplateError(Exception):
         self.filename = token.filename
 
     def __str__(self):
+        text = "%s\n\n" % self.msg
+        text += "   - String:   \"%s\"" % self.token
+
+        if self.filename:
+            text += "\n"
+            text += "   - Filename: %s" % self.filename
+
         try:
             line, column = self.token.location
         except AttributeError:
-            line, column = -1, -1
-
-        text = "%s: '%s' [%d:%d]" % (self.msg, self.token, line, column)
-
-        if self.filename:
-            text = "%s.\n\n%s" % (self.filename, text)
+            pass
+        else:
+            text += "\n"
+            text += "   - Location: (%d:%d)" % (line, column)
 
         return text
 
