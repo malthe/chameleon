@@ -7,7 +7,7 @@ It includes a feature-complete engine for the Zope Page Templates
 (ZPT) language.
 
 Templates are compiled (or *translated*) into Python source code. This
-means that logic and control flow is evaluated inline without
+means that logic and control flow are evaluated inline without
 additional function calls or run-time decisions, decimating the
 template engine overhead. In real-world applications such as `Plone
 <http://www.plone.org>`_, this translates to 30-60% better response
