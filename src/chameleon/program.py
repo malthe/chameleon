@@ -1,9 +1,4 @@
 try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
-try:
     str = unicode
 except NameError:
     long = int
