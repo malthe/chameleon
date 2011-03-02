@@ -1,6 +1,16 @@
 Changes
 =======
 
+Bugfixes:
+
+- Allow "comment" attribute in the TAL namespace.
+
+  This fixes an issue in the sense that the reference engine allows
+  any attribute within the TAL namespace. However, only "comment" is
+  in common use.
+
+Features:
+
 - Added exception handler for exceptions raised while evaluating an
   expression.
 
