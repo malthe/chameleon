@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.0-rc3 (2011-03-02)
+--------------------
+
 Bugfixes:
 
 - Fixed ``atexit`` handler.
