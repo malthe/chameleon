@@ -1,5 +1,8 @@
 <html>
   <body>
     <div tal:condition="False" tal:repeat="item bad_input" />
+    <div tal:define="sequence 1, 2, 3"
+         tal:repeat="item sequence"
+         tal:replace="item" />
   </body>
 </html>
