@@ -4,6 +4,7 @@ import sys
 import py_compile
 import logging
 import functools
+import tempfile
 
 log = logging.getLogger('chameleon.loader')
 
@@ -95,17 +96,22 @@ class ModuleLoader(object):
         try:
             base, ext = os.path.splitext(filename)
             name = os.path.join(self.path, base + ".py")
-            assert not os.path.exists(name)
             log.debug("writing source to disk (%d bytes)." % len(source))
-            f = open(name, "w")
+            temp = tempfile.NamedTemporaryFile(
+                prefix=base, suffix='.tmp', dir=self.path, delete=False)
             try:
-                f.write("%s\n" % '# -*- coding: utf-8 -*-')
-                f.write(source)
-            finally:
-                f.close()
+                try:
+                    temp.write("%s\n" % '# -*- coding: utf-8 -*-')
+                    temp.write(source)
+                finally:
+                    temp.close()
+            except:
+                os.remove(temp.name)
+                raise
 
+            os.rename(temp.name, name)
             log.debug("compiling %s into byte-code..." % filename)
-            py_compile.compile(f.name)
+            py_compile.compile(name)
 
             return self._load(base, name)
         finally:
