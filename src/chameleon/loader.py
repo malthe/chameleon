@@ -97,8 +97,8 @@ class ModuleLoader(object):
             base, ext = os.path.splitext(filename)
             name = os.path.join(self.path, base + ".py")
             log.debug("writing source to disk (%d bytes)." % len(source))
-            temp = tempfile.NamedTemporaryFile(
-                prefix=base, suffix='.tmp', dir=self.path, delete=False)
+            fd, fn = tempfile.mkstemp(prefix=base, suffix='.tmp', dir=self.path)
+            temp = open(fn, 'w')
             try:
                 try:
                     temp.write("%s\n" % '# -*- coding: utf-8 -*-')
@@ -106,10 +106,10 @@ class ModuleLoader(object):
                 finally:
                     temp.close()
             except:
-                os.remove(temp.name)
+                os.remove(fn)
                 raise
 
-            os.rename(temp.name, name)
+            os.rename(fn, name)
             log.debug("compiling %s into byte-code..." % filename)
             py_compile.compile(name)
 
