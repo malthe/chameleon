@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.0-rc4 (2011-03-03)
+--------------------
+
 Bugfixes:
 
 - Fixed an issue where the output of an end-to-end string expression
