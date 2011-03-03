@@ -107,6 +107,12 @@ def emit_node(node):  # pragma: no cover
 
 
 @template
+def emit_node_if_non_trivial(node):  # pragma: no cover
+    if node is not None:
+        append(node)
+
+
+@template
 def emit_convert(target, native=bytes, str=str, long=long):  # pragma: no cover
     if target is not None:
         _tt = type(target)
@@ -156,7 +162,7 @@ def emit_convert_and_escape(
             except RuntimeError:
                 target = target()
             else:
-                if re_needs_escape(target) is not None:
+                if target is not None and re_needs_escape(target) is not None:
                     # character escape
                     if '&' in target:
                         if ';' in target:
@@ -556,7 +562,7 @@ class Compiler(object):
         name = identifier("content")
 
         return expression(store(name), engine) + \
-               emit_node(load(name))
+               emit_node_if_non_trivial(load(name))
 
     def visit_Assignment(self, node):
         for name in node.names:

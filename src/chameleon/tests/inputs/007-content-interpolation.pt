@@ -3,5 +3,6 @@
     ${'Hello world!'}
     ${literal}
     ${None}
+    <div>${None}</div>
   </body>
 </html>

@@ -3,6 +3,10 @@ Changes
 
 Bugfixes:
 
+- Fixed an issue where the output of an end-to-end string expression
+  would raise an exception if the expression evaluated to ``None`` (it
+  should simply output nothing).
+
 - The ``convert`` function (which is configurable on the template
   class level) now defaults to the ``translate`` function (at
   run-time).
