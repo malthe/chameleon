@@ -335,14 +335,14 @@ class StringExpr(object):
 
     Here's a more involved example taken from a javascript source:
 
-    >>> print test(StringExpr(\"\"\"
+    >>> result = test(StringExpr(\"\"\"
     ... function(oid) {
     ...     $('#' + oid).autocomplete({source: ${source}});
     ... }
     ... \"\"\"))
-    function(oid) {
-        $('#' + oid).autocomplete({source: source});
-    }
+
+    >>> 'source: source' in result
+    True
 
     In the above examples, the expression is evaluated using the
     dummy engine which just returns the input as a string.
