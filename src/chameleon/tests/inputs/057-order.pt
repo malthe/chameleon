@@ -1,0 +1,5 @@
+<html>
+  <body>
+    <div tal:condition="False" tal:repeat="item bad_input" />
+  </body>
+</html>
