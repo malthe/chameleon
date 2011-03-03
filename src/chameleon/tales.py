@@ -333,6 +333,17 @@ class StringExpr(object):
     >>> test(StringExpr('Hello ${a}${b}${c}!'))
     'Hello abc!'
 
+    Here's a more involved example taken from a javascript source:
+
+    >>> print test(StringExpr(\"\"\"
+    ... function(oid) {
+    ...     $('#' + oid).autocomplete({source: ${source}});
+    ... }
+    ... \"\"\"))
+    function(oid) {
+        $('#' + oid).autocomplete({source: source});
+    }
+
     In the above examples, the expression is evaluated using the
     dummy engine which just returns the input as a string.
 
@@ -421,7 +432,7 @@ class StringExpr(object):
                 try:
                     body += engine(string, target)
                 except ExpressionError:
-                    matched = matched[m.start():m.end() - 2]
+                    matched = matched[m.start():m.end() - 1]
                     m = self.regex.search(matched)
                     if m is None:
                         raise

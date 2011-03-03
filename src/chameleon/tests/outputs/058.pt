@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <script>
+      deform.addCallback(
+        '1',
+        function (oid) {
+            $('#' + oid).autocomplete({source: values});
+            $('#' + oid).autocomplete("option", options);
+        }
+      );
+    </script>
+  </head>
+  <body>
+    <!-- Form -->
+  </body>
+</html>

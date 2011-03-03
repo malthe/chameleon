@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <script tal:define="field {'oid': 1}; values 'values'; options 'options'">
+      deform.addCallback(
+        '${field.oid}',
+        function (oid) {
+            $('#' + oid).autocomplete({source: ${values}});
+            $('#' + oid).autocomplete("option", ${options});
+        }
+      );
+    </script>
+  </head>
+  <body>
+    <!-- Form -->
+  </body>
+</html>

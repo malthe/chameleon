@@ -3,6 +3,11 @@ Changes
 
 Bugfixes:
 
+- Fixed string interpolation issue where an expression immediately
+  succeeded by a right curly bracket would not parse.
+
+  This fixes issue #5.
+
 - Fixed error where ``tal:condition`` would be evaluated after
   ``tal:repeat``.
 
