@@ -449,6 +449,11 @@ class StringExpr(object):
         if len(nodes) == 1:
             target = nodes[0]
         else:
+            nodes = [
+                template("NODE or ''", NODE=node, mode="eval")
+                for node in nodes
+                ]
+
             target = ast.BinOp(
                 left=ast.Str(s="%s" * len(nodes)),
                 op=ast.Mod(),
