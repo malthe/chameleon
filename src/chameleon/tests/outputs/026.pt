@@ -1,8 +1,8 @@
 <div xmlns="http://www.w3.org/1999/xhtml">
   <ul>
-    <li class="even">0</li>
-    <li class="odd">1</li>
-    <li class="even">2</li>
+    <li name="0-0" class="even">0</li>
+    <li name="1-1" class="odd">1</li>
+    <li name="2-2" class="even">2</li>
   </ul>
   <ul>
     <li class="even">0</li>

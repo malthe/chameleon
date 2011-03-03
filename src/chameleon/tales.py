@@ -450,7 +450,7 @@ class StringExpr(object):
             target = nodes[0]
         else:
             nodes = [
-                template("NODE or ''", NODE=node, mode="eval")
+                template("NODE if NODE is not None else ''", NODE=node, mode="eval")
                 for node in nodes
                 ]
 
