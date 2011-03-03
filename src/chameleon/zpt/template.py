@@ -45,7 +45,9 @@ class PageTemplate(BaseTemplate):
 
     default_expression = 'python'
 
-    convert = translate = staticmethod(fast_translate)
+    translate = staticmethod(fast_translate)
+
+    convert = None
 
     decode = str
 
@@ -68,7 +70,7 @@ class PageTemplate(BaseTemplate):
 
     def render(self, translate=None, convert=None, decode=None, **kwargs):
         translate = translate if translate is not None else self.translate
-        convert = convert if convert is not None else self.convert
+        convert = convert if convert is not None else translate
         decode = decode if decode is not None else self.decode
         encoding = self.encoding
 

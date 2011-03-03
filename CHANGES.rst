@@ -3,6 +3,14 @@ Changes
 
 Bugfixes:
 
+- The ``convert`` function (which is configurable on the template
+  class level) now defaults to the ``translate`` function (at
+  run-time).
+
+  This fixes an issue where message objects were not translated (and
+  thus converted to a string) using the a provided ``translate``
+  function.
+
 - Fixed string interpolation issue where an expression immediately
   succeeded by a right curly bracket would not parse.
 
