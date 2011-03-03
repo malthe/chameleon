@@ -16,6 +16,8 @@ Features:
   still possible to use the pipe character ("|") in an expression, it
   must now be escaped.
 
+- The template cache can now be shared by multiple processes.
+
 
 2.0-rc3 (2011-03-02)
 --------------------
