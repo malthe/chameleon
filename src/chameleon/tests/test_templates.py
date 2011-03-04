@@ -67,6 +67,18 @@ class TemplateFileTestCase(TestCase):
         template.cook_check()
         self.assertEqual(template.cook_count, 2)
 
+    def test_relative_is_expanded_to_cwd(self):
+        try:
+            template = self._class("___does_not_exist___")
+        except OSError:
+            exc = sys.exc_info()[1]
+            self.assertEqual(
+                os.getcwd(),
+                os.path.dirname(exc.filename)
+                )
+        else:
+            self.fail("Expected OSError.")
+
 
 class RenderTestCase(TestCase):
     root = os.path.dirname(__file__)

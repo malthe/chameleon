@@ -224,14 +224,17 @@ class BaseTemplateFile(BaseTemplate):
 
     def __init__(self, filename, *args, **kwargs):
         if not os.path.isabs(filename):
-            try:
-                loader = kwargs['loader']
-            except KeyError:
-                raise KeyError(
-                    "Must provide template loader for "
-                    "relative filenames ('%s')." % filename)
+            loader = kwargs.get('loader')
+            if loader is not None:
+                filename = loader.find(filename)
 
-            filename = loader.find(filename)
+        # Normalize filename
+        filename = os.path.abspath(
+            os.path.normpath(os.path.expanduser(filename))
+            )
+
+        # Make sure file exists
+        os.lstat(filename)
 
         self.filename = filename
         self.auto_reload = kwargs.pop('auto_reload', AUTO_RELOAD)

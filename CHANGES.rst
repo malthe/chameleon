@@ -1,6 +1,17 @@
 Changes
 =======
 
+Features:
+
+- If a custom template loader is not provided, relative paths are now
+  resolved using ``os.abspath`` (i.e. to the current working
+  directory).
+
+- Absolute paths are normalized using ``os.path.normpath`` and
+  ``os.path.expanduser``. This ensures that all paths are kept in
+  their "canonical" form.
+
+
 2.0-rc4 (2011-03-03)
 --------------------
 
