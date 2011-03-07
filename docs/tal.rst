@@ -1,5 +1,7 @@
 .. _tal_chapter:
 
+.. highlight:: xml
+
 Template Attribute Language (TAL)
 =================================
 
@@ -84,9 +86,6 @@ These are the available TAL statements:
 - ``tal:default-expression`` - set the default expression type for a
   block of tags.
 
-.. warning:: The reference implementation of ZPT has an additonal command
-   ``tal:on-error`` which :mod:`chameleon.zpt` does not implement.
-
 Order of Operations
 -------------------
 
@@ -153,8 +152,6 @@ value of each expression is converted to a string, if necessary.
 
 If an attribute expression evaluates to ``None``, then that attribute is deleted from the statement element.
 
-.. warning:: The ``nothing`` symbol is not defined in :mod:`chameleon.zpt`. The standard Python null-value ``None`` is be used in its place.
-
 If the expression evaluates to the symbol ``default`` (a symbol which is always available when evaluating attributes), its value is defined as the default static attribute value.
 
 If you use ``tal:attributes`` on an element with an active
@@ -170,12 +167,16 @@ Examples
 Replacing a link::
 
     <a href="/sample/link.html"
-     tal:attributes="href context.url()">
+       tal:attributes="href context.url()"
+       >
+       ...
+    </a>
 
 Replacing two attributes::
 
     <textarea rows="80" cols="20"
-     tal:attributes="rows request.rows();cols request.cols()">
+              tal:attributes="rows request.rows();cols request.cols()"
+        />
 
 ``tal:condition``: Conditionally insert or remove an element
 ------------------------------------------------------------
@@ -210,7 +211,7 @@ Test a variable before inserting it::
 
         <p tal:condition="request.message"
            tal:content="request.message">
-           message goes here
+           <!-- message goes here -->
         </p>
 
 Testing for odd/even in a repeat-loop::
@@ -222,7 +223,7 @@ Testing for odd/even in a repeat-loop::
 
 ``tal:content``: Replace the content of an element
 --------------------------------------------------
- 
+
 Syntax
 ~~~~~~
 
@@ -257,8 +258,9 @@ Inserting the user name::
 
 Inserting HTML/XML::
 
-        <p tal:content="structure context.getStory()">marked <b>up</b>
-        content goes here.</p>
+        <p tal:content="structure context.getStory()">
+           Marked <b>up</b> content goes here.
+        </p>
 
 ``tal:define``: Define variables
 --------------------------------
@@ -280,7 +282,7 @@ The ``tal:define`` statement defines variables.  When you define a
 local variable in a statement element, you can use that variable in
 that element and the elements it contains.  If you redefine a variable
 in a contained element, the new definition hides the outer element's
-definition within the inner element.  
+definition within the inner element.
 
 If the expression associated with a variable evaluates to ``nothing``,
 then that variable has the value ``nothing``, and may be used as such

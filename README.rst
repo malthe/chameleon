@@ -1,17 +1,21 @@
 Overview
 ========
 
-Chameleon is an HTML/XML [1]_ template language compiler.
+Chameleon is an HTML/XML template language compiler.
 
-It includes a feature-complete engine for the Zope Page Templates
-(ZPT) language.
+The distribution comes with a complete template engine: Chameleon Page
+Templates [1]_.
 
-The software is released on PyPi. To download and install the latest
-release::
+There are no external library dependencies [2]_. You can install it
+using setuptools or the newer `distribute
+<http://packages.python.org/distribute/>`_ (recommended)::
 
-  $ easy-install -U Chameleon
+  $ easy_install Chameleon
 
-Platforms
+Formatted `documentation <http://repoze.chameleon.org/docs/latest>`_
+is available.
+
+Platform
 ---------
 
 This library has been successfully tested on the following platforms:
@@ -78,10 +82,29 @@ templates that require only a static scope.
 License and Copyright
 ---------------------
 
-This software is made available as-is under a BSD-like license
-[2]_ (see included copyright notice).
+This software is made available as-is under a BSD-like license [3]_
+(see included copyright notice).
 
-.. [1] There is currently no support for unstructured documents.
 
-.. [2] Licensed under the `Repoze <http://repoze.org/license.html>`_
-       license.
+Notes
+-----
+
+.. [1] The template language specifications and API for the Page
+       Templates engine are based on Zope Page Templates (see in
+       particular `zope.pagetemplate
+       <http://pypi.python.org/pypi/zope.pagetemplate>`_). However,
+       the Chameleon compiler and Page Templates engine is an entirely
+       new codebase, packaged as a standalone distribution. It does
+       require a Zope software environment.
+
+.. [2] The string translation interface is based on the `gettext
+       <http://www.gnu.org/software/gettext/gettext.html>`_
+       library. Chameleon comes with built-in support for the
+       `zope.i18n <http://pypi.python.org/pypi/zope.i18n>`_ package
+       which includes a translation framework
+       (internationalization). If this package is installed, it will
+       be used as the default translation framework. It is trivial to
+       provide a custom translation function, however.
+
+.. [3] This software is licensed under the `Repoze
+       <http://repoze.org/license.html>`_ license.

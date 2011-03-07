@@ -32,28 +32,30 @@ omitting the prefix.
 TALES Expression Types
 ----------------------
 
-These are the TALES expression types supported by default in
-:mod:`chameleon.zpt`:
+These are the available TALES expression types:
 
-* ``python`` - execute a Python expression
+* ``python`` - Evaluate a Python expression
 
-* ``string`` - format a string
+* ``string`` - Format a string
 
-.. note:: if you do not specify a prefix within an expression context,
-   :mod:`chameleon.zpt` assumes that the expression is a *python*
-   expression.
+* ``not`` - Negate the expression result
+
+* ``exists`` - Evaluate the result inside an exception handler; if one of the exceptions ``AttributeError``, ``LookupError``, ``TypeError``, ``NameError``, or ``KeyError`` is raised during evaluation, the result is ``False``, otherwise ``True``. Note that the original result is discarded in any case.
+
+* ``import`` - Import a global symbol using dotted notation.
+
+.. note:: The default expression type is ``python``.
 
 There's a mechanism to allow fallback to alternative expressions, if one should fail (raise an exception). The pipe character ('|') is used to separate two expressions.
 
-.. warning:: The reference implementation of ZPT has a number of expression types that are closely tied to the Zope framework.
+.. warning:: The ZPT engine defaults to a ``path`` expression type, which is closely tied to the Zope framework. This expression is not implemented in Chameleon.
 
 .. _tales_built_in_names:
 
 Built-in Names
 --------------
 
-These are the names always available to TALES expressions in
-:mod:`chameleon.zpt`:
+These are the names always available in the TALES expression namespace:
 
 - ``default`` - special value used to specify that existing text or attributes should not be replaced. See the documentation for individual TAL statements for details on how they interpret *default*.
 
@@ -63,7 +65,7 @@ These are the names always available to TALES expressions in
 - ``template`` - reference to the template which was first called; this symbol is carried over when using macros.
 
 - ``macros`` - reference to the macros dictionary that corresponds to the current template.
-  
+
 ``python`` expressions
 ----------------------
 
