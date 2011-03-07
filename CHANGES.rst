@@ -1,6 +1,11 @@
 Changes
 =======
 
+Imports:
+
+- The page template classes and the loader class can now be imported
+  directly from the ``chameleon`` module.
+
 Features:
 
 - If a custom template loader is not provided, relative paths are now

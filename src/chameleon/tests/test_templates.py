@@ -24,6 +24,17 @@ class Message(object):
         return "message"
 
 
+class ImportTestCase(TestCase):
+    def test_pagetemplates(self):
+        from chameleon import PageTemplate
+        from chameleon import PageTemplateFile
+        from chameleon import PageTemplateLoader
+
+    def test_pagetexttemplates(self):
+        from chameleon import PageTextTemplate
+        from chameleon import PageTextTemplateFile
+
+
 class TemplateFileTestCase(TestCase):
     @property
     def _class(self):

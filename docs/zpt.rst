@@ -18,8 +18,8 @@ of the combinations *text* or *xml*, and *string* or *file*.
 Most projects will benefit from the simplicity of the template loader
 utility::
 
-  from chameleon.zpt.loader import TemplateLoader
-  templates = TemplateLoader("/some/absolute/path")
+  from chameleon import PageTemplateLoader
+  templates = PageTemplateLoader("/some/absolute/path")
 
 To load a template file ``"hello.pt"`` relative to the provided path,
 use the dictionary syntax::
@@ -29,7 +29,7 @@ use the dictionary syntax::
 The alternative is to invoke the appropriate constructor
 directly. Let's try with a string input::
 
-  from chameleon.zpt.template import PageTemplate
+  from chameleon import PageTemplate
   template = PageTemplate("<div>Hello, $name.</div>")
 
 All template instances are callable. Provide arguments as keywords::
