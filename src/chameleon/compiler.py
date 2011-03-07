@@ -741,10 +741,12 @@ class Compiler(object):
         body = []
 
         target = identifier("attr", node.name)
-        body += self._engine(node.expression, store(target)) + \
-                emit_convert_and_escape(target, target,
-                                        quote=ast.Str(s=node.quote)
-                                        )
+        body += self._engine(node.expression, store(target))
+
+        if node.escape:
+            body += emit_convert_and_escape(
+                target, target, quote=ast.Str(s=node.quote)
+                )
 
         f = node.space + node.name + node.eq + node.quote + "%s" + node.quote
         body += template(

@@ -1,6 +1,14 @@
 Changes
 =======
 
+Bugfixes:
+
+- Fixed an issue where static attribute values would be subject to
+  escaping, which is unnecessary since the value appeared as-is in the
+  source template. This fixes an issue where an attribute value such
+  as ``"true && false"`` (which is invalid markup) would be
+  (incorrectly) converted into valid markup.
+
 Imports:
 
 - The page template classes and the loader class can now be imported
