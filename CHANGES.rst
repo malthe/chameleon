@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.0-rc5 (2011-03-07)
+--------------------
+
 Bugfixes:
 
 - Fixed a number of issues concerning the escaping of attribute

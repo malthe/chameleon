@@ -1,4 +1,4 @@
-__version__ = '2.0-rc4'
+__version__ = '2.0-rc5'
 
 import os
 import sys
@@ -52,7 +52,7 @@ class Benchmark(test):
 setup(
     name="Chameleon",
     version=__version__,
-    description="Fast XML template compiler for Python.",
+    description="Fast HTML/XML Template Compiler.",
     long_description="\n\n".join((README, CHANGES)),
     classifiers=[
        "Development Status :: 4 - Beta",
