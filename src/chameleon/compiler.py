@@ -163,11 +163,21 @@ def emit_convert_and_escape(
                 target = target()
             else:
                 if target is not None and re_needs_escape(target) is not None:
-                    # character escape
+                    # Character escape
                     if '&' in target:
+                        # If there's a semicolon in the string, then
+                        # it might be part of an HTML entity. We
+                        # replace the ampersand character with its
+                        # HTML entity counterpart only if it's
+                        # precedes an HTML entity string.
                         if ';' in target:
-                            target = re_amp.sub('&amp', target)
-                        target = target.replace('&', '&amp;')
+                            target = re_amp.sub('&amp;', target)
+
+                        # Otherwise, it's safe to replace all
+                        # ampersands:
+                        else:
+                            target = target.replace('&', '&amp;')
+
                     if '<' in target:
                         target = target.replace('<', '&lt;')
                     if '>' in target:

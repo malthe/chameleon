@@ -1,6 +1,10 @@
 <html>
   <body>
     <pre>amp=&amp;amp; lt=&amp;lt;</pre>
-    <pre>amp=&amp; lt=&lt;</pre>
+    <pre>amp=&amp;amp; lt=&amp;lt;</pre>
+    &lt;script /&gt;
+    &lt;script /&gt;
+    &lt;script /&gt;
+    <script />
   </body>
 </html>

@@ -8,9 +8,11 @@ except ImportError:
 
 try:
     chr = unichr
+    native = str
 except NameError:
     basestring = str
     unicode = str
+    native = str
 
 encodings = {
     codecs.BOM_UTF8: 'UTF8',
@@ -62,6 +64,11 @@ def substitute_entity(match, n2cp=htmlentitydefs.name2codepoint):
 
 
 def decode_htmlentities(string):
+    """
+    >>> native(decode_htmlentities('&amp;amp;'))
+    '&amp;'
+
+    """
     decoded = entity_re.subn(substitute_entity, string)[0]
 
     # preserve input token data

@@ -1,5 +1,6 @@
 <html>
   <body>
     <span onclick="alert(true && false);">test</span>
+    <span onclick="alert(true &amp;&amp; false);">test</span>
   </body>
 </html>

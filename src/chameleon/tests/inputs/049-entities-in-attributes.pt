@@ -2,5 +2,9 @@
   <body>
     <pre tal:content="string:amp=&amp;amp; lt=&amp;lt;"  />
     <pre tal:content="structure string:amp=&amp;amp; lt=&amp;lt;"  />
+    <script tal:replace="structure string:&lt;script /&gt;" />
+    <script tal:replace="string:&lt;script /&gt;" />
+    <script tal:replace="string:${'&lt;'}script /${'&gt;'}" />
+    <script tal:replace="structure string:${'&lt;'}script /${'&gt;'}" />
   </body>
 </html>

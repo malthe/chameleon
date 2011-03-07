@@ -3,11 +3,24 @@ Changes
 
 Bugfixes:
 
-- Fixed an issue where static attribute values would be subject to
-  escaping, which is unnecessary since the value appeared as-is in the
-  source template. This fixes an issue where an attribute value such
-  as ``"true && false"`` (which is invalid markup) would be
-  (incorrectly) converted into valid markup.
+- Fixed a number of issues concerning the escaping of attribute
+  values:
+
+  1) Static attribute values are now included as they appear in the
+     source.
+
+     This means that invalid attribute values such as ``"true &&
+     false"`` are now left alone. It's not the job of the template
+     engine to correct such markup, at least not in the default mode
+     of operation.
+
+  2) The string expression compiler no longer unescapes
+     values. Instead, this is left to each expression
+     compiler. Currently only the Python expression compiler unescapes
+     its input.
+
+  3) The dynamic escape code sequence now correctly only replaces
+     ampersands that are part of an HTML escape format.
 
 Imports:
 

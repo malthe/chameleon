@@ -404,7 +404,7 @@ class StringExpr(object):
 
         body = []
         nodes = []
-        text = decode_htmlentities(self.expression)
+        text = self.expression
 
         while text:
             matched = text
