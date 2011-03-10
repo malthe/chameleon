@@ -13,9 +13,10 @@ except NameError:
 
 class TypeSniffingTestCase(unittest.TestCase):
     def get_template(self, text):
-        f = tempfile.NamedTemporaryFile(suffix=".html")
+        f = tempfile.NamedTemporaryFile(suffix=".html", delete=False)
         f.write(text)
         f.flush()
+        f.close()
 
         self._temporary = f
 

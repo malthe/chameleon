@@ -50,13 +50,15 @@ class TemplateFileTestCase(TestCase):
         return TestTemplateFile
 
     def _make_temporary_file(self):
-        return tempfile.NamedTemporaryFile(suffix=".py")
+        return tempfile.NamedTemporaryFile(suffix=".py", delete=False)
 
     def test_cook_check(self):
         f = self._make_temporary_file()
+        f.close()
         template = self._class(f.name)
         template.cook_check()
         self.assertEqual(template.cook_count, 1)
+        os.remove(f.name)
 
     def test_auto_reload(self):
         f = self._make_temporary_file()
