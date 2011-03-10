@@ -12,7 +12,7 @@ using setuptools or the newer `distribute
 
   $ easy_install Chameleon
 
-Formatted `documentation <http://repoze.chameleon.org/docs/latest>`_
+Formatted `documentation <http://chameleon.repoze.org/docs/latest/>`_
 is available.
 
 Platform
