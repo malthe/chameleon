@@ -98,8 +98,7 @@ class ModuleLoader(object):
             name = os.path.join(self.path, base + ".py")
             log.debug("writing source to disk (%d bytes)." % len(source))
             fd, fn = tempfile.mkstemp(prefix=base, suffix='.tmp', dir=self.path)
-            os.close(fd)
-            temp = open(fn, 'w')
+            temp = os.fdopen(fd, 'w')
             try:
                 try:
                     temp.write("%s\n" % '# -*- coding: utf-8 -*-')
