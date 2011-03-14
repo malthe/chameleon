@@ -1,6 +1,12 @@
 Changes
 =======
 
+In next release...
+
+- Use already open file using ``os.fdopen`` when trying to write out
+  the module source. This fixes LP #731803.
+
+
 2.0-rc5 (2011-03-07)
 --------------------
 

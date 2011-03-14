@@ -81,24 +81,22 @@ class ModuleLoader(object):
         if os.path.exists(path):
             log.debug("loading module from cache: %s." % filename)
             base, ext = os.path.splitext(filename)
-            imp.acquire_lock()
-            try:
-                module = sys.modules.get(base)
-                if module is not None:
-                    return module.__dict__
-
-                return self._load(base, path)
-            finally:
-                imp.release_lock()
+            return self._load(base, path)
 
     def build(self, source, filename):
         imp.acquire_lock()
         try:
+            d = self.get(filename)
+            if d is not None:
+                return d
+
             base, ext = os.path.splitext(filename)
             name = os.path.join(self.path, base + ".py")
+
             log.debug("writing source to disk (%d bytes)." % len(source))
             fd, fn = tempfile.mkstemp(prefix=base, suffix='.tmp', dir=self.path)
-            temp = open(fn, 'w')
+            temp = os.fdopen(fd, 'w')
+
             try:
                 try:
                     temp.write("%s\n" % '# -*- coding: utf-8 -*-')
@@ -118,11 +116,17 @@ class ModuleLoader(object):
             imp.release_lock()
 
     def _load(self, base, filename):
-        f = open(filename, 'rb')
+        imp.acquire_lock()
         try:
-            assert base not in sys.modules
-            module = imp.load_source(base, filename, f)
+            module = sys.modules.get(base)
+            if module is None:
+                f = open(filename, 'rb')
+                try:
+                    assert base not in sys.modules
+                    module = imp.load_source(base, filename, f)
+                finally:
+                    f.close()
         finally:
-            f.close()
+            imp.release_lock()
 
         return module.__dict__
