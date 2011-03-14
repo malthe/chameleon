@@ -227,10 +227,12 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_debug_flag_on_string(self):
         from chameleon.zpt.template import PageTemplate
         from chameleon.loader import ModuleLoader
-        template = PageTemplate(
-            open(os.path.join(self.root, 'inputs', 'hello_world.pt')).read(),
-            debug=True,
-            )
+
+        with open(os.path.join(self.root, 'inputs', 'hello_world.pt')) as f:
+            source = f.read()
+
+        template = PageTemplate(source, debug=True)
+
         self.assertTrue(template.debug)
         self.assertTrue(isinstance(template.loader, ModuleLoader))
 

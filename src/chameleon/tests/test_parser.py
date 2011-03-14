@@ -15,8 +15,9 @@ class ParserTest(TestCase):
         for filename in os.listdir(path):
             if not filename.endswith('.html'):
                 continue
-            f = open(os.path.join(path, filename), 'rb')
-            source = f.read()
+
+            with open(os.path.join(path, filename), 'rb') as f:
+                source = f.read()
 
             from ..utils import read_encoded
             try:
