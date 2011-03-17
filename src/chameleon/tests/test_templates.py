@@ -5,6 +5,7 @@ import os
 import sys
 import shutil
 import tempfile
+import simpletempfile
 
 from functools import wraps
 
@@ -50,7 +51,7 @@ class TemplateFileTestCase(TestCase):
         return TestTemplateFile
 
     def _make_temporary_file(self):
-        return tempfile.NamedTemporaryFile(suffix=".py")
+        return simpletempfile.NamedTemporaryFile(suffix=".py")
 
     def test_cook_check(self):
         f = self._make_temporary_file()

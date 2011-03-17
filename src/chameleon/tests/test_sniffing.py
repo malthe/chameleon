@@ -1,4 +1,4 @@
-import tempfile
+import simpletempfile
 import unittest
 
 
@@ -12,10 +12,16 @@ except NameError:
 
 
 class TypeSniffingTestCase(unittest.TestCase):
+    def tearDown(self):
+        if hasattr(self, '_temporary'):
+            print "del "+self._temporary.name
+            self._temporary.close()
+
     def get_template(self, text):
-        f = tempfile.NamedTemporaryFile(suffix=".html")
-        f.write(text)
-        f.flush()
+        f = simpletempfile.NamedTemporaryFile(suffix=".html")
+        print "created "+f.name
+        with open(f.name, 'w') as tmpfile:
+            tmpfile.write(text)
 
         self._temporary = f
 
