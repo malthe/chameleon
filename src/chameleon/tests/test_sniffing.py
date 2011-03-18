@@ -1,6 +1,7 @@
-import simpletempfile
+import os
 import unittest
-
+import tempfile
+import shutil
 
 try:
     str = unicode
@@ -12,16 +13,25 @@ except NameError:
 
 
 class TypeSniffingTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp(prefix='chameleon-tests')
+
     def tearDown(self):
-        if hasattr(self, '_temporary'):
-            self._temporary.close()
+        shutil.rmtree(self.tempdir)
+
+    def _get_temporary_file(self):
+        filename = os.path.join(self.tempdir, 'template.py')
+        assert not os.path.exists(filename)
+        f = open(filename, 'w')
+        f.flush()
+        f.close()
+        return filename
 
     def get_template(self, text):
-        f = simpletempfile.NamedTemporaryFile(suffix=".html")
-        with open(f.name, 'w') as tmpfile:
-            tmpfile.write(text)
+        fn = self._get_temporary_file()
 
-        self._temporary = f
+        with open(fn, 'wb') as tmpfile:
+            tmpfile.write(text)
 
         from chameleon.template import BaseTemplateFile
 
@@ -29,7 +39,7 @@ class TypeSniffingTestCase(unittest.TestCase):
             def cook(self, body):
                 pass
 
-        return DummyTemplateFile(f.name)
+        return DummyTemplateFile(fn)
 
     def check_content_type(self, text, expected_type):
         from chameleon.template import BaseTemplate

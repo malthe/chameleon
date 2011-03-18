@@ -5,7 +5,6 @@ import os
 import sys
 import shutil
 import tempfile
-import simpletempfile
 
 from functools import wraps
 
@@ -50,22 +49,33 @@ class TemplateFileTestCase(TestCase):
 
         return TestTemplateFile
 
-    def _make_temporary_file(self):
-        return simpletempfile.NamedTemporaryFile(suffix=".py")
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp(prefix='chameleon-tests')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def _get_temporary_file(self):
+        filename = os.path.join(self.tempdir, 'template.py')
+        assert not os.path.exists(filename)
+        f = open(filename, 'w')
+        f.flush()
+        f.close()
+        return filename
 
     def test_cook_check(self):
-        f = self._make_temporary_file()
-        template = self._class(f.name)
+        fn = self._get_temporary_file()
+        template = self._class(fn)
         template.cook_check()
         self.assertEqual(template.cook_count, 1)
 
     def test_auto_reload(self):
-        f = self._make_temporary_file()
+        fn = self._get_temporary_file()
 
         # set time in past
-        os.utime(f.name, (0, 0))
+        os.utime(fn, (0, 0))
 
-        template = self._class(f.name, auto_reload=True)
+        template = self._class(fn, auto_reload=True)
         template.cook_check()
 
         # a second cook check makes no difference
@@ -73,7 +83,7 @@ class TemplateFileTestCase(TestCase):
         self.assertEqual(template.cook_count, 1)
 
         # set current time on file
-        os.utime(f.name, None)
+        os.utime(fn, None)
 
         # file is reloaded
         template.cook_check()
@@ -81,7 +91,7 @@ class TemplateFileTestCase(TestCase):
 
     def test_relative_is_expanded_to_cwd(self):
         try:
-            template = self._class("___does_not_exist___")
+            self._class("___does_not_exist___")
         except OSError:
             exc = sys.exc_info()[1]
             self.assertEqual(

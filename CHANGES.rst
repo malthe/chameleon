@@ -3,6 +3,10 @@ Changes
 
 In next release...
 
+- Fixed duplicate file pointer issue with test suite (affected Windows
+  platforms only). This fixes issue #9.
+  [oliora]
+
 - Use already open file using ``os.fdopen`` when trying to write out
   the module source. This fixes LP #731803.
 
