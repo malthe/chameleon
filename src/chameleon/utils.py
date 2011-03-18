@@ -63,6 +63,14 @@ def substitute_entity(match, n2cp=htmlentitydefs.name2codepoint):
             return match.group()
 
 
+def unescape(string):
+    for name in ('lt', 'gt', 'quot'):
+        cp = htmlentitydefs.name2codepoint[name]
+        string = string.replace('&%s;' % name, chr(cp))
+
+    return string
+
+
 def decode_htmlentities(string):
     """
     >>> native(decode_htmlentities('&amp;amp;'))

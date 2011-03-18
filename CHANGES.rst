@@ -3,6 +3,13 @@ Changes
 
 In next release...
 
+- The HTML entities 'lt', 'gt' and 'quot' appearing inside content
+  subtition expressions are now translated into their native character
+  values. This fixes an issue where you could not dynamically create
+  elements using the ``structure`` (which is possible in ZPT). The
+  need to create such structure stems from the lack of an expression
+  interpolation operator in ZPT.
+
 - Fixed duplicate file pointer issue with test suite (affected Windows
   platforms only). This fixes issue #9.
   [oliora]

@@ -30,6 +30,8 @@ from ..exc import LanguageError
 from ..exc import ParseError
 from ..exc import CompilationError
 
+from ..utils import unescape
+
 try:
     str = unicode
 except NameError:
@@ -159,6 +161,7 @@ class MacroProgram(ElementProgram):
                 pass
             else:
                 key, value = tal.parse_substitution(clause)
+                value = unescape(value)
                 expression = nodes.Expression(value)
                 msgid = ns.get((I18N, 'translate'))
                 content = self._make_content_node(
@@ -275,6 +278,7 @@ class MacroProgram(ElementProgram):
                 pass
             else:
                 key, value = tal.parse_substitution(clause)
+                value = unescape(value)
                 expression = nodes.Expression(value)
                 msgid = ns.get((I18N, 'translate'))
                 inner = self._make_content_node(expression, msgid, key, inner)

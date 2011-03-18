@@ -1,7 +1,7 @@
 <html>
   <body>
     <div>1 &lt; 2</div>
-    <div>2 &lt; 3</div>
+    <div>2 < 3</div>
     <div>3 < 4</div>
     <div>4 < 5</div>
     <div>Hello world!</div>
