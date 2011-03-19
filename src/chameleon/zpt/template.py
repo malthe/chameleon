@@ -1,3 +1,5 @@
+from functools import partial
+
 from ..i18n import fast_translate
 from ..tales import TalesEngine
 from ..tales import PythonExpr
@@ -19,20 +21,25 @@ except NameError:
 
 
 class PageTemplate(BaseTemplate):
-    """Zope Page Templates.
+    """Template class for the Chameleon Page Templates language.
 
-    To provide a custom translation function, use the ``translate``
-    parameter.
+    This constructor takes a string input. To read a template source
+    from a file on disk, use the file-based constructor.
 
-    This template class supports encoded input. The default is
-    ``'ascii'``, but an alternative encoding may be provided as
-    ``encoding``. Note that output is always unicode.
+    To provide a target language for translation, pass
+    ``target_language`` as a keyword argument to the render method.
 
-    The ``convert`` parameter specifies a function used to convert a
-    non-string value to string. Similarly, ``decode`` is used to
-    decode an encoded string to a native string (the default is to use
-    coercion, which relies on the program's default encoding --
-    usually ``'ascii'``).
+    The default translation function is given as a class attribute
+    ``translate``. This may be overriden either on construction, or at
+    render-time (in both cases, pass keyword argument ``translate``
+    with a valid translation function).
+
+    Content for substitution may be given as encoded input. To enable
+    this feature, the ``encoding`` keyword argument can be passed to
+    the constructor or render method. The default encoding is the
+    system default --- usually ``ascii``.
+
+    Output is always type ``unicode`` (or simply ``str`` on Python 3).
     """
 
     expression_types = {
@@ -46,10 +53,6 @@ class PageTemplate(BaseTemplate):
     default_expression = 'python'
 
     translate = staticmethod(fast_translate)
-
-    convert = None
-
-    decode = str
 
     encoding = None
 
@@ -68,32 +71,37 @@ class PageTemplate(BaseTemplate):
         escape = True if self.mode == "xml" else False
         return Program(body, self.mode, self.filename, escape=escape)
 
-    def render(self, translate=None, convert=None, decode=None, **kwargs):
+    def render(self, encoding=None, translate=None, target_language=None, **k):
         translate = translate if translate is not None else self.translate
-        convert = convert if convert is not None else translate
-        decode = decode if decode is not None else self.decode
-        encoding = self.encoding
 
+        # Curry language parameter if non-trivial
+        if target_language is not None:
+            translate = partial(translate, target_language=target_language)
+
+        encoding = encoding if encoding is not None else self.encoding
         if encoding is not None:
-            def translate(msgid, translate=translate, **kwargs):
+            txl = translate
+
+            def translate(msgid, **kwargs):
                 if isinstance(msgid, bytes):
                     msgid = str(msgid, encoding)
-                return translate(msgid, **kwargs)
+                return txl(msgid, **kwargs)
 
             def decode(inst):
                 return str(inst, encoding)
+        else:
+            decode = str
 
-        setdefault = kwargs.setdefault
-
+        setdefault = k.setdefault
         setdefault("template", self)
         setdefault("macros", self.macros)
         setdefault("repeat", RepeatDict())
         setdefault("translate", translate)
-        setdefault("convert", convert)
+        setdefault("convert", translate)
         setdefault("decode", decode)
         setdefault("nothing", None)
 
-        return super(PageTemplate, self).render(**kwargs)
+        return super(PageTemplate, self).render(**k)
 
     def include(self, stream, econtext, rcontext):
         self.cook_check()

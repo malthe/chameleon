@@ -3,6 +3,14 @@ Changes
 
 In next release...
 
+Features:
+
+- Added support for ``target_language`` keyword argument to render
+  method. If provided, the argument will be curried onto the
+  translation function.
+
+Bugfixes:
+
 - The HTML entities 'lt', 'gt' and 'quot' appearing inside content
   subtition expressions are now translated into their native character
   values. This fixes an issue where you could not dynamically create

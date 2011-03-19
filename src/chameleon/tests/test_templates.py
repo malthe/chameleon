@@ -299,11 +299,6 @@ class ZopeTemplatesTestSuite(RenderTestCase):
     def run_tests(self, ext, factory, **kwargs):
         from chameleon.utils import DebuggingOutputStream
 
-        def convert(msgid, **kwargs):
-            if isinstance(msgid, Message):
-                return translate(msgid, **kwargs)
-            return str(msgid)
-
         def translate(msgid, domain=None, mapping=None, context=None,
                       target_language=None, default=None):
             if default is None:
@@ -341,14 +336,10 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 output_stream_factory=DebuggingOutputStream,
                 )
 
-            import functools
-
             params = kwargs.copy()
             params.update({
-                'translate': functools.partial(
-                    translate, target_language=language),
-                'convert': functools.partial(
-                    convert, target_language=language),
+                'translate': translate,
+                'target_language': language,
                 })
 
             try:
