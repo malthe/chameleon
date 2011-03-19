@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release...
+2.0-rc6 (2011-03-19)
+--------------------
 
 Features:
 
