@@ -1,6 +1,17 @@
 Changes
 =======
 
+In next release...
+
+Features:
+
+- The ``auto_reload`` setting now defaults to the class value; the
+  base template class gives a default value of
+  ``chameleon.config.AUTO_RELOAD``. This change allows a subclass to
+  provide a custom default value (such as an application-specific
+  debug mode setting).
+
+
 2.0-rc6 (2011-03-19)
 --------------------
 

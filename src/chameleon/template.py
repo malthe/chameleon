@@ -220,7 +220,7 @@ class BaseTemplateFile(BaseTemplate):
 
     # Auto reload is not enabled by default because it's a significant
     # performance hit
-    auto_reload = False
+    auto_reload = AUTO_RELOAD
 
     def __init__(self, filename, *args, **kwargs):
         if not os.path.isabs(filename):
@@ -237,7 +237,11 @@ class BaseTemplateFile(BaseTemplate):
         os.lstat(filename)
 
         self.filename = filename
-        self.auto_reload = kwargs.pop('auto_reload', AUTO_RELOAD)
+
+        # Override reload setting only if value is provided explicitly
+        auto_reload = kwargs.pop('auto_reload', None)
+        if auto_reload is not None:
+            self.auto_reload = auto_reload
 
         self.__dict__.update(kwargs)
 
