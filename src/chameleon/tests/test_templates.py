@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import with_statement
+
 import re
 import os
 import sys
@@ -284,7 +286,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
         from chameleon.loader import TemplateLoader
         loader = TemplateLoader(os.path.join(self.root, "inputs"))
 
-        self.run_tests(
+        self.execute(
             ".pt", PageTemplate,
             literal=Literal("<div>Hello world!</div>"),
             content="<div>Hello world!</div>",
@@ -294,9 +296,9 @@ class ZopeTemplatesTestSuite(RenderTestCase):
 
     def test_txt_files(self):
         from ..zpt.template import PageTextTemplate
-        self.run_tests(".txt", PageTextTemplate)
+        self.execute(".txt", PageTextTemplate)
 
-    def run_tests(self, ext, factory, **kwargs):
+    def execute(self, ext, factory, **kwargs):
         from chameleon.utils import DebuggingOutputStream
 
         def translate(msgid, domain=None, mapping=None, context=None,

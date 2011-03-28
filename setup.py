@@ -3,15 +3,22 @@ __version__ = '2.0-rc6'
 import os
 import sys
 
-from distribute_setup import use_setuptools
-use_setuptools()
+try:
+    from distribute_setup import use_setuptools
+    use_setuptools()
+except: # doesn't work under tox/pip
+    pass
 
 from setuptools import setup, find_packages
 from setuptools.command.test import test
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.rst')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
+try:
+    README = open(os.path.join(here, 'README.rst')).read()
+    CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
+except: # doesn't work under tox/pip
+    README = ''
+    CHANGES = ''
 
 install_requires = []
 

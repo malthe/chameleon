@@ -1,1 +1,8 @@
 *.pyc
+*.egg
+*.egg-info
+.coverage
+.tox/
+coverage.xml
+nosetests.xml
+*.tar.gz
