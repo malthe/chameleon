@@ -1,0 +1,13 @@
+<html>
+  <body>
+    <span class="hello" />
+    <span />
+    <span b="2" c="3" />
+    <span a="1" c="3" />
+    <span a="1" b="2" />
+    <span a="1" />
+    <span a="1" b=";" c="3" />
+    <span a="1" b="&amp;" c="3" />
+    <span class="goodbye" />
+  </body>
+</html>

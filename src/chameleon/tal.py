@@ -49,13 +49,13 @@ ATTR_RE = re.compile(r"\s*([^\s]+)\s+([^\s].*)\Z", re.S)
 ENTITY_RE = re.compile(r'(&(#?)(x?)(\d{1,5}|\w{1,8});)')
 
 WHITELIST = frozenset([
-    "define",
+    "define", "def",
     "comment",
-    "condition",
+    "condition", "if",
     "content",
-    "replace",
-    "repeat",
-    "attributes",
+    "replace", "sub",
+    "repeat", "rep",
+    "attributes", "attr",
     "on-error",
     "omit-tag",
     "script",

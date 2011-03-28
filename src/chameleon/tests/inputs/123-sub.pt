@@ -1,0 +1,13 @@
+<html>
+  <body>
+    <div tal:sub="'Hello world!'" />
+    <div tal:sub="'Hello world!'" />1
+   2<div tal:sub="'Hello world!'" />
+    <div tal:sub="'Hello world!'" />3
+    <div tal:sub="'Hello world!'">4</div>5
+   6<div tal:sub="'Hello world!'"></div>
+    <div tal:sub="1" />
+    <div tal:sub="1.0" />
+    <div tal:sub="True" />
+  </body>
+</html>

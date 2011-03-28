@@ -1,0 +1,13 @@
+<html>
+  <body>
+    <span tal:attributes="class 'hello'" />
+    <span tal:attributes="class None" />
+    <span a="1" b="2" c="3" tal:attributes="a None" />
+    <span a="1" b="2" c="3" tal:attributes="b None" />
+    <span a="1" b="2" c="3" tal:attributes="c None" />
+    <span a="1" b="2" c="3" tal:attributes="b None; c None" />
+    <span a="1" b="2" c="3" tal:attributes="b string:;;" />
+    <span a="1" b="2" c="3" tal:attributes="b string:&amp;" />
+    <span class="hello" tal:attributes="class 'goodbye'" />
+  </body>
+</html>

@@ -1,0 +1,13 @@
+<html>
+  <body>
+    <div tal:replace="'Hello world!'" />
+    <div tal:replace="'Hello world!'" />1
+   2<div tal:replace="'Hello world!'" />
+    <div tal:replace="'Hello world!'" />3
+    <div tal:replace="'Hello world!'">4</div>5
+   6<div tal:replace="'Hello world!'"></div>
+    <div tal:replace="1" />
+    <div tal:replace="1.0" />
+    <div tal:replace="True" />
+  </body>
+</html>

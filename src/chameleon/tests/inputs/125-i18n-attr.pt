@@ -1,0 +1,11 @@
+<html>
+  <body>
+    <div i18n:translate="" tal:content="string:Hello world!">
+      Hello world!
+    </div>
+    <img alt="${'Hello world!'}" i18n:attributes="alt" />
+    <img alt="${'Hello world!'}" i18n:attributes="alt hello_world" />
+    <img tal:attributes="alt 'Hello world!'" i18n:attributes="alt" />
+    <img tal:attributes="alt 'Hello world!'" i18n:attributes="alt hello_world" />
+  </body>
+</html>

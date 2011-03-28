@@ -1,0 +1,6 @@
+<html>
+  <body tal:if="True">
+    <span tal:define="selector False" tal:if="selector">bad</span>
+    <span tal:if="True">ok</span>
+  </body>
+</html>

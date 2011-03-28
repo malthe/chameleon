@@ -219,6 +219,16 @@ class ZopePageTemplatesTest(RenderTestCase):
             string.replace('${text}', text)
             )
 
+    def test_dont_interpolate_comments(self):
+        string = '<!-- ${nonexistentVariable} -->'
+
+        template = self.factory(string)
+        rendered = template()
+
+        self.assertEqual(
+            rendered, string
+            )
+
     def test_repr(self):
         from chameleon.zpt.template import PageTemplateFile
         template = PageTemplateFile(

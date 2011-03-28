@@ -192,19 +192,27 @@ class MacroProgram(ElementProgram):
                     content = nodes.Translate(clause, content)
 
             # tal:attributes
-            try:
+            clause = None
+            if (TAL, 'attributes') in ns:
                 clause = ns[TAL, 'attributes']
-            except KeyError:
-                TAL_ATTRIBUTES = {}
+            elif (TAL, 'attr') in ns:
+                clause = ns[TAL, 'attr']
             else:
+                TAL_ATTRIBUTES = {}
+
+            if clause:
                 TAL_ATTRIBUTES = tal.parse_attributes(clause)
 
             # i18n:attributes
-            try:
+            clause = None
+            if (I18N, 'attributes') in ns:
                 clause = ns[I18N, 'attributes']
-            except KeyError:
-                I18N_ATTRIBUTES = {}
+            elif (I18N, 'attr') in ns:
+                clause = ns[I18N, 'attr']
             else:
+                I18N_ATTRIBUTES = {}
+
+            if clause:
                 I18N_ATTRIBUTES = i18n.parse_attributes(clause)
 
             # Prepare attributes from TAL language
@@ -272,11 +280,15 @@ class MacroProgram(ElementProgram):
                     inner = nodes.Cache([omit], inner)
 
             # tal:replace
-            try:
+            clause = None
+            if (TAL, 'replace') in ns:
                 clause = ns[TAL, 'replace']
-            except KeyError:
-                pass
+            elif (TAL, 'sub') in ns:
+                clause = ns[TAL, 'sub']
             else:
+                DEFINE = skip
+
+            if clause:
                 key, value = tal.parse_substitution(clause)
                 value = unescape(value)
                 expression = nodes.Expression(value)
@@ -292,11 +304,15 @@ class MacroProgram(ElementProgram):
             DEFINE_SLOT = partial(nodes.DefineSlot, clause)
 
         # tal:define
-        try:
+        clause = None
+        if (TAL, 'define') in ns:
             clause = ns[TAL, 'define']
-        except KeyError:
-            DEFINE = skip
+        elif (TAL, 'def') in ns:
+            clause = ns[TAL, 'def']
         else:
+            DEFINE = skip
+
+        if clause:
             defines = tal.parse_defines(clause)
             if defines is None:
                 raise ParseError("Invalid define syntax.", clause)
@@ -331,12 +347,16 @@ class MacroProgram(ElementProgram):
                     )
                 )
 
-        # tal:repeat
-        try:
+        # tal:repeat and tal:rep
+        clause = None
+        if (TAL, 'repeat') in ns:
             clause = ns[TAL, 'repeat']
-        except KeyError:
-            REPEAT = skip
+        elif (TAL, 'rep') in ns:
+            clause = ns[TAL, 'rep']
         else:
+            REPEAT = skip
+
+        if clause:
             defines = tal.parse_defines(clause)
             assert len(defines) == 1
             context, names, expr = defines[0]
@@ -351,12 +371,16 @@ class MacroProgram(ElementProgram):
                 whitespace
                 )
 
-        # tal:condition
-        try:
+        # tal:condition and tal:if
+        clause = None
+        if (TAL, 'condition') in ns:
             clause = ns[TAL, 'condition']
-        except KeyError:
-            CONDITION = skip
+        elif (TAL, 'if') in ns:
+            clause = ns[TAL, 'if']
         else:
+            CONDITION = skip
+
+        if clause:
             expression = nodes.Expression(clause)
             CONDITION = partial(nodes.Condition, expression)
 

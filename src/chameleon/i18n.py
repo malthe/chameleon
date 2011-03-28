@@ -20,7 +20,7 @@ WHITELIST = frozenset([
     "domain",
     "target",
     "source",
-    "attributes",
+    "attributes", "attr",
     "data",
     "name",
     ])

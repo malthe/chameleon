@@ -1,0 +1,6 @@
+<html>
+  <body tal:condition="True">
+    <span tal:define="selector False" tal:condition="selector">bad</span>
+    <span tal:condition="True">ok</span>
+  </body>
+</html>
