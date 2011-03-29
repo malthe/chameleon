@@ -3,6 +3,11 @@ Changes
 
 In next release...
 
+Bugfixes:
+
+- Fixed issue with Python 2.5 compatibility AST. This affected at
+  least PyPy 1.4.
+
 Features:
 
 - The ``auto_reload`` setting now defaults to the class value; the

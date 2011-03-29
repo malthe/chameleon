@@ -40,11 +40,11 @@ def iter_child_nodes(node):
     and all items of fields that are lists of nodes.
     """
     for name, field in iter_fields(node):
-        if isinstance(field, AST):
+        if isinstance(field, (AST, _ast.AST)):
             yield field
         elif isinstance(field, list):
             for item in field:
-                if isinstance(item, AST):
+                if isinstance(item, (AST, _ast.AST)):
                     yield item
 
 
@@ -106,10 +106,11 @@ class NodeVisitor(object):
         for field, value in iter_fields(node):
             if isinstance(value, list):
                 for item in value:
-                    if isinstance(item, AST):
+                    if isinstance(item, (AST, _ast.AST)):
                         self.visit(item)
-            elif isinstance(value, AST):
+            elif isinstance(value, (AST, _ast.AST)):
                 self.visit(value)
+
 
 class AST(object):
     _fields = ()
@@ -129,10 +130,6 @@ for name, cls in _ast.__dict__.items():
         except TypeError:
             pass
 
+
 class ExceptHandler(AST):
     _fields = "type", "name", "body"
-
-
-del _ast
-
-
