@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release...
+
+Bugfixes:
+
+- If a valid of ``None`` is provided as the translation function
+  argument, we now fall back to the class default.
+
 2.0-rc7 (2011-03-29)
 --------------------
 

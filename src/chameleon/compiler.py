@@ -844,7 +844,6 @@ class Compiler(object):
 
     def visit_UseExternalMacro(self, node):
         callbacks = []
-
         for slot in node.slots:
             name = "_slot_%s" % mangle(slot.name)
 

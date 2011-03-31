@@ -221,6 +221,11 @@ class ZopePageTemplatesTest(RenderTestCase):
             string.replace('${text}', text)
             )
 
+    def test_null_translate_function(self):
+        template = self.factory('${test}', translate=None)
+        rendered = template(test=object())
+        self.assertTrue('object' in rendered)
+
     def test_repr(self):
         from chameleon.zpt.template import PageTemplateFile
         template = PageTemplateFile(

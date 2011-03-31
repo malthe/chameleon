@@ -72,7 +72,8 @@ class PageTemplate(BaseTemplate):
         return Program(body, self.mode, self.filename, escape=escape)
 
     def render(self, encoding=None, translate=None, target_language=None, **k):
-        translate = translate if translate is not None else self.translate
+        translate = translate if translate is not None else self.translate or \
+                    type(self).translate
 
         # Curry language parameter if non-trivial
         if target_language is not None:
