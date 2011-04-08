@@ -487,8 +487,21 @@ class Compiler(object):
                 NAME=name, KEY=ast.Str(s=name)
             )
 
+        # Internal set of defined slots
+        self._slots = set()
+
         # Visit macro body
-        body += itertools.chain(*tuple(map(self.visit, node.body)))
+        nodes = itertools.chain(*tuple(map(self.visit, node.body)))
+
+        # Slot resolution
+        for name in self._slots:
+            body += template(
+                "try: NAME = getitem(KEY).pop()\n"
+                "except: NAME = None",
+                KEY=ast.Str(s=name), NAME=store(name))
+
+        # Append visited nodes
+        body += nodes
 
         function_name = "render" if node.name is None else \
                         "render_%s" % mangle(node.name)
@@ -796,17 +809,18 @@ class Compiler(object):
 
     def visit_DefineSlot(self, node):
         name = "_slot_%s" % mangle(node.name)
+        self._slots.add(name)
         body = self.visit(node.node)
 
+        orelse = template("SLOT(stream, econtext.copy(), econtext)", SLOT=name)
+        test = ast.Compare(
+            left=load(name),
+            ops=[ast.Is()],
+            comparators=[load("None")]
+            )
+
         return [
-            ast.TryExcept(
-                body=template("_slot = getitem(KEY).pop()",
-                              KEY=ast.Str(s=name)),
-                handlers=[ast.ExceptHandler(
-                    body=body or [ast.Pass()],
-                    )],
-                orelse=template("_slot(stream, econtext.copy(), econtext)"),
-                )
+            ast.If(test=test, body=body or [ast.Pass()], orelse=orelse)
             ]
 
     def visit_Name(self, node):
@@ -845,7 +859,8 @@ class Compiler(object):
     def visit_UseExternalMacro(self, node):
         callbacks = []
         for slot in node.slots:
-            name = "_slot_%s" % mangle(slot.name)
+            key = "_slot_%s" % mangle(slot.name)
+            fun = "_fill_%s" % mangle(slot.name)
 
             body = template("getitem = econtext.__getitem__") + \
                    template("get = econtext.get") + \
@@ -853,7 +868,7 @@ class Compiler(object):
 
             callbacks.append(
                 ast.FunctionDef(
-                    name=name,
+                    name=fun,
                     args=ast.arguments(
                         args=[
                             param("stream"),
@@ -866,12 +881,12 @@ class Compiler(object):
                     body=body or [ast.Pass()],
                 ))
 
-            key = ast.Str(s=name)
+            key = ast.Str(s=key)
 
             if node.extend:
                 update_body = None
             else:
-                update_body = template("_slots.append(NAME)", NAME=name)
+                update_body = template("_slots.append(NAME)", NAME=fun)
 
             callbacks.append(
                 ast.TryExcept(
@@ -879,7 +894,7 @@ class Compiler(object):
                     handlers=[ast.ExceptHandler(
                         body=template(
                             "_slots = econtext[KEY] = [NAME]",
-                            KEY=key, NAME=name
+                            KEY=key, NAME=fun,
                         ))],
                     orelse=update_body
                     ))

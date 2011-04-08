@@ -5,6 +5,9 @@ In next release...
 
 Bugfixes:
 
+- If a macro defines two slots with the same name, a caller will now
+  fill both with a single usage.
+
 - If a valid of ``None`` is provided as the translation function
   argument, we now fall back to the class default.
 
