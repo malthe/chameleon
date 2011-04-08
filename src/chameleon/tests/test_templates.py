@@ -336,11 +336,22 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             if language is not None:
                 name += '-' + language
 
+            # Make friendly title so we can locate the generated
+            # source when debugging
+            title = os.path.basename(name).\
+                    replace('-', '_').\
+                    replace('.', '_')
+
             self.shortDescription = lambda: name
             template = factory(
                 source,
                 keep_source=True,
                 output_stream_factory=DebuggingOutputStream,
+
+                # The ``_digest_`` method is internal to the template
+                # class; we provide a custom function that lets us
+                # choose the filename for the generated Python module
+                _digest = lambda body, title=title: title,
                 )
 
             params = kwargs.copy()
