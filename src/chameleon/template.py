@@ -33,6 +33,7 @@ from .config import EAGER_PARSING
 from .config import CACHE_DIRECTORY
 from .utils import DebuggingOutputStream
 from .utils import Scope
+from .utils import join
 
 try:
     byte_string = str
@@ -172,7 +173,7 @@ class BaseTemplate(object):
 
             raise
 
-        return "".join(stream)
+        return join(stream)
 
     def sniff_type(self, text):
         """Return 'text/xml' if text appears to be XML, otherwise

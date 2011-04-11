@@ -71,6 +71,34 @@ def unescape(string):
     return string
 
 
+_concat = "".join
+
+
+def join(stream):
+    """Concatenate stream.
+
+    >>> join(('Hello', ' ', 'world'))
+    'Hello world'
+
+    >>> join(('Hello', 0))
+    Traceback (most recent call last):
+     ...
+    TypeError: ... int ...
+
+    """
+
+    try:
+        return _concat(stream)
+    except:
+        # Loop through stream and coerce each element into unicode;
+        # this should raise an exception
+        for element in stream:
+            unicode(element)
+
+        # In case it didn't, re-raise the original exception
+        raise
+
+
 def decode_htmlentities(string):
     """
     >>> native(decode_htmlentities('&amp;amp;'))

@@ -1,6 +1,15 @@
 Changes
 =======
 
+In next release...
+
+Features:
+
+- Better debugging support for string decode and conversion. If a
+  naive join fails, each element in the output will now be attempted
+  coerced to unicode to try and trigger the failure near to the bad
+  string.
+
 2.0-rc8 (2011-04-11)
 --------------------
 
