@@ -47,7 +47,6 @@ from .config import DEBUG_MODE
 from .exc import TranslationError
 from .utils import DebuggingOutputStream
 from .utils import Placeholder
-from .tokenize import Token
 
 
 log = logging.getLogger('chameleon.compiler')
@@ -162,28 +161,34 @@ def emit_convert_and_escape(
             except RuntimeError:
                 target = target()
             else:
-                if target is not None and re_needs_escape(target) is not None:
-                    # Character escape
-                    if '&' in target:
-                        # If there's a semicolon in the string, then
-                        # it might be part of an HTML entity. We
-                        # replace the ampersand character with its
-                        # HTML entity counterpart only if it's
-                        # precedes an HTML entity string.
-                        if ';' in target:
-                            target = re_amp.sub('&amp;', target)
+                if target is not None:
+                    try:
+                        escape = re_needs_escape(target) is not None
+                    except TypeError:
+                        pass
+                    else:
+                        if escape:
+                            # Character escape
+                            if '&' in target:
+                                # If there's a semicolon in the string, then
+                                # it might be part of an HTML entity. We
+                                # replace the ampersand character with its
+                                # HTML entity counterpart only if it's
+                                # precedes an HTML entity string.
+                                if ';' in target:
+                                    target = re_amp.sub('&amp;', target)
 
-                        # Otherwise, it's safe to replace all
-                        # ampersands:
-                        else:
-                            target = target.replace('&', '&amp;')
+                                # Otherwise, it's safe to replace all
+                                # ampersands:
+                                else:
+                                    target = target.replace('&', '&amp;')
 
-                    if '<' in target:
-                        target = target.replace('<', '&lt;')
-                    if '>' in target:
-                        target = target.replace('>', '&gt;')
-                    if quote in target:
-                        target = target.replace(quote, '&#34;')
+                            if '<' in target:
+                                target = target.replace('<', '&lt;')
+                            if '>' in target:
+                                target = target.replace('>', '&gt;')
+                            if quote in target:
+                                target = target.replace(quote, '&#34;')
 
 
 class ExpressionCompiler(object):
