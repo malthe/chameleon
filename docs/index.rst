@@ -1,32 +1,62 @@
-Chameleon
-=========
+Chameleon Page Templates
+========================
 
-Chameleon is an HTML/XML template language compiler.
+Chameleon is an HTML/XML template engine for `Python
+<http://www.python.org>`_.
 
-The distribution comes with a complete template engine: Chameleon Page
-Templates [1]_.
+It's designed to generate the document output of a web application,
+typically HTML markup or XML.
 
-There are no external library dependencies [2]_. You can install it
+The language used is *page templates*, originally a `Zope
+<http://www.zope.org>`_ invention [1]_, but now available in a
+:ref:`fast <fast>`, :ref:`independent <no-dependencies>`
+implementation --- it comes with a moderate set of :ref:`new features
+<new-features>`, too.
+
+You can use it in any Python web application with just about any
+version of Python (2.5 and up, including 3.x and `pypy
+<http://pypy.org>`_).
+
+  *Found a bug?* Please report issues to the `issue tracker <http://github.com/malthe/chameleon/issues>`_.
+
+  *Need help?* Post to the Pylons `discussion list <http://groups.google.com/group/pylons-discuss/>`_ or join the ``#pyramid`` channel on `Freenode IRC <http://freenode.net/>`_.
+
+Getting the code
+----------------
+
+You can `download <http://pypi.python.org/pypi/Chameleon#downloads>`_ the
+package from the Python package index or install the latest release
 using setuptools or the newer `distribute
-<http://packages.python.org/distribute/>`_ (recommended)::
+<http://packages.python.org/distribute/>`_ (required for Python 3.x)::
 
   $ easy_install Chameleon
+
+.. _no-dependencies:
+
+There are no required library dependencies on Python 2.7 and up
+[2]_. On 2.5 and 2.6 the `ordereddict
+<http://pypi.python.org/pypi/ordereddict>`_ and `unittest2
+<http://pypi.python.org/pypi/unittest2>`_ packages are set as
+dependencies.
+
+The project is hosted in a `GitHub repository
+<http://github.com/malthe/chameleon>`_. Code contributions are
+welcome. The easiest way is to use the `pull request
+<http://help.github.com/pull-requests/>`_ interface.
 
 
 Introduction
 ------------
 
-*Page Templates* is an XML-based template engine. The only general
-implication of this is that the engine knows about the structure of
-the document: elements, attributes, comments and so on.
+The *page templates* language is used within your document structure
+as special element attributes and text markup. Using a set of simple
+language constructs, you control the document flow, element
+repetition, text replacement and translation.
 
-In addition, the template language is mostly attribute-based, such
-that XML attributes (with special prefixes) are used to program
-template logic and behavior.
+.. note:: If you've used page templates in a Zope environment previously, note that Chameleon uses Python as the default expression language (instead of *path* expressions).
 
-This might sound frightening or even off-putting; in practice, it's
-both simple to read and understand. It also looks "right" in your
-editor:
+The basic language (knows as the *template attribute language* or TAL)
+is simple enough to grasp from an example:
 
 .. code-block:: genshi
 
@@ -43,10 +73,9 @@ editor:
     </body>
   </html>
 
-There's a short-hand syntax available for content substitution: The
-``${...}`` inline expression operator [3]_ evaluates the expression
-inside and includes the result in the output. It follows the usual
-document escape logic and works in both content and attributes:
+The ``${...}`` notation is short-hand for text insertion [3]_. The
+Python-expression inside the braces is evaluated and the result
+included in the output (all inserted text is escaped by default):
 
 .. code-block:: html
 
@@ -54,81 +83,40 @@ document escape logic and works in both content and attributes:
     ${content}
   </div>
 
-Note that for simple variable expressions, the curly braces can be
-omitted entirely.
+Note that to insert the value of a symbol, the curly braces can be
+omitted entirely: ``Hello, $name!``.
 
-Features
---------
+What's New in 2.x
+------------------
 
-Here's an itemized overview that highlights some of the features in
-Chameleon.
+This version is a complete rewrite of the library. The biggest
+implications are the added compatibility for newer versions of Python
+(although support for 2.4 has been dropped), but also that there is
+currently no language implementation for Genshi.
 
-*Fast*
-
-    Template files are compiled (or *translated*) into Python source
-    code. This means that logic and control flow are evaluated inline
-    without additional function calls or run-time decisions,
-    decimating the template engine overhead. In real-world
-    applications such as `Plone <http://www.plone.org>`_, this
-    translates to 30-60% better response times.
-
-*Flexibile*
-
-    The template source code is read by a custom lexer and parser that
-    stays out of your way as much as possible. The output should match
-    the input and we try to leave out surprises.
-
-*Compatible*
-
-    The Chameleon *Page Templates* engine is compatible with few
-    changes to the Zope Page Templates engine (in various flavors)
-    which are used in many enterprise systems including the `Plone
-    <http://www.plone.org>`_ content management system.
-
-*Tested*
-
-    The distribution comes with a complete test suite. Before any
-    release, we make sure the software runs perfectly on all supported
-    platforms.
+For most users of the page templates implementation, it should be an
+easy upgrade. See the complete list of :ref:`changes <whats-new>` for
+more information.
 
 License
 -------
 
 This software is made available under a BSD-like license.
 
-Compatibility
--------------
-
-Chameleon runs on all Python platforms from 2.5 and up (including
-Python 3.1+).
-
-Development
------------
-
-To report bugs, please use the `issue tracker
-<http://github.com/malthe/chameleon/issues>`_.
-
-If you've got questions that aren't answered by this documentation,
-post them to the `Repoze Mailing List
-<http://lists.repoze.org/listinfo/repoze-dev>`_. You can also log on
-to ``#repoze`` on `Freenode IRC <http://freenode.net/>`_ and chat.
-
-Browse and check out tagged and trunk versions of this software using
-the `Github Repository
-<http://github.com/malthe/chameleon/>`_. In read-only mode::
-
-  $ git clone git://github.com/malthe/chameleon.git
-
-Contributions are welcome. The easiest way to get started is to create
-a fork of the project and use the `pull request
-<http://help.github.com/pull-requests/>`_ interface.
-
-What next?
+Next steps
 ----------
 
-To get started right away using Chameleon, visit the :ref:`getting started <getting-started-with-cpt>` section.
+The :ref:`language reference <language-reference>` is a not only a
+handy reference, but also doubles as a general introduction to the
+language with plenty of examples.
 
-To read more about integration into web frameworks see the section on :ref:`framework integration <framework-integration>`.
+If you're already familiar with page templates, you can skip ahead
+to the :ref:`getting started <getting-started-with-cpt>` section to
+learn how to use them in your code.
+
+To learn about integration with your favorite web framework see the
+section on :ref:`framework integration <framework-integration>`.
+
 
 Contents
 ========
@@ -136,8 +124,8 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   pt.rst
-   i18n.rst
+   library.rst
+   reference.rst
    integration.rst
    configuration.rst
 
@@ -159,15 +147,14 @@ Notes
        new codebase, packaged as a standalone distribution. It does
        require a Zope software environment.
 
-
-.. [2] The string translation interface is based on the `gettext
-       <http://www.gnu.org/software/gettext/gettext.html>`_
-       library. Chameleon comes with built-in support for the
-       `zope.i18n <http://pypi.python.org/pypi/zope.i18n>`_ package
-       which includes a translation framework
-       (internationalization). If this package is installed, it will
-       be used as the default translation framework. It is trivial to
-       provide a custom translation function, however.
-
+.. [2] The translation system in Chameleon is pluggable and based on
+       `gettext <http://www.gnu.org/software/gettext/gettext.html>`_.
+       There is built-in support for the `zope.i18n
+       <http://pypi.python.org/pypi/zope.i18n>`_ package. If this
+       package is installed, it will be used by default. The
+       `translationstring
+       <http://pypi.python.org/pypi/translationstring>`_ package
+       offers some of the same helper and utility classes, without the
+       Zope application interface.
 
 .. [3] This syntax was taken from `Genshi <http://genshi.edgewall.org/>`_.

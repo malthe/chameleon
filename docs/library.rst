@@ -1,5 +1,5 @@
-Page Templates
-==============
+Library Documentation
+=====================
 
 Chameleon Page Templates (CPT) is a system which can generate HTML and
 XML.
@@ -42,124 +42,25 @@ All template instances are callable. Provide arguments as keywords::
   >>> template(name='John')
   '<div>Hello, John.</div>'
 
-Learning the language
----------------------
+.. _fast:
 
-For an introduction to the language, please see the `getting started
-<http://www.zope.org/Documentation/Articles/ZPT1>`_ section on the
-Zope website. Note that the expression language used in the examples
-there is *path*, not Python.
+Architecture
+------------
 
-Incompatibilities and differences
----------------------------------
+The Chameleon template engine works as a compiler, turning page template markup
+into a Python script. This technique significantly reduces processing
+overhead and yields an improvement in render performance by a factor
+of 5 to 10.
 
-There are a number of incompatibilities and differences between CPT
-and ZPT. We list them here for a brief overview:
+In real world applications such as `Plone <http://www.plone.org>`_,
+this translates to an overall performance increase of 30-60%.
 
-    *Default expression*
+Compatibility
+-------------
 
-       The default expression is Python (or ``"python:"``). The *path*
-       expression syntax is not supported in the base package.
+Chameleon runs on all Python platforms from 2.5 and up (including
+Python 3.1+ and `pypy <http://pypy.org>`_).
 
-    *Template arguments*
-
-      Arguments passed by keyword to the render- or call method are
-      inserted directly into the template execution namespace. This is
-      different from ZPT where these are only available through the
-      ``options`` dictionary.
-
-      Zope::
-
-        <div tal:content="options/title" />
-
-      Chameleon::
-
-        <div tal:content="title" />
-
-    *Special symbols*
-
-      The ``CONTEXTS`` symbol is not available.
-
-New language features
----------------------
-
-The CPT system comes with a number of features and extensions that
-will be new to users of ZPT. Some take inspiration from `Genshi
-<http://genshi.edgewall.org/>`_.
-
-    *Imports*
-
-       The package introduces the ``import:`` expression which imports
-       global names::
-
-         <div tal:define="compile import: re.compile">
-           ...
-
-    *Tuple unpacking*
-
-       The ``tal:define`` and ``tal:repeat`` clauses supports tuple
-       unpacking::
-
-          tal:define="(a, b, c) [1, 2, 3]"
-
-       Extended `iterable unpacking
-       <http://www.python.org/dev/peps/pep-3132/>`_ using the asterisk
-       character is not currently supported (even for platforms that
-       support it natively).
-
-    *Dictionary lookup as fallback after attribute error*
-
-       If attribute lookup (using the ``obj.<name>`` syntax) raises an
-       ``AttributeError`` exception, a secondary lookup is attempted
-       using dictionary lookup --- ``obj['<name>']``.
-
-       Behind the scenes, this is done by rewriting all
-       attribute-lookups to a custom lookup call:
-
-       .. code-block:: python
-
-            def lookup_attr(obj, key):
-                try:
-                    return getattr(obj, key)
-                except AttributeError as exc:
-                    try:
-                        get = obj.__getitem__
-                    except AttributeError:
-                        raise exc
-                    try:
-                        return get(key)
-                    except KeyError:
-                        raise exc
-
-    *Inline expression operator*
-
-       In element attributes and in the text or tail of an element,
-       string expression interpolation is available using the
-       ``${...}`` syntax::
-
-          <span class="content-${item_type}">
-             ${title or item_id}
-          </span>
-
-    *Literal content*
-
-       While the ``tal:content`` and ``tal:repeat`` attributes both
-       support the ``structure`` keyword which inserts the content as
-       a literal (without XML-escape), an object may also provide an
-       ``__html__`` method to the same effect.
-
-       The result of the method will be inserted as *structure*.
-
-       This is particularly useful for content which is substituted
-       using the expression operator: ``"${...}"`` since the
-       ``structure`` keyword is not allowed here.
-
-    *Switches*
-
-       Two new attributes have been added: ``tal:switch`` and
-       ``tal:case``. A case attribute works like a condition and only
-       allows content if the value matches that of the nearest parent
-       switch value.
 
 Writing an expression compiler
 ------------------------------
@@ -201,19 +102,186 @@ added our expression compiler there.
 Adding custom expressions can be a powerful way to make the templates
 in your project more expressive.
 
-Reference
----------
 
-This reference is split into parts that correspond to each of the main
-language features.
+Incompatibilities and differences
+---------------------------------
 
-.. toctree::
-   :maxdepth: 2
+There are a number of incompatibilities and differences between CPT
+and ZPT. We list them here for a brief overview:
 
-   tal
-   tales
-   metal
-   i18n
+    *Default expression*
+
+       The default expression is Python (or ``"python:"``). The *path*
+       expression syntax is not supported in the base package.
+
+    *Template arguments*
+
+      Arguments passed by keyword to the render- or call method are
+      inserted directly into the template execution namespace. This is
+      different from ZPT where these are only available through the
+      ``options`` dictionary.
+
+      Zope::
+
+        <div tal:content="options/title" />
+
+      Chameleon::
+
+        <div tal:content="title" />
+
+    *Special symbols*
+
+      The ``CONTEXTS`` symbol is not available.
+
+The `z3c.pt <http://pypi.python.org/pypi/z3c.pt>`_ package works as a
+compatibility layer. The template classes in this package provide a
+implementation which is fully compatible with ZPT.
+
+
+.. _new-features:
+
+Language extensions
+-------------------
+
+The Chameleon page templates language comes with a number of features
+and extensions. Some take inspiration from `Genshi
+<http://genshi.edgewall.org/>`_.
+
+    *Imports*
+
+       The package introduces the ``import:`` expression which imports
+       global names::
+
+         <div tal:define="compile import: re.compile">
+           ...
+
+    *Tuple unpacking*
+
+       The ``tal:define`` and ``tal:repeat`` clauses supports tuple
+       unpacking::
+
+          tal:define="(a, b, c) [1, 2, 3]"
+
+       Extended `iterable unpacking
+       <http://www.python.org/dev/peps/pep-3132/>`_ using the asterisk
+       character is not currently supported (even for versions of
+       Python that support it natively).
+
+    *Dictionary lookup as fallback after attribute error*
+
+       If attribute lookup (using the ``obj.<name>`` syntax) raises an
+       ``AttributeError`` exception, a secondary lookup is attempted
+       using dictionary lookup --- ``obj['<name>']``.
+
+       Behind the scenes, this is done by rewriting all
+       attribute-lookups to a custom lookup call:
+
+       .. code-block:: python
+
+            def lookup_attr(obj, key):
+                try:
+                    return getattr(obj, key)
+                except AttributeError as exc:
+                    try:
+                        get = obj.__getitem__
+                    except AttributeError:
+                        raise exc
+                    try:
+                        return get(key)
+                    except KeyError:
+                        raise exc
+
+    *Inline string substitution*
+
+       In element attributes and in the text or tail of an element,
+       string expression interpolation is available using the
+       ``${...}`` syntax::
+
+          <span class="content-${item_type}">
+             ${title or item_id}
+          </span>
+
+    *Literal content*
+
+       While the ``tal:content`` and ``tal:repeat`` attributes both
+       support the ``structure`` keyword which inserts the content as
+       a literal (without XML-escape), an object may also provide an
+       ``__html__`` method to the same effect.
+
+       The result of the method will be inserted as *structure*.
+
+       This is particularly useful for content which is substituted
+       using the expression operator: ``"${...}"`` since the
+       ``structure`` keyword is not allowed here.
+
+    *Switches*
+
+       Two new attributes have been added: ``tal:switch`` and
+       ``tal:case``. A case attribute works like a condition and only
+       allows content if the value matches that of the nearest parent
+       switch value.
+
+.. _whats-new:
+
+Changes between 1.x and 2.x
+---------------------------
+
+This sections describes new features, improvements and changes from
+1.x to 2.x.
+
+New parser
+~~~~~~~~~~
+
+This series features a new, custom-built parser, implemented in pure
+Python. It parses both HTML and XML inputs (the previous parser relied
+on the expat system library and was more strict about its input).
+
+The main benefit of the new parser is that the compiler is now able to
+point to the source location of parse- and compilation errors much
+more accurately. This should be a great aid in debugging these errors.
+
+Compatible output
+~~~~~~~~~~~~~~~~~
+
+The 2.x engine matches the output of the reference implementation more
+closely (usually exactly). There are less differences altogether; for
+instance, the method of escaping TALES expression (usually a
+semicolon) has been changed to match that of the reference
+implementation.
+
+New language features
+~~~~~~~~~~~~~~~~~~~~~
+
+This series also introduces a number of new language features:
+
+1) Support for the ``tal:on-error`` from the reference specification
+has been added.
+
+2) Two new attributes ``tal:switch`` and ``tal:case`` have been added to make element conditions more flexible.
+
+Code improvements
+~~~~~~~~~~~~~~~~~
+
+The template classes have been refactored and simplified allowing
+better reuse of code and more intuitive APIs on the lower levels.
+
+Expression engine
+~~~~~~~~~~~~~~~~~
+
+The expression engine has been redesigned to make it easier to
+understand and extend. The new engine is based on the ``ast`` module
+(available since Python 2.6; backports included for Python 2.5). This
+means that expression compilers now need to return a valid list of AST
+statements that include an assignment to the target node.
+
+Compiler
+~~~~~~~~
+
+The new compiler has been optimized for complex templates. As a
+result, in the benchmark suite included with the package, this
+compiler scores about half of the 1.x series. For most real world
+applications, the engine should still perform as well as the 1.x
+series.
 
 
 API reference
@@ -238,6 +306,6 @@ Some systems have framework support for loading templates from
 files. The following loader class is directly compatible with the
 Pylons framework and may be adapted to other frameworks:
 
-  .. class:: chameleon.PageTemplateLoader(search_path=None, **kwargs)
+.. class:: chameleon.PageTemplateLoader(search_path=None, **kwargs)
 
-     .. automethod:: load
+   .. automethod:: load
