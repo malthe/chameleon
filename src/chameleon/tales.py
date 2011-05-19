@@ -52,13 +52,11 @@ def dummy_engine(string, target):
     return [ast.Assign(targets=[target], value=ast.Str(s=string))]
 
 
-def test(expression, engine=dummy_engine):
+def test(expression, engine=dummy_engine, **env):
     body = expression(store("result"), engine)
     module = ast.Module(body)
     module = ast.fix_missing_locations(module)
-    env = {
-        'rcontext': {},
-        }
+    env['rcontext'] = {}
     source = TemplateCodeGenerator(module).code
     code = compile(source, '<string>', 'exec')
     exec(code, env)
@@ -114,7 +112,6 @@ class TalesExpr(object):
 
     >>> test(PythonPipeExpr('foo|42'))
     42
-
     """
 
     exceptions = NameError, \
@@ -230,6 +227,11 @@ class PythonExpr(TalesExpr):
     >>> test(PythonExpr('\"\|\"'))
     '|'
 
+    >>> test(
+    ...     PythonExpr('len(value) &lt; 70 and value or value[:70]'),
+    ...     value='Hello world',
+    ... )
+    'Hello world'
     """
 
     transform = ItemLookupOnAttributeErrorVisitor(transform_attribute)
@@ -545,8 +547,6 @@ class TalesEngine(object):
     >>> eval('string:test ${1}${2}')
     'test 12'
 
-    This expression would check whether one of the two objects exist,
-    then negate the result.
     """
 
     def __init__(self, factories, default):
