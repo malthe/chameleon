@@ -176,6 +176,9 @@ class ElementParser(object):
         visitor = getattr(self, "visit_%s" % kind, self.visit_default)
         return visitor(kind, token)
 
+    def visit_comment(self, kind, token):
+        return "comment", (token, )
+
     def visit_default(self, kind, token):
         return "default", (token, )
 

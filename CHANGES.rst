@@ -1,6 +1,18 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Added ``meta:interpolation`` statement to control expression
+  interpolation setting.
+
+  Strings that disable the setting: ``"off"`` and ``"false"``.
+  Strings that enable the setting: ``"on"`` and ``"true"``.
+
+- Expression interpolation now works inside XML comments.
+
 2.0-rc9 (2011-05-05)
 --------------------
 

@@ -17,6 +17,7 @@ from ..namespaces import XMLNS_NS
 from ..namespaces import I18N_NS as I18N
 from ..namespaces import TAL_NS as TAL
 from ..namespaces import METAL_NS as METAL
+from ..namespaces import META_NS as META
 
 from ..astutil import Static
 from ..astutil import parse
@@ -66,9 +67,10 @@ class MacroProgram(ElementProgram):
         'tal': TAL,
         'metal': METAL,
         'i18n': I18N,
+        'meta': META,
         }
 
-    DROP_NS = TAL, METAL, I18N
+    DROP_NS = TAL, METAL, I18N, META
 
     VARIABLE_BLACKLIST = "default", "repeat", "nothing", \
                          "convert", "decode", "translate"
@@ -86,6 +88,9 @@ class MacroProgram(ElementProgram):
 
         # Internal array for current use macro level
         self._use_macro = []
+
+        # Internal array for current interpolation status
+        self._interpolation = [True]
 
         # Internal dictionary of macro definitions
         self._macros = {}
@@ -428,11 +433,24 @@ class MacroProgram(ElementProgram):
             fallback = nodes.Content(expression, None, False)
             ON_ERROR = partial(nodes.OnError, fallback)
 
+        clause = ns.get((META, 'interpolation'))
+        if clause in ('false', 'off'):
+            INTERPOLATION = False
+        elif clause in ('true', 'on'):
+            INTERPOLATION = True
+        elif clause is None:
+            INTERPOLATION = self._interpolation[-1]
+        else:
+            raise LanguageError("Bad interpolation setting.", clause)
+
+        self._interpolation.append(INTERPOLATION)
+
         # Visit content body
         for child in children:
             body.append(self.visit(*child))
 
         self._switches.pop()
+        self._interpolation.pop()
 
         if use_macro:
             self._use_macro.pop()
@@ -450,7 +468,15 @@ class MacroProgram(ElementProgram):
     def visit_comment(self, node):
         if node.startswith('<!--!'):
             return
-        return node
+
+        if self._interpolation[-1]:
+            return nodes.Sequence(
+                [nodes.Text(node[:4]),
+                 nodes.Interpolation(node[4:-3], self._escape),
+                 nodes.Text(node[-3:])
+                 ])
+
+        return nodes.Text(node)
 
     def visit_text(self, node):
         self._last = node
