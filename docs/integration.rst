@@ -36,4 +36,12 @@ For applications based on the `Zope Toolkit
 <http://docs.zope.org/zopetoolkit/>`_ (ZTK), install and include the
 `z3c.pt <http://pypi.python.org/pypi/z3c.pt>`_ package.
 
+Grok
+----
 
+For applications based on the `Grok` <http://grok.zope.org>`_, install and
+include the `megrok.chameleon <http://pypi.python.org/pypi/megroik.chameleon>`_
+package.
+
+This package will setup Grok's policy for templating integration and associate
+the Chameleon template components for the `*.cpt` template filename extension.
