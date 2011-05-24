@@ -534,7 +534,7 @@ class MacroProgram(ElementProgram):
 
     def _create_attributes_nodes(self, prepared, I18N_ATTRIBUTES):
         attributes = []
-        for name, (text, quote, space, eq, expr) in prepared.items():
+        for name, text, quote, space, eq, expr in prepared:
             # If (by heuristic) ``text`` contains one or
             # more interpolation expressions, make the attribute
             # dynamic
@@ -578,7 +578,7 @@ class MacroProgram(ElementProgram):
     def _create_static_attributes(self, prepared):
         static_attrs = {}
 
-        for name, (text, quote, space, eq, expr) in prepared.items():
+        for name, text, quote, space, eq, expr in prepared:
             static_attrs[name] = text if text is not None else expr
 
         return Static(parse(repr(static_attrs)).body)

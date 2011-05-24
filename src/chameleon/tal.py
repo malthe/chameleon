@@ -21,11 +21,6 @@ from .utils import descriptorstr
 from .namespaces import XMLNS_NS
 from .parser import groups
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
 
 try:
     next
@@ -142,7 +137,8 @@ def prepare_attributes(attrs, dyn_attributes, ns_attributes, drop_ns):
                     )
                 ])
 
-    attributes = OrderedDict()
+    attributes = []
+    normalized = {}
 
     for attribute in attrs:
         name = attribute['name']
@@ -150,23 +146,32 @@ def prepare_attributes(attrs, dyn_attributes, ns_attributes, drop_ns):
         if name in drop:
             continue
 
-        attributes[name] = (
+        attributes.append((
+            name,
             attribute['value'],
             attribute['quote'],
             attribute['space'],
             attribute['eq'],
             None,
-            )
+            ))
+
+        normalized[name.lower()] = len(attributes) - 1
 
     for name, expr in dyn_attributes.items():
-        try:
-            text, quote, space, eq, ignore = attributes[name]
-        except KeyError:
+        index = normalized.get(name.lower())
+        if index is not None:
+            _, text, quote, space, eq, _ = attributes[index]
+            add = attributes.__setitem__
+        else:
             text = None
             quote = '"'
             space = " "
             eq = "="
-        attributes[name] = text, quote, space, eq, expr
+            index = len(attributes)
+            add = attributes.insert
+
+        attribute = name, text, quote, space, eq, expr
+        add(index, attribute)
 
     return attributes
 

@@ -1,6 +1,8 @@
 <html>
   <body>
     <span tal:attributes="class 'hello'" />
+    <span class="goodbye" tal:attributes="class 'hello'" />
+    <span CLASS="goodbye" tal:attributes="class 'hello'" />
     <span tal:attributes="class None" />
     <span a="1" b="2" c="3" tal:attributes="a None" />
     <span a="1" b="2" c="3" tal:attributes="b None" />

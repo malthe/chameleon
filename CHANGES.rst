@@ -3,6 +3,13 @@ Changes
 
 In next release ...
 
+Bugfixes:
+
+- The ``tal:attributes`` statement now correctly operates
+  case-insensitive. The attribute name given in the statement will
+  replace an existing attribute with the same name, without respect to
+  case.
+
 Features:
 
 - Added ``meta:interpolation`` statement to control expression
