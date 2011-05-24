@@ -36,4 +36,10 @@ For applications based on the `Zope Toolkit
 <http://docs.zope.org/zopetoolkit/>`_ (ZTK), install and include the
 `z3c.pt <http://pypi.python.org/pypi/z3c.pt>`_ package.
 
+Grok
+----
+
+Support for the `Grok <http://grok.zope.org/>`_ framework is available
+in the `megrok.chameleon
+<http://pypi.python.org/pypi/megrok.chameleon>`_ package.
 
