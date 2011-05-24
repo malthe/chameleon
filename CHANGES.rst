@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.0-rc10 (2011-05-24)
+--------------------
 
 Bugfixes:
 
