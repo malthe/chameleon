@@ -39,7 +39,7 @@ For applications based on the `Zope Toolkit
 Grok
 ----
 
-For applications based on the `Grok` <http://grok.zope.org>`_, install and
+For applications based on the `Grok <http://grok.zope.org>`_, install and
 include the `megrok.chameleon <http://pypi.python.org/pypi/megroik.chameleon>`_
 package.
 
