@@ -1,6 +1,18 @@
 Changes
 =======
 
+In next release...
+
+Features:
+
+- Added support for Genshi's comment "drop" syntax::
+
+    <!--! This comment will be dropped -->
+
+  Note the additional exclamation (!) character.
+
+  This fixes addresses issue #10.
+
 2.0-rc10 (2011-05-24)
 ---------------------
 
