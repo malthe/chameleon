@@ -276,6 +276,18 @@ that element and the elements it contains.  If you redefine a variable
 in a contained element, the new definition hides the outer element's
 definition within the inner element.
 
+Note that valid variable names are any Python identifier string
+including underscore, although two or more leading underscores are
+disallowed (used internally by the compiler). Further, names are
+case-sensitive.
+
+Python builtins are always "in scope", but most of them may be
+redefined (such as ``help``). Exceptions are:: ``float``, ``int``,
+``len``, ``long``, ``str``, ``None``, ``True`` and ``False``.
+
+In addition, the following names are reserved: ``econtext``,
+``rcontext``, ``translate``, ``decode`` and ``convert``.
+
 If the expression associated with a variable evaluates to ``nothing``,
 then that variable has the value ``nothing``, and may be used as such
 in further expressions. Likewise, if the expression evaluates to

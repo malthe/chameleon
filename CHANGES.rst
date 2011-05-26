@@ -3,7 +3,24 @@ Changes
 
 In next release...
 
+Bugfixes:
+
+- Fixed issue where variable names that begin with an underscore were
+  seemingly allowed, but their use resulted in a compiler error.
+
 Features:
+
+- Template variable names are now allowed to be prefixed with a single
+  underscore, but not two or more (reserved for internal use).
+
+  Examples of valid names::
+
+    item
+    ITEM
+    _item
+    camelCase
+    underscore_delimited
+    help
 
 - Added support for Genshi's comment "drop" syntax::
 

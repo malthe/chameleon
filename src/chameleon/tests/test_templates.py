@@ -233,6 +233,30 @@ class ZopePageTemplatesTest(RenderTestCase):
             )
         self.assertTrue(template.filename in repr(template))
 
+    def test_underscore_variable(self):
+        from chameleon.zpt.template import PageTemplate
+        template = PageTemplate(
+            "<div tal:define=\"_dummy 'foo'\">${_dummy}</div>"
+            )
+        self.assertTrue(template(), "<div>foo</div>")
+
+    def test_double_underscore_variable(self):
+        from chameleon.zpt.template import PageTemplate
+        from chameleon.exc import TranslationError
+        self.assertRaises(
+            TranslationError, PageTemplate,
+            "<div tal:define=\"__dummy 'foo'\">${__dummy}</div>",
+            )
+
+    def test_compiler_internals_are_disallowed(self):
+        from chameleon.compiler import COMPILER_INTERNALS_OR_DISALLOWED
+        from chameleon.exc import TranslationError
+        from chameleon.zpt.template import PageTemplate
+
+        for name in COMPILER_INTERNALS_OR_DISALLOWED:
+            body = "<d tal:define=\"%s 'foo'\">${%s}</d>" % (name, name)
+            self.assertRaises(TranslationError, PageTemplate, body)
+
     def test_default_debug_flag(self):
         from chameleon.zpt.template import PageTemplateFile
         from chameleon.config import DEBUG_MODE

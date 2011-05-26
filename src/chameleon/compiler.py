@@ -52,8 +52,6 @@ from .utils import Placeholder
 log = logging.getLogger('chameleon.compiler')
 
 COMPILER_INTERNALS_OR_DISALLOWED = set([
-    "stream",
-    "append",
     "econtext",
     "rcontext",
     "translate",
@@ -79,7 +77,7 @@ else:
 
 
 def identifier(prefix, suffix=None):
-    return "_%s_%s" % (prefix, mangle(suffix or id(prefix)))
+    return "__%s_%s" % (prefix, mangle(suffix or id(prefix)))
 
 
 def mangle(string):
@@ -102,13 +100,13 @@ def store_rcontext(name):
 
 @template
 def emit_node(node):  # pragma: no cover
-    append(node)
+    __append(node)
 
 
 @template
 def emit_node_if_non_trivial(node):  # pragma: no cover
     if node is not None:
-        append(node)
+        __append(node)
 
 
 @template
@@ -131,7 +129,7 @@ def emit_convert(target, native=bytes, str=str, long=long):  # pragma: no cover
 
 @template
 def emit_translate(target, msgid, default=None):  # pragma: no cover
-    target = translate(msgid, default=default, domain=_i18n_domain)
+    target = translate(msgid, default=default, domain=__i18n_domain)
 
 
 @template
@@ -265,7 +263,7 @@ class ExpressionCompiler(object):
         # internal and can be assumed to be locally defined. This
         # policy really should be part of the template program, not
         # defined here in the compiler.
-        if name.startswith('_') or name in cls.initial:
+        if name.startswith('__') or name in cls.initial:
             return node
 
         if isinstance(node.ctx, ast.Store):
@@ -318,21 +316,21 @@ class ExpressionCompiler(object):
         self.markers.add(node.name)
 
         return [ast.Assign(targets=[target],
-                           value=load("_marker_%s" % node.name))]
+                           value=load("__marker_%s" % node.name))]
 
     def visit_Identity(self, node, target):
-        expression = self.translate(node.expression, "_expression")
-        value = self.translate(node.value, "_value")
+        expression = self.translate(node.expression, "__expression")
+        value = self.translate(node.value, "__value")
 
         return expression + value + \
-               template("TARGET = _expression is _value", TARGET=target)
+               template("TARGET = __expression is __value", TARGET=target)
 
     def visit_Equality(self, node, target):
-        expression = self.translate(node.expression, "_expression")
-        value = self.translate(node.value, "_value")
+        expression = self.translate(node.expression, "__expression")
+        value = self.translate(node.value, "__value")
 
         return expression + value + \
-               template("TARGET = _expression == _value", TARGET=target)
+               template("TARGET = __expression == __value", TARGET=target)
 
     def visit_Interpolation(self, node, target):
         def engine(expression, target):
@@ -445,7 +443,7 @@ class Compiler(object):
 
         body += template("import re")
         body += template("import functools")
-        body += template("_marker = object()")
+        body += template("__marker = object()")
         body += template(
             r"g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
         )
@@ -468,7 +466,7 @@ class Compiler(object):
         for marker in self._markers:
             body[:] = template(
                 "MARKER = CLS()",
-                MARKER=store("_marker_%s" % marker),
+                MARKER=store("__marker_%s" % marker),
                 CLS=Placeholder,
                 ) + body
 
@@ -478,10 +476,10 @@ class Compiler(object):
         body = []
 
         # Initialization
-        body += template("append = stream.append")
+        body += template("__append = __stream.append")
         body += template("getitem = econtext.__getitem__")
         body += template("get = econtext.get")
-        body += template("_i18n_domain = None")
+        body += template("__i18n_domain = None")
         body += template("re_amp = g_re_amp")
         body += template("re_needs_escape = g_re_needs_escape")
 
@@ -514,7 +512,7 @@ class Compiler(object):
         function = ast.FunctionDef(
             name=function_name, args=ast.arguments(
                 args=[
-                    param("stream"),
+                    param("__stream"),
                     param("econtext"),
                     param("rcontext"),
                     ],
@@ -529,17 +527,17 @@ class Compiler(object):
         return emit_node(ast.Str(s=node.value))
 
     def visit_Domain(self, node):
-        backup = "_previous_i18n_domain_%d" % id(node)
-        return template("BACKUP = _i18n_domain", BACKUP=backup) + \
-               template("_i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
+        backup = "__previous_i18n_domain_%d" % id(node)
+        return template("BACKUP = __i18n_domain", BACKUP=backup) + \
+               template("__i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
                self.visit(node.node) + \
-               template("_i18n_domain = BACKUP", BACKUP=backup)
+               template("__i18n_domain = BACKUP", BACKUP=backup)
 
     def visit_OnError(self, node):
         body = []
 
-        fallback = identifier("_fallback")
-        body += template("fallback = len(stream)", fallback=fallback)
+        fallback = identifier("__fallback")
+        body += template("fallback = len(__stream)", fallback=fallback)
 
         body += [ast.TryExcept(
             body=self.visit(node.node),
@@ -548,7 +546,7 @@ class Compiler(object):
                     elts=[Builtin(cls.__name__) for cls in self.exceptions],
                     ctx=ast.Load()),
                 name=None,
-                body=(template("del stream[fallback:]", fallback=fallback) + \
+                body=(template("del __stream[fallback:]", fallback=fallback) + \
                       self.visit(node.fallback)
                       ),
                 )]
@@ -557,7 +555,7 @@ class Compiler(object):
         return body
 
     def visit_Content(self, node):
-        name = "_content"
+        name = "__content"
         body = self._engine(node.expression, store(name))
 
         # content conversion steps
@@ -569,7 +567,7 @@ class Compiler(object):
             output = emit_convert(name)
 
         body += output
-        body += template("if NAME is not None: append(NAME)", NAME=name)
+        body += template("if NAME is not None: __append(NAME)", NAME=name)
 
         return body
 
@@ -596,10 +594,16 @@ class Compiler(object):
         for name in node.names:
             if name in COMPILER_INTERNALS_OR_DISALLOWED:
                 raise TranslationError(
-                    "Name disallowed by compiler: %s." % name
+                    "Name disallowed by compiler: %s.", name
                     )
 
-        assignment = self._engine(node.expression, store("_value"))
+            if name.startswith('__'):
+                raise TranslationError(
+                    "Name disallowed by compiler: %s (double underscore).",
+                    name
+                    )
+
+        assignment = self._engine(node.expression, store("__value"))
 
         if len(node.names) != 1:
             target = ast.Tuple(
@@ -609,12 +613,12 @@ class Compiler(object):
         else:
             target = store_econtext(node.names[0])
 
-        assignment.append(ast.Assign(targets=[target], value=load("_value")))
+        assignment.append(ast.Assign(targets=[target], value=load("__value")))
 
         for name in node.names:
             if not node.local:
                 assignment += template(
-                    "rcontext[KEY] = _value", KEY=ast.Str(s=fast_string(name))
+                    "rcontext[KEY] = __value", KEY=ast.Str(s=fast_string(name))
                     )
 
         return assignment
@@ -645,7 +649,7 @@ class Compiler(object):
         return self.visit_Condition(node)
 
     def visit_Condition(self, node):
-        target = "_condition"
+        target = "__condition"
         assignment = self._engine(node.expression, target)
 
         assert assignment
@@ -685,7 +689,7 @@ class Compiler(object):
 
         # Visit body to generate the message body
         code = self.visit(node.node)
-        swap(ast.Suite(body=code), load(append), "append")
+        swap(ast.Suite(body=code), load(append), "__append")
         body += code
 
         # Reduce white space and assign as message id
@@ -724,8 +728,8 @@ class Compiler(object):
 
         # emit the translation expression
         body += template(
-            "append(translate("
-            "msgid, mapping=mapping, default=default, domain=_i18n_domain))",
+            "__append(translate("
+            "msgid, mapping=mapping, default=default, domain=__i18n_domain))",
             msgid=msgid, default=default, mapping=mapping
             )
 
@@ -778,7 +782,7 @@ class Compiler(object):
 
         f = node.space + node.name + node.eq + node.quote + "%s" + node.quote
         body += template(
-            "if TARGET is not None: append(FORMAT % TARGET)",
+            "if TARGET is not None: __append(FORMAT % TARGET)",
             FORMAT=ast.Str(s=f),
             TARGET=target,
             )
@@ -809,15 +813,15 @@ class Compiler(object):
         else:
             render = "render_%s" % mangle(node.name)
 
-        return template("f(stream, econtext.copy(), rcontext)", f=render) + \
+        return template("f(__stream, econtext.copy(), rcontext)", f=render) + \
                template("econtext.update(rcontext)")
 
     def visit_DefineSlot(self, node):
-        name = "_slot_%s" % mangle(node.name)
+        name = "__slot_%s" % mangle(node.name)
         self._slots.add(name)
         body = self.visit(node.node)
 
-        orelse = template("SLOT(stream, econtext.copy(), econtext)", SLOT=name)
+        orelse = template("SLOT(__stream, econtext.copy(), econtext)", SLOT=name)
         test = ast.Compare(
             left=load(name),
             ops=[ast.Is()],
@@ -849,7 +853,7 @@ class Compiler(object):
 
         # generate code
         code = self.visit(node.node)
-        swap(ast.Suite(body=code), load(append), "append")
+        swap(ast.Suite(body=code), load(append), "__append")
         body += code
 
         # output msgid
@@ -864,8 +868,8 @@ class Compiler(object):
     def visit_UseExternalMacro(self, node):
         callbacks = []
         for slot in node.slots:
-            key = "_slot_%s" % mangle(slot.name)
-            fun = "_fill_%s" % mangle(slot.name)
+            key = "__slot_%s" % mangle(slot.name)
+            fun = "__fill_%s" % mangle(slot.name)
 
             body = template("getitem = econtext.__getitem__") + \
                    template("get = econtext.get") + \
@@ -876,12 +880,12 @@ class Compiler(object):
                     name=fun,
                     args=ast.arguments(
                         args=[
-                            param("stream"),
+                            param("__stream"),
                             param("econtext"),
                             param("rcontext"),
-                            param("_i18n_domain"),
+                            param("__i18n_domain"),
                             ],
-                        defaults=[load("_i18n_domain")],
+                        defaults=[load("__i18n_domain")],
                         ),
                     body=body or [ast.Pass()],
                 ))
@@ -904,12 +908,12 @@ class Compiler(object):
                     orelse=update_body
                     ))
 
-        assignment = self._engine(node.expression, store("_macro"))
+        assignment = self._engine(node.expression, store("__macro"))
 
         return (
             callbacks + \
             assignment + \
-            template("_macro.include(stream, econtext.copy(), rcontext)") + \
+            template("__macro.include(__stream, econtext.copy(), rcontext)") + \
             template("econtext.update(rcontext)")
             )
 
@@ -951,13 +955,13 @@ class Compiler(object):
         names = node.names
         local = node.local
 
-        outer = self._engine(node.expression, store("_iterator"))
+        outer = self._engine(node.expression, store("__iterator"))
 
         if local:
             outer[:] = list(self._enter_assignment(names)) + outer
 
         outer += template(
-            "_iterator, INDEX = getitem('repeat')(key, _iterator)",
+            "__iterator, INDEX = getitem('repeat')(key, __iterator)",
             key=key, INDEX=index
             )
 
@@ -977,14 +981,14 @@ class Compiler(object):
 
         # For items up to N - 1, emit repeat whitespace
         inner += template(
-            "if INDEX > 0: append(WHITESPACE)",
+            "if INDEX > 0: __append(WHITESPACE)",
             INDEX=index, WHITESPACE=ast.Str(s=node.whitespace)
             )
 
         # Main repeat loop
         outer += [ast.For(
             target=store("_item"),
-            iter=load("_iterator"),
+            iter=load("__iterator"),
             body=assignment + inner,
             )]
 
@@ -1006,7 +1010,7 @@ class Compiler(object):
     def _enter_assignment(self, names):
         for name in names:
             for stmt in template(
-                "BACKUP = get(KEY, _marker)",
+                "BACKUP = get(KEY, __marker)",
                 BACKUP=identifier("backup_%s" % name, id(names)),
                 KEY=ast.Str(s=fast_string(name)),
                 ):
@@ -1015,7 +1019,7 @@ class Compiler(object):
     def _leave_assignment(self, names):
         for name in names:
             for stmt in template(
-                "if BACKUP is _marker: del econtext[KEY]\n"
+                "if BACKUP is __marker: del econtext[KEY]\n"
                 "else:                 econtext[KEY] = BACKUP",
                 BACKUP=identifier("backup_%s" % name, id(names)),
                 KEY=ast.Str(s=fast_string(name)),
