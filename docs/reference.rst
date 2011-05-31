@@ -357,6 +357,9 @@ if the expression matches the value.
 If the case expression is is the symbol ``default``, it always matches
 the switch.
 
+.. note:: These statements are only available in Chameleon 2.x and not
+          part of the ZPT specification.
+
 Examples
 ~~~~~~~~
 
