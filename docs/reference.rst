@@ -325,54 +325,54 @@ Defining two variables, where the second depends on the first::
         tal:define="mytitle context.title; tlen len(mytitle)"
 
 
-``tal:switch``
-^^^^^^^^^^^^^^
+``tal:switch`` and ``tal:case``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Defines a switch clause.
+
+::
+
+  <ul tal:switch="len(items) % 2">
+    <li tal:case="True">odd</li>
+    <li tal:case="False">even</li>
+  </ul>
 
 Syntax
 ~~~~~~
 
-``tal:switch`` syntax::
+``tal:case`` and ``tal:switch`` syntax::
 
     argument ::= expression
-
 
 Description
 ~~~~~~~~~~~
 
-Sets a new switch context (see ``tal:case`` for its logical
-counterpart).
+The *switch* and *case* construct is a short-hand syntax for
+evaluating a set of expressions against a parent value.
 
+The ``tal:switch`` statement is used to set a new parent value and the
+``tal:case`` statement works like a condition and only allows content
+if the expression matches the value.
 
-``tal:case``
-^^^^^^^^^^^^
-
-Defines a switch clause.
-
-Syntax
-~~~~~~
-
-``tal:case`` syntax::
-
-    argument ::= expression
-
-
-Description
-~~~~~~~~~~~
-
-A case attribute works like a condition and only allows content if the
-value matches that of the nearest parent switch value.
-
-If the value is is the symbol ``default``, it always matches the
-switch.
+If the case expression is is the symbol ``default``, it always matches
+the switch.
 
 Examples
 ~~~~~~~~
 
 ::
 
-  tal:case="item.value or default"
+  <ul tal:switch="item.type">
+    <li tal:case="'document'">
+      Document
+    </li>
+    <li tal:case="'folder'">
+      Folder
+    </li>
+    <li tal:case="default">
+      Other
+    </li>
+  </ul>
 
 Note that any and all cases that match the switch will be allowed.
 
