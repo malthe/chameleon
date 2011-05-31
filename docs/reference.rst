@@ -146,6 +146,9 @@ If you use ``tal:attributes`` on an element with a ``tal:repeat``
 statement, the replacement is made on each repetition of the element,
 and the replacement expression is evaluated fresh for each repetition.
 
+.. note:: If you want to include a semicolon (";") in an expression, it
+          must be escaped by doubling it (";;") [1]_.
+
 Examples
 ~~~~~~~~
 
@@ -262,10 +265,10 @@ Syntax
 
 ``tal:define`` syntax::
 
-    argument             ::= attribute_statement [';' attribute_statement]*
-    attribute_statement  ::= variable_name expression
-    variable_name        ::= Name
-
+    argument ::= define_scope [';' define_scope]*
+    define_scope ::= (['local'] | 'global')
+    define_var define_var ::= variable_name
+    expression variable_name ::= Name
 
 Description
 ~~~~~~~~~~~
@@ -293,6 +296,22 @@ then that variable has the value ``nothing``, and may be used as such
 in further expressions. Likewise, if the expression evaluates to
 ``default``, then the variable has the value ``default``, and may be
 used as such in further expressions.
+
+You can define two different kinds of variables: *local* and
+*global*. When you define a local variable in a statement element, you
+can only use that variable in that element and the elements it
+contains. If you redefine a local variable in a contained element, the
+new definition hides the outer element's definition within the inner
+element. When you define a global variables, you can use it in any
+element processed after the defining element. If you redefine a global
+variable, you replace its definition for the rest of the template.
+
+To set the definition scope of a variable, use the keywords ``local``
+or ``global`` in front of the assignment. The default setting is
+``local``; thus, in practice, only the ``global`` keyword is used.
+
+.. note:: If you want to include a semicolon (";") in an expression, it
+          must be escaped by doubling it (";;") [1]_.
 
 Examples
 ~~~~~~~~
@@ -1182,7 +1201,7 @@ This attribute will allow us to translate attributes of HTML tags,
 such as the ``alt`` attribute in the ``img`` tag. The
 ``i18n:attributes`` attribute specifies a list of attributes to be
 translated with optional message IDs for each; if multiple attribute
-names are given, they must be separated by semi-colons.  Message IDs
+names are given, they must be separated by semicolons.  Message IDs
 used in this context must not include whitespace.
 
 Note that the value of the particular attributes come either from the
@@ -1369,4 +1388,39 @@ You can now use the Babel commands directly::
    python setup.py extract_messages
    python setup.py update_catalog
    python setup.py compile_catalog
+
+
+Notes
+=====
+
+.. [1] This has been changed in 2.x. Previously, it was up to the
+       expression engine to parse the expression values including any
+       semicolons and since for instance Python-expressions can never
+       end in a semicolon, it was possible to clearly distinguish
+       between the different uses of the symbol, e.g.
+
+       ::
+
+         tal:define="text 'Hello world; goodbye world'"
+
+       The semicolon appearing in the definition above is part of the
+       Python-expression simply because it makes the expression
+       valid. Meanwhile:
+
+       ::
+
+         tal:define="text1 'Hello world'; text2 'goodbye world'"
+
+       The semicolon here must denote a second variable definition
+       because there is no valid Python-expression that includes it.
+
+       While this behavior works well in practice, it is incompatible
+       with the reference specification, and also blurs the interface
+       between the compiler and the expression engine. In 2.x we
+       therefore have to escape the semicolon by doubling it (as
+       defined by the specification):
+
+       ::
+
+         tal:define="text 'Hello world;; goodbye world'"
 
