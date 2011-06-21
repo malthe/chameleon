@@ -1393,6 +1393,28 @@ You can now use the Babel commands directly::
    python setup.py compile_catalog
 
 
+${...} operator
+###############
+
+The ``${...}`` notation is short-hand for text insertion. The
+Python-expression inside the braces is evaluated and the result
+included in the output (all inserted text is escaped by default):
+
+.. code-block:: html
+
+  <div id="section-${index + 1}">
+    ${content}
+  </div>
+
+Note that to insert the value of a symbol, the curly braces can be
+omitted entirely: ``Hello, $name!``.
+
+To escape this behavior, prefix the notation with a backslash
+character: ``\${...}``.
+
+Note that if an object implements the ``__html__`` method, the result
+of this method will be inserted as-is (without XML escaping).
+
 Notes
 =====
 
