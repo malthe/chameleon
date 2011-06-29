@@ -31,6 +31,9 @@ class TemplateError(Exception):
 
         return text
 
+    def __repr__(self):
+        return "%s(%r, %r)" % (self.__class__.__name__, self.msg, self.token)
+
     @property
     def offset(self):
         return getattr(self.token, "pos", 0)

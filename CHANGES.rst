@@ -1,6 +1,12 @@
 Changes
 =======
 
+In next release...
+
+Features:
+
+- Improve exception output.
+
 2.0-rc11 (2011-05-26)
 ---------------------
 
