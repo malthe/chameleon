@@ -288,6 +288,21 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertTrue(template.debug)
         self.assertTrue(isinstance(template.loader, ModuleLoader))
 
+    def test_tag_mismatch(self):
+        from chameleon.zpt.template import PageTemplate
+        from chameleon.exc import ParseError
+
+        try:
+            template = PageTemplate("""
+            <div metal:use-macro="layout">
+            <div metal:fill-slot="name"></dav>
+            </div>
+            """)
+        except ParseError:
+            exc = sys.exc_info()[1]
+            self.assertTrue("</dav>" in str(exc))
+        else:
+            self.fail("Expected error.")
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):

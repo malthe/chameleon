@@ -3,6 +3,10 @@ Changes
 
 In next release...
 
+Bugfixes:
+
+- An unexpected end tag is now an unrecoverable error.
+
 Features:
 
 - Improve exception output.

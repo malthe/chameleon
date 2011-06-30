@@ -208,14 +208,7 @@ class ElementParser(object):
                 del self.queue[pos:]
                 break
         else:
-            log.warn(
-                ParseError(
-                    "End-tag for element which is not open.",
-                    token)
-                )
-
-            # we simply return it as-is (text)
-            return "text", (token, )
+            raise ParseError("Unexpected end tag.", token)
 
         return "element", (start, node, children)
 
