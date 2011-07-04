@@ -148,10 +148,12 @@ class BaseTemplate(object):
     def parse(self, body):
         raise NotImplementedError("Must be implemented by subclass.")
 
-    def render(self, **rcontext):
-        stream = self.output_stream_factory()
-        econtext = rcontext.pop('econtext', False) or Scope(rcontext)
+    def render(self, **__kw):
+        econtext = Scope(__kw)
+        rcontext = {}
+
         self.cook_check()
+        stream = self.output_stream_factory()
         try:
             self._render(stream, econtext, rcontext)
         except:

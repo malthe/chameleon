@@ -5,6 +5,9 @@ In next release...
 
 Bugfixes:
 
+- Initial keyword arguments passed to a template now no longer "leak"
+  into the template variable space after a macro call.
+
 - An unexpected end tag is now an unrecoverable error.
 
 Features:

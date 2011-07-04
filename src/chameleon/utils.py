@@ -235,5 +235,3 @@ class Scope(dict):
         inst = Scope(self)
         inst.set_global = self.set_global
         return inst
-
-
