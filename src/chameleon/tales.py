@@ -20,6 +20,7 @@ from .utils import decode_htmlentities
 from .utils import resolve_dotted
 from .tokenize import Token
 from .parser import groupdict
+from .parser import substitute
 
 try:
     from .py26 import lookup_attr
@@ -29,7 +30,7 @@ except SyntaxError:
 
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z\-_]+):').match
-
+re_continuation = re.compile(r'\\\s*$', re.MULTILINE)
 
 try:
     from __builtin__ import basestring
@@ -237,7 +238,16 @@ class PythonExpr(TalesExpr):
     transform = ItemLookupOnAttributeErrorVisitor(transform_attribute)
 
     def translate(self, expression, target):
-        string = expression.strip().replace('\n', ' ')
+        # Strip spaces
+        string = expression.strip()
+
+        # Conver line continuations to newlines
+        string = substitute(re_continuation, '\n', string)
+
+        # Convert newlines to spaces
+        string = string.replace('\n', ' ')
+
+        # Decode HTML entities (e.g. &lt;)
         decoded = decode_htmlentities(string)
 
         try:

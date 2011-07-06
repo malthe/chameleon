@@ -8,6 +8,7 @@ except ImportError:
 
 from .exc import ParseError
 from .namespaces import XML_NS
+from .tokenize import Token
 
 match_tag_prefix_and_name = re.compile(
     r'^(?P<prefix></?)(?P<name>([^:\n ]+:)?[^ \n>/]+)'
@@ -32,6 +33,18 @@ match_processing_instruction = re.compile(
 match_xml_declaration = re.compile(r'^<\?xml(?=[ /])', re.DOTALL)
 
 log = logging.getLogger('chameleon.parser')
+
+
+def substitute(regex, repl, token):
+    if not isinstance(token, Token):
+        token = Token(token)
+
+    return Token(
+        regex.sub(repl, token),
+        token.pos,
+        token.source,
+        token.filename
+        )
 
 
 def groups(m, token):

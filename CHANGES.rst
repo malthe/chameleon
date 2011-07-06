@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- The backslash character (followed by optional whitespace and a line
+  break) was not correctly interpreted as a continuation for Python
+  expressions.
+
 2.0-rc12 (2011-07-04)
 ---------------------
 

@@ -1,0 +1,4 @@
+<div tal:define="foo 1 + \
+                     1">
+  $foo
+</div>

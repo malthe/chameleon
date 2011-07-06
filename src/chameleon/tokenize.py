@@ -79,7 +79,7 @@ def iter_text(body, filename=None):
 class Token(str):
     __slots__ = "pos", "source", "filename"
 
-    def __new__(cls, string, pos, source=None, filename=None):
+    def __new__(cls, string, pos=0, source=None, filename=None):
         inst = str.__new__(cls, string)
         inst.pos = pos
         inst.source = source
