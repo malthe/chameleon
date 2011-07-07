@@ -9,6 +9,11 @@ Bugfixes:
   break) was not correctly interpreted as a continuation for Python
   expressions.
 
+Features:
+
+- The Python expression implementation is now more flexible for
+  external subclassing via a new ``parse`` method.
+
 2.0-rc12 (2011-07-04)
 ---------------------
 

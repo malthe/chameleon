@@ -237,6 +237,9 @@ class PythonExpr(TalesExpr):
 
     transform = ItemLookupOnAttributeErrorVisitor(transform_attribute)
 
+    def parse(self, string):
+        return parse(string, 'eval').body
+
     def translate(self, expression, target):
         # Strip spaces
         string = expression.strip()
@@ -251,7 +254,7 @@ class PythonExpr(TalesExpr):
         decoded = decode_htmlentities(string)
 
         try:
-            value = parse(decoded, 'eval').body
+            value = self.parse(decoded)
         except SyntaxError:
             exc = sys.exc_info()[1]
             raise ExpressionError(exc.msg, decoded)
