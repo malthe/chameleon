@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- The page template loader class now accepts an optional ``formats``
+  argument which can be used to select an alternative template class.
+
 2.0-rc13 (2011-07-07)
 ---------------------
 
