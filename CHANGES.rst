@@ -1,7 +1,10 @@
 Changes
 =======
 
-In next release ...
+Bugfixes:
+
+- The tab character (``\t``) is now parsed correctly when used inside
+  tags.
 
 Features:
 
