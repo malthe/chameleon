@@ -39,9 +39,11 @@ class TypeSniffingTestCase(unittest.TestCase):
 
         class DummyTemplateFile(BaseTemplateFile):
             def cook(self, body):
-                pass
+                self.body = body
 
-        return DummyTemplateFile(fn)
+        template = DummyTemplateFile(fn)
+        template.cook_check()
+        return template
 
     def check_content_type(self, text, expected_type):
         from chameleon.template import BaseTemplate

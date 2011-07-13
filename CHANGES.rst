@@ -8,6 +8,12 @@ Bugfixes:
 
 Features:
 
+- Added template constructor option ``keep_body`` which is a flag
+  (also available as a class attribute) that controls whether to save
+  the template body input in the ``body`` attribute.
+
+  This is disabled by default, unless debug-mode is enabled.
+
 - The page template loader class now accepts an optional ``formats``
   argument which can be used to select an alternative template class.
 

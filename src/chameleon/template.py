@@ -125,6 +125,12 @@ class BaseTemplate(object):
         return "<%s %s>" % (self.__class__.__name__, self.filename)
 
     @property
+    def keep_body(self):
+        # By default, we only save the template body if we're
+        # in debugging mode (to save memory).
+        return self.__dict__.get('keep_body', DEBUG_MODE)
+
+    @property
     def keep_source(self):
         # By default, we only save the generated source code if we're
         # in debugging mode (to save memory).
@@ -141,6 +147,9 @@ class BaseTemplate(object):
             setattr(self, "_" + name, function)
 
         self._cooked = True
+
+        if self.keep_body:
+            self.body = body
 
     def cook_check(self):
         assert self._cooked
@@ -319,8 +328,6 @@ class BaseTemplateFile(BaseTemplate):
         self._v_last_read = None
 
     filename = property(_get_filename, _set_filename)
-
-    body = property(read)
 
     def _cook(self, body, digest):
         filename = os.path.basename(self.filename)
