@@ -10,12 +10,12 @@ class TemplateLoader(BaseLoader):
 
     default_format = "xml"
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         formats = kwargs.pop('formats', None)
         if formats is not None:
             self.formats = formats
 
-        super(TemplateLoader, self).__init__(**kwargs)
+        super(TemplateLoader, self).__init__(*args, **kwargs)
 
     def load(self, filename, format=None):
         """Load and return a template file.
