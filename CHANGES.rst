@@ -8,6 +8,9 @@ Bugfixes:
 
 Features:
 
+- The ``RepeatDict`` class now works as a proxy behind a seperate
+  dictionary instance.
+
 - Added template constructor option ``keep_body`` which is a flag
   (also available as a class attribute) that controls whether to save
   the template body input in the ``body`` attribute.

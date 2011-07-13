@@ -96,11 +96,13 @@ class PageTemplate(BaseTemplate):
         setdefault = k.setdefault
         setdefault("template", self)
         setdefault("macros", self.macros)
-        setdefault("repeat", RepeatDict())
         setdefault("translate", translate)
         setdefault("convert", translate)
         setdefault("decode", decode)
         setdefault("nothing", None)
+
+        # Make sure we have a repeat dictionary
+        if 'repeat' not in k: k['repeat'] = RepeatDict({})
 
         return super(PageTemplate, self).render(**k)
 

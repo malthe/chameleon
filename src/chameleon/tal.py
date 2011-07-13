@@ -362,7 +362,24 @@ class RepeatItem(object):
 
 
 class RepeatDict(dict):
-    __slots__ = ()
+    """Repeat dictionary implementation.
+
+    >>> repeat = RepeatDict({})
+    >>> iterator, length = repeat('numbers', range(5))
+    >>> length
+    5
+
+    >>> repeat['numbers']
+    <chameleon.tal.RepeatItem object at ...>
+
+    """
+
+    __slots__ = "__setitem__", "__getitem__", "__getattr__"
+
+    def __init__(self, d):
+        self.__setitem__ = d.__setitem__
+        self.__getitem__ = d.__getitem__
+        self.__getattr__ = d.__getitem__
 
     def __call__(self, key, iterable):
         """We coerce the iterable to a tuple and return an iterator
@@ -389,21 +406,7 @@ class RepeatDict(dict):
         length = len(iterable)
         iterator = iter(iterable)
 
-        # insert item into repeat-dictionary
-        self[key] = iterator, length, None
+        # Insert as repeat item
+        self[key] = RepeatItem(iterator, length)
 
         return iterator, length
-
-    def __getitem__(self, key):
-        iterator, length, repeat = dict.__getitem__(self, key)
-        if repeat is None:
-            repeat = RepeatItem(iterator, length)
-            self[key] = iterator, length, repeat
-        return repeat
-
-    __getattr__ = __getitem__
-
-    def get(self, key, default):
-        if key not in self:
-            return default
-        return self[key]
