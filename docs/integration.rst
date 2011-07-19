@@ -40,8 +40,8 @@ Grok
 ----
 
 Support for the `Grok <http://grok.zope.org/>`_ framework is available
-in the `megrok.chameleon
-<http://pypi.python.org/pypi/megrok.chameleon>`_ package.
+in the `grokcore.chameleon
+<http://pypi.python.org/pypi/grokcore.chameleon>`_ package.
 
 This package will setup Grok's policy for templating integration and
 associate the Chameleon template components for the `*.cpt` template
