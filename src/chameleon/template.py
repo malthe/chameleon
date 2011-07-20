@@ -34,6 +34,7 @@ from .config import CACHE_DIRECTORY
 from .utils import DebuggingOutputStream
 from .utils import Scope
 from .utils import join
+from .utils import mangle
 
 try:
     byte_string = str
@@ -331,8 +332,8 @@ class BaseTemplateFile(BaseTemplate):
 
     def _cook(self, body, digest):
         filename = os.path.basename(self.filename)
-        base, ext = os.path.splitext(filename)
-        name = "%s_%s.py" % (base, digest)
+        mangled = mangle(filename)
+        name = "%s_%s.py" % (mangled, digest)
         cooked = self.loader.get(name)
 
         if cooked is None:

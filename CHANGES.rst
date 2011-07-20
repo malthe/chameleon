@@ -1,6 +1,15 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- The disk-based module compiler now mangles template source filenames
+  such that the output Python module is valid and at root level (dots
+  and hyphens are replaced by an underscore). This fixes issue #17.
+  [malthe]
+
 2.0 (2011-07-14)
 ----------------
 
