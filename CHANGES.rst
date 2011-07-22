@@ -10,6 +10,8 @@ Bugfixes:
   and hyphens are replaced by an underscore). This fixes issue #17.
   [malthe]
 
+- i18n translations didn't work on Python 2.5.
+
 2.0 (2011-07-14)
 ----------------
 
