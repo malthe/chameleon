@@ -7,20 +7,19 @@ import shutil
 import logging
 import tempfile
 
+pkg_digest = hashlib.sha1(__name__.encode('utf-8'))
+
 try:
     import pkg_resources
 except ImportError:
-    pkg_version = 0
+    logging.info("Setuptools not installed. Unable to determine version.")
 else:
-    try:
-        distribution = pkg_resources.get_distribution("Chameleon")
-    except pkg_resources.DistributionNotFound:
-        pkg_version = ""
-    else:
-        if distribution.has_version():
-            pkg_version = distribution.version
-        else:
-            pkg_version = ""
+    for path in sys.path:
+        for distribution in pkg_resources.find_distributions(path):
+            if distribution.has_version():
+                version = distribution.version.encode('utf-8')
+                pkg_digest.update(version)
+
 
 from .compiler import Compiler
 from .loader import ModuleLoader
@@ -210,9 +209,10 @@ class BaseTemplate(object):
                self.loader.build(source, filename)
 
     def _digest(self, body):
-        sha = hashlib.sha1(body.encode('utf-8'))
-        sha.update(type(self).__name__.encode('utf-8'))
-        sha.update(pkg_version.encode('utf-8'))
+        class_name = type(self).__name__.encode('utf-8')
+        sha = pkg_digest.copy()
+        sha.update(body.encode('utf-8'))
+        sha.update(class_name)
         return sha.hexdigest()
 
     def _compile(self, program):

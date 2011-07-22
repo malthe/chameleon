@@ -5,6 +5,13 @@ In next release ...
 
 Bugfixes:
 
+- Fixed issue with template cache digest (used for filenames); modules
+  are now invalidated whenever any changes are made to the
+  distribution set available (packages on ``sys.path``).
+
+- Fixed exception handler to better let exceptions propagate through
+  the renderer.
+
 - The disk-based module compiler now mangles template source filenames
   such that the output Python module is valid and at root level (dots
   and hyphens are replaced by an underscore). This fixes issue #17.
