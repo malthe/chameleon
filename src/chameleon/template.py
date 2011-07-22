@@ -238,7 +238,7 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
-    def __init__(self, filename, loader=None, **kwargs):
+    def __init__(self, filename, loader=None, auto_reload=None, **kwargs):
         if not os.path.isabs(filename):
             if loader is not None:
                 filename = loader.find(filename)
@@ -254,7 +254,6 @@ class BaseTemplateFile(BaseTemplate):
         self.filename = filename
 
         # Override reload setting only if value is provided explicitly
-        auto_reload = kwargs.pop('auto_reload', None)
         if auto_reload is not None:
             self.auto_reload = auto_reload
 
