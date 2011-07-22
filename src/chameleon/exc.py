@@ -1,7 +1,7 @@
 import traceback
 
-from .tokenize import Token
 from .utils import format_kwargs
+from .tokenize import Token
 
 
 class TemplateError(Exception):
@@ -32,7 +32,12 @@ class TemplateError(Exception):
         return text
 
     def __repr__(self):
-        return "%s(%r, %r)" % (self.__class__.__name__, self.msg, self.token)
+        try:
+            return "%s(%r, %r)" % (
+                self.__class__.__name__, self.msg, self.token
+                )
+        except AttributeError:
+            return object.__repr__(self)
 
     @property
     def offset(self):
@@ -75,9 +80,7 @@ class ExpressionError(LanguageError):
     """
 
 
-class RenderError(TemplateError):
-    """An error occurred during rendering."""
-
+class ExceptionFormatter(object):
     def __init__(self, errors, econtext, rcontext):
         kwargs = rcontext.copy()
         kwargs.update(econtext)
@@ -85,7 +88,7 @@ class RenderError(TemplateError):
         self._errors = errors
         self._kwargs = kwargs
 
-    def __str__(self):
+    def __call__(self):
         # Format keyword arguments; consecutive arguments are indented
         # for readability
         try:
@@ -102,7 +105,7 @@ class RenderError(TemplateError):
 
         out = ["An uncaught exception was raised.", ""]
 
-        for error in self.flatten():
+        for error in self._errors:
             expression, line, column, filename, exc = error
             out += traceback.format_exception_only(type(exc), exc)
             out.append(" - Expression: \"%s\"" % expression)
@@ -112,12 +115,3 @@ class RenderError(TemplateError):
         out.append(" - Arguments:  %s" % "\n".join(formatted))
 
         return "\n".join(out)
-
-    def flatten(self):
-        for error in self._errors:
-            exc = error[-1]
-            if isinstance(exc, RenderError):
-                for error in exc.flatten():
-                    yield error
-            else:
-                yield error

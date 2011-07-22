@@ -181,10 +181,9 @@ class ZopePageTemplatesTest(RenderTestCase):
 
     @template("""<span tal:content='str(default)'>Default</span>""")
     def test_default_is_not_a_string(self, template):
-        from chameleon.exc import RenderError
         try:
             template()
-        except RenderError:
+        except RuntimeError:
             exc = sys.exc_info()[1]
             self.assertTrue('symbolic value' in str(exc))
         else:
@@ -239,6 +238,22 @@ class ZopePageTemplatesTest(RenderTestCase):
             "<div tal:define=\"_dummy 'foo'\">${_dummy}</div>"
             )
         self.assertTrue(template(), "<div>foo</div>")
+
+    def test_exception(self):
+        from chameleon.zpt.template import PageTemplate
+
+        template = PageTemplate(
+            "<div tal:define=\"dummy foo\">${dummy}</div>"
+            )
+        try:
+            template()
+        except:
+            exc = sys.exc_info()[1]
+            formatted = str(exc)
+            self.assertTrue('NameError: foo' in formatted)
+            self.assertTrue('(1:23)' in formatted)
+        else:
+            self.fail("expected error")
 
     def test_double_underscore_variable(self):
         from chameleon.zpt.template import PageTemplate

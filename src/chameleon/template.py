@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import copy
 import atexit
 import hashlib
 import shutil
@@ -25,7 +26,7 @@ from .compiler import Compiler
 from .loader import ModuleLoader
 from .loader import MemoryLoader
 from .exc import TemplateError
-from .exc import RenderError
+from .exc import ExceptionFormatter
 from .config import DEBUG_MODE
 from .config import AUTO_RELOAD
 from .config import EAGER_PARSING
@@ -166,20 +167,22 @@ class BaseTemplate(object):
         try:
             self._render(stream, econtext, rcontext)
         except:
-            cls, raised, tb = sys.exc_info()
+            cls, exc, tb = sys.exc_info()
             errors = rcontext.get('__error__')
             if errors:
-                exc = RenderError(errors, econtext, rcontext)
-                if not issubclass(cls, RenderError):
-                    try:
-                        new = type(type(exc).__name__, (RenderError, cls), {})
-                        exc.__class__ = new
-                    except TypeError:
-                        # This may not always be possible; let's raise
-                        # the original exception in this case
-                        exc = raised
-                    else:
-                        exc.__dict__.update(raised.__dict__)
+                exc = copy.copy(exc)
+                formatter = ExceptionFormatter(errors, econtext, rcontext)
+
+                try:
+                    new = type(cls.__name__, (cls, Exception), {
+                        '__str__': formatter,
+                        })
+                    exc.__class__ = new
+                except TypeError:
+                    d = exc.__dict__
+                    exc = Exception.__new__(new)
+                    exc.__dict__ = d
+
                 raise_with_traceback(exc, tb)
 
             raise
