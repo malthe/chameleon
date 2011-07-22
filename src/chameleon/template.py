@@ -235,9 +235,8 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
-    def __init__(self, filename, *args, **kwargs):
+    def __init__(self, filename, loader=None, **kwargs):
         if not os.path.isabs(filename):
-            loader = kwargs.get('loader')
             if loader is not None:
                 filename = loader.find(filename)
 
