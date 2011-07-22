@@ -5,6 +5,11 @@ In next release ...
 
 Bugfixes:
 
+- Fixed issue where global variable definition from macro slots would
+  fail (they would instead be local). This also affects error
+  reporting from inside slots because this would be recorded
+  internally as a global.
+
 - Fixed issue with template cache digest (used for filenames); modules
   are now invalidated whenever any changes are made to the
   distribution set available (packages on ``sys.path``).

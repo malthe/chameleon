@@ -821,7 +821,7 @@ class Compiler(object):
         self._slots.add(name)
         body = self.visit(node.node)
 
-        orelse = template("SLOT(__stream, econtext.copy(), econtext)", SLOT=name)
+        orelse = template("SLOT(__stream, econtext.copy(), rcontext)", SLOT=name)
         test = ast.Compare(
             left=load(name),
             ops=[ast.Is()],
