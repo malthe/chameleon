@@ -6,3 +6,7 @@
 coverage.xml
 nosetests.xml
 *.tar.gz
+env25/
+env26/
+env27/
+env32/
