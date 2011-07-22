@@ -1,9 +1,8 @@
 Changes
 =======
 
-In next release ...
-
-Bugfixes:
+2.0.1 (2011-07-23)
+------------------
 
 - Fixed issue where global variable definition from macro slots would
   fail (they would instead be local). This also affects error
