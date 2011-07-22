@@ -15,10 +15,14 @@ from ..template import BaseTemplateFile
 from .program import MacroProgram as Program
 
 try:
+    bytes
+except NameError:
+    bytes = str
+
+try:
     str = unicode
 except NameError:
     pass
-
 
 class PageTemplate(BaseTemplate):
     """Template class for the Chameleon Page Templates language.
