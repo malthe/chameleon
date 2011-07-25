@@ -1,7 +1,10 @@
 Changes
 =======
 
-In next release ...
+2.0.2 (2011-07-25)
+------------------
+
+Bugfixes:
 
 - Don't use dynamic variable scope for lambda-scoped variables (#27).
 
@@ -12,6 +15,8 @@ In next release ...
 
 2.0.1 (2011-07-23)
 ------------------
+
+Bugfixes:
 
 - Fixed issue where global variable definition from macro slots would
   fail (they would instead be local). This also affects error
