@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release ...
+
+- Fixed issue where a ``metal:fill-slot`` would be ignored if a macro
+  was set to be used on the same element (#16).
+
 2.0.1 (2011-07-23)
 ------------------
 

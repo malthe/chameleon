@@ -1,0 +1,13 @@
+<html>
+  <head>
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="content">
+      <div>Content</div>
+    </div>
+    <div id="footer">
+
+    </div>
+  </body>
+</html>

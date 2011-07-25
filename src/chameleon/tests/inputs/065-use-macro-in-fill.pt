@@ -1,0 +1,6 @@
+<html metal:use-macro="load('032-master-template.pt').macros['main']">
+  <title tal:define="title string:Title"
+         metal:fill-slot="title"
+         metal:use-macro="load('032-master-template.pt').macros['title']" />
+  <div metal:fill-slot="content">Content</div>
+</html>

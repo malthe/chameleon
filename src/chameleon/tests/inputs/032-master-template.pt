@@ -1,6 +1,7 @@
 <html metal:define-macro="main" tal:define="content nothing">
   <head>
     <title metal:define-slot="title"
+           metal:define-macro="title"
            tal:define="has_title exists: title"
            tal:content="title if has_title else default">Master template</title>
   </head>

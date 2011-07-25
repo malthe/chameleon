@@ -389,13 +389,17 @@ class MacroProgram(ElementProgram):
         except KeyError:
             pass
         else:
-            if len(self._use_macro) == 0:
+            index =-(1 + int(bool(use_macro or extend_macro)))
+
+            try:
+                slots = self._use_macro[index]
+            except IndexError:
                 raise LanguageError(
                     "Cannot use metal:fill-slot without metal:use-macro.",
                     clause
                     )
 
-            slots = self._use_macro[-1]
+            slots = self._use_macro[index]
             slots.append(nodes.FillSlot(clause, slot))
 
         # metal:define-macro
