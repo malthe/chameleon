@@ -822,15 +822,27 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
     def __init__(self, transform):
         self.transform = transform
         self.transformed = set()
+        self.scopes = [set()]
 
     def __call__(self, node):
         self.visit(node)
         return self.transformed
 
     def visit_Name(self, node):
-        self.transformed.add(node.id)
-        self.apply_transform(node)
+        scope = self.scopes[-1]
+        if isinstance(node.ctx, ast.Param):
+            scope.add(node.id)
+        elif node.id not in scope:
+            self.transformed.add(node.id)
+            self.apply_transform(node)
 
+    def visit_Lambda(self, node):
+        self.scopes.append(set())
+        try:
+            self.visit(node.args)
+            self.visit(node.body)
+        finally:
+            self.scopes.pop()
 
 class ItemLookupOnAttributeErrorVisitor(AnnotationAwareVisitor):
     def __init__(self, transform):

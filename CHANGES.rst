@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Don't use dynamic variable scope for lambda-scoped variables (#27).
+
 - Avoid duplication of exception class and message in traceback.
 
 - Fixed issue where a ``metal:fill-slot`` would be ignored if a macro
