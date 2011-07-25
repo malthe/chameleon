@@ -1406,9 +1406,6 @@ included in the output (all inserted text is escaped by default):
     ${content}
   </div>
 
-Note that to insert the value of a symbol, the curly braces can be
-omitted entirely: ``Hello, $name!``.
-
 To escape this behavior, prefix the notation with a backslash
 character: ``\${...}``.
 

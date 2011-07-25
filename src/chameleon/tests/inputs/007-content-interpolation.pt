@@ -3,6 +3,7 @@
     ${'Hello world!'}
     ${literal}
     ${None}
+    $leftalone
     <div>${None}</div>
   </body>
 </html>

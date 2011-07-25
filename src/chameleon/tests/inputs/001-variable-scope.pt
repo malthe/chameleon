@@ -1,7 +1,6 @@
 <html>
   <body tal:define="text 'Hello world!'">
     ${text}
-    $text
   </body>
   <tal:check condition="exists: text">
     bad

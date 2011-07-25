@@ -337,7 +337,7 @@ class ExpressionCompiler(object):
             node = Expression(expression)
             return self.translate(node, target)
 
-        expression = StringExpr(node.value)
+        expression = StringExpr(node.value, node.braces_required)
         return expression(target, engine)
 
     def visit_Translate(self, node, target):
@@ -583,7 +583,7 @@ class Compiler(object):
             return self._engine(node, target) + \
                    convert(target)
 
-        expression = StringExpr(node.value)
+        expression = StringExpr(node.value, node.braces_required)
 
         name = identifier("content")
 

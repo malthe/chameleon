@@ -1,6 +1,8 @@
 <html>
   <body class="ltr">
     <img src="#" alt="copyright (c) 2010" />
-    <img />
+    <img src="#" alt="copyright (c) 2010" />
+    <img src="#" alt="copyright (c) 2010" />
+    <img alt="$ignored" />
   </body>
 </html>

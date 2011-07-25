@@ -1,6 +1,18 @@
 Changes
 =======
 
+In next release...
+
+Features:
+
+- Expression interpolation (using the ``${...}`` operator and
+  previously also ``$identifier``) now requires braces everywhere
+  except inside the ``string:`` expression type.
+
+  This change is motivated by a number of legacy templates in which
+  the interpolation format without braces ``$identifier`` appears as
+  text.
+
 2.0.2 (2011-07-25)
 ------------------
 

@@ -1,6 +1,8 @@
 <html>
-  <body class="ltr">
+  <body class="ltr" tal:define="hash string:#">
     <img src="${'#'}" alt="copyright (c) ${2010}" />
-    <img src="${None}" />
+    <img src="" alt="copyright (c) ${2010}" tal:attributes="src string:$hash" />
+    <img src="" alt="copyright (c) ${2010}" tal:attributes="src string:${hash}" />
+    <img src="${None}" alt="$ignored" />
   </body>
 </html>

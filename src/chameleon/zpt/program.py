@@ -476,7 +476,7 @@ class MacroProgram(ElementProgram):
         if self._interpolation[-1]:
             return nodes.Sequence(
                 [nodes.Text(node[:4]),
-                 nodes.Interpolation(node[4:-3], self._escape),
+                 nodes.Interpolation(node[4:-3], self._escape, True),
                  nodes.Text(node[-3:])
                  ])
 
@@ -486,7 +486,7 @@ class MacroProgram(ElementProgram):
         self._last = node
 
         if self._interpolation_enabled:
-            return nodes.Interpolation(node, self._escape)
+            return nodes.Interpolation(node, self._escape, True)
 
         return nodes.Text(node)
 
@@ -543,7 +543,7 @@ class MacroProgram(ElementProgram):
             # more interpolation expressions, make the attribute
             # dynamic
             if expr is None and text is not None and '${' in text:
-                value = nodes.Interpolation(text, True)
+                value = nodes.Interpolation(text, True, True)
 
             # If this expression is non-trivial, the attribute is
             # dynamic (computed)

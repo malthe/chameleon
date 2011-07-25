@@ -337,6 +337,17 @@ class StringExpr(object):
     >>> test(StringExpr('Hello ${world}!'))
     'Hello world!'
 
+    In the default configuration, braces may be omitted if the
+    expression is an identifier.
+
+    >>> test(StringExpr('Hello $world!'))
+    'Hello world!'
+
+    The ``braces_required`` flag changes this setting:
+
+    >>> test(StringExpr('Hello $world!', True))
+    'Hello $world!'
+
     We can escape interpolation using the standard escaping
     syntax:
 
@@ -382,15 +393,20 @@ class StringExpr(object):
     'There are 11 characters in \"hello world\"'
     """
 
-    regex = re.compile(
+    braces_required_regex = re.compile(
+        r'(?<!\\)\$({(?P<expression>.*)})')
+
+    braces_optional_regex = re.compile(
         r'(?<!\\)\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))')
 
-    def __init__(self, expression):
+    def __init__(self, expression, braces_required=False):
         # The code relies on the expression being a token string
         if not isinstance(expression, Token):
             expression = Token(expression, 0)
 
         self.expression = expression
+        self.regex = self.braces_required_regex if braces_required else \
+                     self.braces_optional_regex
 
     def __call__(self, name, engine):
         """The strategy is to find possible expression strings and
