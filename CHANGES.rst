@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Avoid duplication of exception class and message in traceback.
+
 - Fixed issue where a ``metal:fill-slot`` would be ignored if a macro
   was set to be used on the same element (#16).
 

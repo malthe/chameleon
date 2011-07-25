@@ -103,15 +103,19 @@ class ExceptionFormatter(object):
         for index, string in enumerate(formatted[1:]):
             formatted[index + 1] = " " * 15 + string
 
-        out = ["An uncaught exception was raised.", ""]
+        out = []
 
         for error in self._errors:
             expression, line, column, filename, exc = error
-            out += traceback.format_exception_only(type(exc), exc)
             out.append(" - Expression: \"%s\"" % expression)
             out.append(" - Filename:   %s" % (filename or "<string>"))
             out.append(" - Location:   (%d:%d)" % (line, column))
 
         out.append(" - Arguments:  %s" % "\n".join(formatted))
 
-        return "\n".join(out)
+        formatted_exc = traceback.format_exception_only(type(exc), exc)[-1]
+        formatted_exc_class = "%s:" % type(exc).__name__
+        if formatted_exc.startswith(formatted_exc_class):
+            formatted_exc = formatted_exc[len(formatted_exc_class):].lstrip()
+
+        return "\n".join([formatted_exc] + out)

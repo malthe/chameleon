@@ -241,6 +241,7 @@ class ZopePageTemplatesTest(RenderTestCase):
 
     def test_exception(self):
         from chameleon.zpt.template import PageTemplate
+        from traceback import format_exception_only
 
         template = PageTemplate(
             "<div tal:define=\"dummy foo\">${dummy}</div>"
@@ -250,8 +251,12 @@ class ZopePageTemplatesTest(RenderTestCase):
         except:
             exc = sys.exc_info()[1]
             formatted = str(exc)
-            self.assertTrue('NameError: foo' in formatted)
+            self.assertFalse('NameError:' in formatted)
+            self.assertTrue('foo' in formatted)
             self.assertTrue('(1:23)' in formatted)
+
+            formatted_exc = "\n".join(format_exception_only(type(exc), exc))
+            self.assertTrue('NameError: foo' in formatted_exc)
         else:
             self.fail("expected error")
 
