@@ -44,4 +44,4 @@ for key in os.environ:
 
 # This is the slice length of the expression displayed in the
 # formatted exception string
-SOURCE_EXPRESSION_MARKER_LENGTH = 46
+SOURCE_EXPRESSION_MARKER_LENGTH = 60
