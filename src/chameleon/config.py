@@ -41,3 +41,7 @@ AUTO_RELOAD = AUTO_RELOAD.lower() in TRUE
 for key in os.environ:
     if key.lower().startswith('chameleon'):
         log.warn("unknown environment variable set: \"%s\"." % key)
+
+# This is the slice length of the expression displayed in the
+# formatted exception string
+SOURCE_EXPRESSION_MARKER_LENGTH = 46

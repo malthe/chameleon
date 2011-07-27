@@ -2,6 +2,7 @@ import traceback
 
 from .utils import format_kwargs
 from .tokenize import Token
+from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
 
 
 class TemplateError(Exception):
@@ -110,6 +111,46 @@ class ExceptionFormatter(object):
             out.append(" - Expression: \"%s\"" % expression)
             out.append(" - Filename:   %s" % (filename or "<string>"))
             out.append(" - Location:   (%d:%d)" % (line, column))
+
+            if filename and line and column:
+                try:
+                    f = open(filename, 'r')
+                except IOError:
+                    pass
+                else:
+                    try:
+                        # Pick out source line and format marker
+                        for i, l in enumerate(f):
+                            if i + 1 == line:
+                                s = l.lstrip()
+                                column -= len(l) - len(s)
+
+                                offset = column - LENGTH // 2
+                                if len(s) > offset + LENGTH:
+                                    s = s[:offset + LENGTH] + " ..."
+
+                                if offset > 0:
+                                    s = "... " + s[offset:]
+                                    offset = LENGTH // 2 + 4
+
+                                if offset < 0:
+                                    offset = 0
+
+                                try:
+                                    offset = s.index(expression)
+                                except ValueError:
+                                    marker = "^^^"
+                                else:
+                                    marker = "^" * len(expression)
+
+                                out.append("")
+                                out.append(" - Source:     %s" % s)
+                                out.append("               %s%s" % (
+                                    " " * offset, marker)
+                                           )
+                                break
+                    finally:
+                        f.close()
 
         out.append(" - Arguments:  %s" % "\n".join(formatted))
 

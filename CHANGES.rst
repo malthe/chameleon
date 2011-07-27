@@ -1,6 +1,15 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Improved exception display. The expression string is now shown in
+  the context of the original source (if available) with a marker
+  string indicating the location of the expression in the template
+  source.
+
 2.1 (2011-07-25)
 ----------------
 
