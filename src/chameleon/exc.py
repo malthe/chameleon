@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import math
 import traceback
 
 from .utils import format_kwargs
@@ -9,11 +8,11 @@ from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
 
 
 def compute_source_marker(line, column, expression, size):
-    """Computes source marker location.
+    """Computes source marker location string.
 
     >>> def test(l, c, e, s):
-    ...     s, offset, marker = compute_source_marker(l, c, e, s)
-    ...     out = '\\n'.join((s, ' ' * offset + marker))
+    ...     s, marker = compute_source_marker(l, c, e, s)
+    ...     out = s + '\\n' + marker
     ...
     ...     # Replace dot with middle-dot to work around doctest ellipsis
     ...     print(out.replace('...', '···'))
@@ -22,26 +21,30 @@ def compute_source_marker(line, column, expression, size):
     foo bar
         ^^^
 
-    >>> test('  foo bar', 7, 'bar', 6)
-    ··· o bar
+    >>> test('foo ${bar}', 4, 'bar', 10)
+    foo ${bar}
           ^^^
 
-    >>> test('  foo bar baz  ', 7, 'bar', 6)
+    >>> test('  foo bar', 6, 'bar', 6)
+    ··· oo bar
+           ^^^
+
+    >>> test('  foo bar baz  ', 6, 'bar', 6)
     ··· o bar ···
           ^^^
 
     The entire expression is always shown, even if ``size`` does not
     accomodate for it.
 
-    >>> test('  foo bar baz  ', 7, 'bar baz', 8)
+    >>> test('  foo bar baz  ', 6, 'bar baz', 10)
     ··· oo bar baz
            ^^^^^^^
 
-    >>> test('      foo bar', 11, 'bar', 5)
+    >>> test('      foo bar', 10, 'bar', 5)
     ··· o bar
           ^^^
 
-    >>> test('      foo bar', 11, 'boo', 5)
+    >>> test('      foo bar', 10, 'boo', 5)
     ··· o bar
           ^
 
@@ -49,39 +52,43 @@ def compute_source_marker(line, column, expression, size):
 
     s = line.lstrip()
     column -= len(line) - len(s)
-    offset = int(math.floor(column - size / 2.0))
     s = s.rstrip()
 
-    # Set maximum portion to display
-    # (always include entire expression)
-    m = max(size, offset + len(expression))
-
-    if offset > 0:
-        s = s[offset:]
-        r = s.lstrip()
-        offset += len(s) - len(r)
-        s = "... " + r
-        m += 4
-        offset += 4
-    else:
-        offset = 0
-
     try:
-        i  = s.index(expression)
+        i  = s[column:].index(expression)
     except ValueError:
         # If we can't find the expression
         # (this shouldn't happen), simply
         # use a standard size marker
         marker = "^"
     else:
-        m += i - offset
-        offset = i
+        column += i
         marker = "^" * len(expression)
 
-    if len(s) > m:
-        s = s[:m].rstrip() + " ..."
+    if len(expression) > size:
+        offset = column
+        size = len(expression)
+    else:
+        window = (size - len(expression)) / 2.0
+        offset = column - window
+        offset -= min(3, max(0, column + window + len(expression) - len(s)))
+        offset = int(offset)
 
-    return s, offset, marker
+    if offset > 0:
+        s = s[offset:]
+        r = s.lstrip()
+        d = len(s) - len(r)
+        s = "... " + r
+        column += 4 - d
+        column -= offset
+
+        # This also adds to the displayed length
+        size += 4
+
+    if len(s) > size:
+        s = s[:size].rstrip() + " ..."
+
+    return s, column * " " + marker
 
 
 class TemplateError(Exception):
@@ -205,15 +212,13 @@ class ExceptionFormatter(object):
                         # Pick out source line and format marker
                         for i, l in enumerate(f):
                             if i + 1 == line:
-                                s, offset, marker = compute_source_marker(
+                                s, marker = compute_source_marker(
                                     l, column, expression, LENGTH
                                     )
 
                                 out.append("")
                                 out.append(" - Source:     %s" % s)
-                                out.append("               %s%s" % (
-                                    " " * offset, marker)
-                                           )
+                                out.append("               %s" % marker)
                                 break
                     finally:
                         f.close()
