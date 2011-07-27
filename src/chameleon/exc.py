@@ -1,8 +1,87 @@
+# -*- coding: utf-8 -*-
+
+import math
 import traceback
 
 from .utils import format_kwargs
 from .tokenize import Token
 from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
+
+
+def compute_source_marker(line, column, expression, size):
+    """Computes source marker location.
+
+    >>> def test(l, c, e, s):
+    ...     s, offset, marker = compute_source_marker(l, c, e, s)
+    ...     out = '\\n'.join((s, ' ' * offset + marker))
+    ...
+    ...     # Replace dot with middle-dot to work around doctest ellipsis
+    ...     print(out.replace('...', '···'))
+
+    >>> test('foo bar', 4, 'bar', 7)
+    foo bar
+        ^^^
+
+    >>> test('  foo bar', 7, 'bar', 6)
+    ··· o bar
+          ^^^
+
+    >>> test('  foo bar baz  ', 7, 'bar', 6)
+    ··· o bar ···
+          ^^^
+
+    The entire expression is always shown, even if ``size`` does not
+    accomodate for it.
+
+    >>> test('  foo bar baz  ', 7, 'bar baz', 8)
+    ··· oo bar baz
+           ^^^^^^^
+
+    >>> test('      foo bar', 11, 'bar', 5)
+    ··· o bar
+          ^^^
+
+    >>> test('      foo bar', 11, 'boo', 5)
+    ··· o bar
+          ^
+
+    """
+
+    s = line.lstrip()
+    column -= len(line) - len(s)
+    offset = int(math.floor(column - size / 2.0))
+    s = s.rstrip()
+
+    # Set maximum portion to display
+    # (always include entire expression)
+    m = max(size, offset + len(expression))
+
+    if offset > 0:
+        s = s[offset:]
+        r = s.lstrip()
+        offset += len(s) - len(r)
+        s = "... " + r
+        m += 4
+        offset += 4
+    else:
+        offset = 0
+
+    try:
+        i  = s.index(expression)
+    except ValueError:
+        # If we can't find the expression
+        # (this shouldn't happen), simply
+        # use a standard size marker
+        marker = "^"
+    else:
+        m += i - offset
+        offset = i
+        marker = "^" * len(expression)
+
+    if len(s) > m:
+        s = s[:m].rstrip() + " ..."
+
+    return s, offset, marker
 
 
 class TemplateError(Exception):
@@ -126,26 +205,9 @@ class ExceptionFormatter(object):
                         # Pick out source line and format marker
                         for i, l in enumerate(f):
                             if i + 1 == line:
-                                s = l.lstrip()
-                                column -= len(l) - len(s)
-
-                                offset = column - LENGTH // 2
-                                if len(s) > offset + LENGTH:
-                                    s = s[:offset + LENGTH] + " ..."
-
-                                if offset > 0:
-                                    s = "... " + s[offset:]
-                                    offset = LENGTH // 2 + 4
-
-                                if offset < 0:
-                                    offset = 0
-
-                                try:
-                                    offset = s.index(expression)
-                                except ValueError:
-                                    marker = "^^^"
-                                else:
-                                    marker = "^" * len(expression)
+                                s, offset, marker = compute_source_marker(
+                                    l, column, expression, LENGTH
+                                    )
 
                                 out.append("")
                                 out.append(" - Source:     %s" % s)
