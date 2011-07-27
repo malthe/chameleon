@@ -134,7 +134,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             switch = None
         else:
-            switch = nodes.Expression(clause)
+            switch = nodes.Expression(clause, True)
 
         self._switches.append(switch)
 
@@ -149,11 +149,11 @@ class MacroProgram(ElementProgram):
 
             if use_macro:
                 inner = nodes.UseExternalMacro(
-                    nodes.Expression(use_macro), slots, False
+                    nodes.Expression(use_macro, True), slots, False
                     )
             else:
                 inner = nodes.UseExternalMacro(
-                    nodes.Expression(extend_macro), slots, True
+                    nodes.Expression(extend_macro, True), slots, True
                     )
         # -or- include tag
         else:
@@ -167,7 +167,7 @@ class MacroProgram(ElementProgram):
             else:
                 key, value = tal.parse_substitution(clause)
                 value = unescape(value)
-                expression = nodes.Expression(value)
+                expression = nodes.Expression(value, key != "text")
                 msgid = ns.get((I18N, 'translate'))
                 content = self._make_content_node(
                     expression, msgid, key, content)
@@ -249,7 +249,7 @@ class MacroProgram(ElementProgram):
                 if clause == "":
                     omit = True
                 else:
-                    expression = nodes.Negate(nodes.Expression(clause))
+                    expression = nodes.Negate(nodes.Expression(clause, True))
                     omit = expression
 
                     # Wrap start- and end-tags in condition
@@ -284,7 +284,7 @@ class MacroProgram(ElementProgram):
             else:
                 key, value = tal.parse_substitution(clause)
                 value = unescape(value)
-                expression = nodes.Expression(value)
+                expression = nodes.Expression(value, key != "text")
                 msgid = ns.get((I18N, 'translate'))
                 inner = self._make_content_node(expression, msgid, key, inner)
 
@@ -309,7 +309,7 @@ class MacroProgram(ElementProgram):
             DEFINE = partial(
                 nodes.Define,
                 [nodes.Assignment(
-                    names, nodes.Expression(expr), context == "local")
+                    names, nodes.Expression(expr, True), context == "local")
                  for (context, names, expr) in defines],
                 )
 
@@ -319,7 +319,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             CASE = skip
         else:
-            value = nodes.Expression(clause)
+            value = nodes.Expression(clause, True)
             for switch in reversed(self._switches):
                 if switch is not None:
                     break
@@ -346,7 +346,7 @@ class MacroProgram(ElementProgram):
             assert len(defines) == 1
             context, names, expr = defines[0]
 
-            expression = nodes.Expression(expr)
+            expression = nodes.Expression(expr, True)
 
             REPEAT = partial(
                 nodes.Repeat,
@@ -362,7 +362,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             CONDITION = skip
         else:
-            expression = nodes.Expression(clause)
+            expression = nodes.Expression(clause, True)
             CONDITION = partial(nodes.Condition, expression)
 
         # tal:switch
@@ -433,7 +433,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             ON_ERROR = skip
         else:
-            expression = nodes.Expression(clause)
+            expression = nodes.Expression(clause, True)
             fallback = nodes.Content(expression, None, False)
             ON_ERROR = partial(nodes.OnError, fallback)
 
@@ -548,7 +548,7 @@ class MacroProgram(ElementProgram):
             # If this expression is non-trivial, the attribute is
             # dynamic (computed)
             elif expr is not None:
-                value = nodes.Expression(expr)
+                value = nodes.Expression(expr, False)
 
             # Otherwise, it's a static attribute.
             else:

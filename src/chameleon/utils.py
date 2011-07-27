@@ -124,6 +124,7 @@ def decode_htmlentities(string):
     '&amp;'
 
     """
+
     decoded = entity_re.subn(substitute_entity, string)[0]
 
     # preserve input token data

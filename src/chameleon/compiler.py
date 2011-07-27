@@ -47,7 +47,7 @@ from .config import DEBUG_MODE
 from .exc import TranslationError
 from .utils import DebuggingOutputStream
 from .utils import Placeholder
-
+from .utils import decode_htmlentities
 
 log = logging.getLogger('chameleon.compiler')
 
@@ -237,7 +237,7 @@ class ExpressionCompiler(object):
             # The engine interface supports simple strings, which
             # default to expression nodes
             if isinstance(expression, basestring):
-                expression = Expression(expression)
+                expression = Expression(expression, True)
 
             kind = type(expression).__name__
             visitor = getattr(self, "visit_%s" % kind)
@@ -283,7 +283,12 @@ class ExpressionCompiler(object):
         return load_econtext(name)
 
     def visit_Expression(self, node, target):
-        stmts = self.engine(node.value, target)
+        if node.decode:
+            expression = decode_htmlentities(node.value)
+        else:
+            expression = node.value
+
+        stmts = self.engine(expression, target)
 
         try:
             line, column = node.value.location
@@ -299,7 +304,7 @@ class ExpressionCompiler(object):
                     "rcontext.setdefault('__error__', [])."
                     "append((expression, line, col, src, sys.exc_info()[1]))\n"
                     "raise",
-                    expression=ast.Str(s=node.value),
+                    expression=ast.Str(s=expression),
                     line=ast.Num(n=line),
                     col=ast.Num(n=column),
                     src=ast.Str(s=filename),
@@ -334,7 +339,7 @@ class ExpressionCompiler(object):
 
     def visit_Interpolation(self, node, target):
         def engine(expression, target):
-            node = Expression(expression)
+            node = Expression(expression, False)
             return self.translate(node, target)
 
         expression = StringExpr(node.value, node.braces_required)
@@ -579,7 +584,7 @@ class Compiler(object):
             convert = emit_convert
 
         def engine(expression, target):
-            node = Expression(expression)
+            node = Expression(expression, False)
             return self._engine(node, target) + \
                    convert(target)
 

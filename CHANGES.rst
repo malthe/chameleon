@@ -12,6 +12,9 @@ Features:
 
 Bugfixes:
 
+- The ``structure`` insertion mode now correctly decodes entities for
+  any expression type (including ``string:``). This fixes issue #30.
+
 - Don't show internal variables in the exception formatter variable
   listing.
 

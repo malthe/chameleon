@@ -16,7 +16,6 @@ from .codegen import reverse_builtin_map
 from .astutil import Builtin
 from .astutil import Symbol
 from .exc import ExpressionError
-from .utils import decode_htmlentities
 from .utils import resolve_dotted
 from .tokenize import Token
 from .parser import groupdict
@@ -227,12 +226,6 @@ class PythonExpr(TalesExpr):
 
     >>> test(PythonExpr('\"\|\"'))
     '|'
-
-    >>> test(
-    ...     PythonExpr('len(value) &lt; 70 and value or value[:70]'),
-    ...     value='Hello world',
-    ... )
-    'Hello world'
     """
 
     transform = ItemLookupOnAttributeErrorVisitor(transform_attribute)
@@ -250,14 +243,11 @@ class PythonExpr(TalesExpr):
         # Convert newlines to spaces
         string = string.replace('\n', ' ')
 
-        # Decode HTML entities (e.g. &lt;)
-        decoded = decode_htmlentities(string)
-
         try:
-            value = self.parse(decoded)
+            value = self.parse(string)
         except SyntaxError:
             exc = sys.exc_info()[1]
-            raise ExpressionError(exc.msg, decoded)
+            raise ExpressionError(exc.msg, string)
 
         # Transform attribute lookups to allow fallback to item lookup
         self.transform.visit(value)

@@ -26,7 +26,7 @@ class Content(Node):
 class Expression(Node):
     """String expression for evaluation by expression engine."""
 
-    _fields = "value",
+    _fields = "value", "decode"
 
     def __repr__(self):
         try:
