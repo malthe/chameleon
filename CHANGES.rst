@@ -10,6 +10,11 @@ Features:
   string indicating the location of the expression in the template
   source.
 
+Bugfixes:
+
+- Don't show internal variables in the exception formatter variable
+  listing.
+
 2.1 (2011-07-25)
 ----------------
 

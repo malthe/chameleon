@@ -86,6 +86,10 @@ class ExceptionFormatter(object):
         kwargs = rcontext.copy()
         kwargs.update(econtext)
 
+        for name in tuple(kwargs):
+            if name.startswith('__'):
+                del kwargs[name]
+
         self._errors = errors
         self._kwargs = kwargs
 
