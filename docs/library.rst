@@ -309,3 +309,10 @@ Pylons framework and may be adapted to other frameworks:
 .. class:: chameleon.PageTemplateLoader(search_path=None, **kwargs)
 
    .. automethod:: load
+
+For advanced integration, the compiler module provides support for
+dynamic expression evaluation:
+
+.. automodule:: chameleon.compiler
+
+  .. autoclass:: chameleon.compiler.ExpressionEvaluator
