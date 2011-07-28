@@ -201,8 +201,7 @@ class BaseTemplate(object):
                 return "text/xml"
 
     def _cook(self, body, digest):
-        program = self.parse(body)
-        source = self._compile(program)
+        source = self._make(body)
 
         if self.keep_source:
             self.source = source
@@ -221,6 +220,10 @@ class BaseTemplate(object):
     def _compile(self, program):
         compiler = Compiler(self.engine, program)
         return compiler.code
+
+    def _make(self, body):
+        program = self.parse(body)
+        return self._compile(program)
 
 
 class BaseTemplateFile(BaseTemplate):
@@ -343,8 +346,8 @@ class BaseTemplateFile(BaseTemplate):
         if cooked is None:
             log.debug('cache miss: %s' % self.filename)
             try:
-                nodes = self.parse(body)
-                source = self._compile(nodes)
+                source = self._make(body)
+
 
                 if DEBUG_MODE:
                     source = "# filename: %s\n#\n%s" % (self.filename, source)
