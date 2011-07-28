@@ -252,9 +252,6 @@ class BaseTemplateFile(BaseTemplate):
     auto_reload = AUTO_RELOAD
 
     def __init__(self, filename, auto_reload=None, **kwargs):
-        if not os.path.isabs(filename):
-            raise ValueError("Relative path not supported: '%s'." % filename)
-
         # Normalize filename
         filename = os.path.abspath(
             os.path.normpath(os.path.expanduser(filename))
