@@ -432,8 +432,12 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                      enumerate(template.source.split(
                          '\n'))])))
 
+            if isinstance(got, bytes):
+                got = got.decode('utf-8')
+
             from doctest import OutputChecker
             checker = OutputChecker()
+
             if checker.check_output(want, got, 0) is False:
                 from doctest import Example
                 example = Example(filename, want)
