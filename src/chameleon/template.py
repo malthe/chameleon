@@ -251,10 +251,9 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
-    def __init__(self, filename, loader=None, auto_reload=None, **kwargs):
+    def __init__(self, filename, auto_reload=None, **kwargs):
         if not os.path.isabs(filename):
-            if loader is not None:
-                filename = loader.find(filename)
+            raise ValueError("Relative path not supported: '%s'." % filename)
 
         # Normalize filename
         filename = os.path.abspath(
@@ -272,10 +271,9 @@ class BaseTemplateFile(BaseTemplate):
 
         self.__dict__.update(kwargs)
 
-        if loader is not None:
-            self.loader = loader
-
-        elif self.__dict__.get('debug') is True:
+        # This is only necessary if the ``debug`` flag was passed as a
+        # keyword argument
+        if kwargs.get('debug') is True:
             self.loader = _make_module_loader()
 
         if EAGER_PARSING:
