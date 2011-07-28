@@ -102,9 +102,12 @@ class MacroProgram(ElementProgram):
 
     @property
     def macros(self):
+        macros = list(self._macros.items())
+        macros.append((None, nodes.Sequence(self.body)))
+
         return tuple(
-            nodes.Macro(name, [node])
-            for name, node in self._macros.items()
+            nodes.Macro(name, [nodes.Context(node)])
+            for name, node in macros
             )
 
     def visit_default(self, node):

@@ -3,6 +3,7 @@ import sys
 import itertools
 import logging
 import threading
+import functools
 
 try:
     import ast
@@ -42,6 +43,9 @@ from .i18n import fast_translate
 
 from .nodes import Text
 from .nodes import Expression
+from .nodes import Assignment
+from .nodes import Module
+from .nodes import Context
 
 from .config import DEBUG_MODE
 from .exc import TranslationError
@@ -189,6 +193,76 @@ def emit_convert_and_escape(
                                 target = target.replace(quote, '&#34;')
 
 
+class ExpressionEvaluator(object):
+    """Evaluates dynamic expression.
+
+    This is not particularly efficient, but supported for legacy
+    applications.
+
+    >>> from chameleon.tales import TalesEngine
+    >>> from chameleon.tales import PythonExpr
+
+    >>> engine = TalesEngine({
+    ...     'python': PythonExpr,
+    ...     }, 'python')
+
+    >>> evaluate = ExpressionEvaluator(engine, {
+    ...     'foo': 'bar',
+    ...     })
+
+    The evaluation function is passed the local and remote context,
+    the expression type and finally the expression.
+
+    >>> evaluate({'boo': 'baz'}, {}, 'python', 'foo + boo')
+    'barbaz'
+
+    The cache is now primed:
+
+    >>> evaluate({'boo': 'baz'}, {}, 'python', 'foo + boo')
+    'barbaz'
+
+    Note that the call method supports currying of the expression
+    argument:
+
+    >>> python = evaluate({'boo': 'baz'}, {}, 'python')
+    >>> python('foo + boo')
+    'barbaz'
+
+    """
+
+    __slots__ = "_engine", "_cache", "_names", "_builtins"
+
+    def __init__(self, engine, builtins):
+        self._engine = engine
+        self._names, self._builtins = zip(*builtins.items())
+        self._cache = {}
+
+    def __call__(self, econtext, rcontext, expression_type, string=None):
+        if string is None:
+            return functools.partial(
+                self.__call__, econtext, rcontext, expression_type
+                )
+
+        expression = "%s:%s" % (expression_type, string)
+
+        try:
+            evaluate = self._cache[expression]
+        except KeyError:
+            assignment = Assignment(["_result"], expression, True)
+            module = Module("evaluate", Context(assignment))
+
+            compiler = Compiler(
+                self._engine, module, ('econtext', 'rcontext') + self._names
+                )
+
+            env = {}
+            exec(compiler.code, env)
+            evaluate = self._cache[expression] = env["evaluate"]
+
+        evaluate(econtext, rcontext, *self._builtins)
+        return econtext['_result']
+
+
 class ExpressionCompiler(object):
     """Internal wrapper around a TALES-engine.
 
@@ -266,10 +340,9 @@ class ExpressionCompiler(object):
         if name.startswith('__') or name in self.initial:
             return node
 
-        # Builtins are available as static symbols with a '__b_'
-        # prefix
+        # Builtins are available as static symbols
         if self.is_builtin(name):
-            return ast.Name(id='__b_%s' % name, ctx=ast.Load())
+            return ast.Name(id=name, ctx=ast.Load())
 
         if isinstance(node.ctx, ast.Store):
             return store_econtext(name)
@@ -390,7 +463,7 @@ class Compiler(object):
 
     lock = threading.Lock()
 
-    def __init__(self, engine, node, builtins):
+    def __init__(self, engine, node, builtins={}):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
@@ -449,10 +522,7 @@ class Compiler(object):
             for stmt in self.visit(node.end):
                 yield stmt
 
-    def visit_Program(self, node):
-        return self.visit_MacroProgram(node)
-
-    def visit_MacroProgram(self, node):
+    def visit_Module(self, node):
         body = []
 
         body += template("import re")
@@ -469,52 +539,56 @@ class Compiler(object):
             r"functools.partial(re.compile('\s+').sub, ' ')",
         )
 
+        # Visit module content
+        program = self.visit(node.program)
+
+        body += [ast.FunctionDef(
+            name=node.name, args=ast.arguments(
+                args=[param(b) for b in self._builtins],
+                defaults=(),
+                ),
+            body=program
+            )]
+
+        return body
+
+    def visit_MacroProgram(self, node):
         functions = []
 
         # Visit defined macros
         macros = getattr(node, "macros", ())
+        names = []
         for macro in macros:
             functions += self.visit(macro)
-
-        # Visit (implicit) main macro
-        functions += self.visit_Macro(node)
+            name = "render" if macro.name is None else "render_%s" % macro.name
+            names.append(name)
 
         # Prepend module-wide marker values
         for marker in self._markers:
-            body[:] = template(
+            functions[:] = template(
                 "MARKER = CLS()",
                 MARKER=store("__marker_%s" % marker),
                 CLS=Placeholder,
-                ) + body
+                ) + functions
 
-        # These are the names of the macro functions
-        names = ["render"] + ["render_%s" % macro.name for macro in macros]
+        # Return function dictionary
+        functions += [ast.Return(value=ast.Dict(
+            keys=[ast.Str(s=name) for name in names],
+            values=[load(name) for name in names],
+            ))]
 
-        body += [ast.FunctionDef(
-            name="initialize", args=ast.arguments(
-                args=[
-                    ast.Tuple(
-                        [param("__b_%s" % b) for b in self._builtins],
-                        ast.Param(),
-                        )
-                    ],
-                defaults=(),
-                ),
-            body=functions + [ast.Return(value=ast.Dict(
-                keys=[ast.Str(s=name) for name in names],
-                values=[load(name) for name in names],
-                ))],
-            )]
+        return functions
 
-        return body
+    def visit_Context(self, node):
+        return template("getitem = econtext.__getitem__") + \
+               template("get = econtext.get") + \
+               self.visit(node.node)
 
     def visit_Macro(self, node):
         body = []
 
         # Initialization
         body += template("__append = __stream.append")
-        body += template("getitem = econtext.__getitem__")
-        body += template("get = econtext.get")
         body += template("__i18n_domain = None")
         body += template("re_amp = g_re_amp")
         body += template("re_needs_escape = g_re_needs_escape")
@@ -522,7 +596,7 @@ class Compiler(object):
         # Resolve defaults
         for name in self.defaults:
             body += template(
-                "NAME = getitem(KEY)",
+                "NAME = econtext[KEY]",
                 NAME=name, KEY=ast.Str(s=name)
             )
 
@@ -535,7 +609,7 @@ class Compiler(object):
         # Slot resolution
         for name in self._slots:
             body += template(
-                "try: NAME = getitem(KEY).pop()\n"
+                "try: NAME = econtext[KEY].pop()\n"
                 "except: NAME = None",
                 KEY=ast.Str(s=name), NAME=store(name))
 

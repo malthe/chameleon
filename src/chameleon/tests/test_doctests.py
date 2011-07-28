@@ -32,3 +32,9 @@ class DoctestCase(unittest.TestCase):
         from chameleon import exc
         return doctest.DocTestSuite(
             exc, optionflags=OPTIONFLAGS)
+
+    @classmethod
+    def test_compiler(cls):
+        from chameleon import compiler
+        return doctest.DocTestSuite(
+            compiler, optionflags=OPTIONFLAGS)

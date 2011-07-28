@@ -5,6 +5,11 @@ In next release ...
 
 Features:
 
+- Added support for dynamic evaluation of expressions.
+
+  Note that this is to support legacy applications. It is not
+  currently wired into the provided template classes.
+
 - Template classes now have a ``builtins`` attribute which may be used
   to define built-in variables always available in the template
   variable scope.

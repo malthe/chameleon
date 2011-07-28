@@ -130,6 +130,14 @@ class Program(Node):
     _fields = "name", "body"
 
 
+class Module(Node):
+    _fields = "name", "program",
+
+
+class Context(Node):
+    _fields = "node",
+
+
 class Text(Node):
     """Static text output."""
 

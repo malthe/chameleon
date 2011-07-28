@@ -35,6 +35,7 @@ from .utils import DebuggingOutputStream
 from .utils import Scope
 from .utils import join
 from .utils import mangle
+from .nodes import Module
 
 try:
     byte_string = str
@@ -144,18 +145,16 @@ class BaseTemplate(object):
 
     def cook(self, body):
         digest = self._digest(body)
-        builtins = self.builtins.items()
-        names, values = zip(*builtins)
+        names, builtins = zip(*self.builtins.items())
         program = self._cook(body, digest, names)
 
         initialize = program['initialize']
-        functions = initialize(values)
+        functions = initialize(*builtins)
 
         for name, function in functions.items():
             setattr(self, "_" + name, function)
 
         self._cooked = True
-        self._builtins = tuple(b[1] for b in builtins)
 
         if self.keep_body:
             self.body = body
@@ -169,7 +168,6 @@ class BaseTemplate(object):
     def render(self, **__kw):
         econtext = Scope(__kw)
         rcontext = {}
-
         self.cook_check()
         stream = self.output_stream_factory()
         try:
@@ -231,7 +229,8 @@ class BaseTemplate(object):
 
     def _make(self, body, builtins):
         program = self.parse(body)
-        return self._compile(program, builtins)
+        module = Module("initialize", program)
+        return self._compile(module, builtins)
 
 
 class BaseTemplateFile(BaseTemplate):

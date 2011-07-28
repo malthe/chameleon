@@ -12,7 +12,7 @@ from ..tal import RepeatDict
 from ..template import BaseTemplate
 from ..template import BaseTemplateFile
 
-from .program import MacroProgram as Program
+from .program import MacroProgram
 
 try:
     bytes
@@ -57,10 +57,6 @@ class PageTemplate(BaseTemplate):
 
     default_expression = 'python'
 
-    static_builtins = {
-        'nothing': None
-        }
-
     translate = staticmethod(fast_translate)
 
     encoding = None
@@ -79,16 +75,15 @@ class PageTemplate(BaseTemplate):
 
     @property
     def builtins(self):
-        builtins = self.static_builtins.copy()
-        builtins.update({
+        return {
             'template': self,
             'macros': self.macros,
-            })
-        return builtins
+            'nothing': None,
+            }
 
     def parse(self, body):
         escape = True if self.mode == "xml" else False
-        return Program(body, self.mode, self.filename, escape=escape)
+        return MacroProgram(body, self.mode, self.filename, escape=escape)
 
     def render(self, encoding=None, translate=None, target_language=None, **k):
         translate = translate if translate is not None else self.translate or \
