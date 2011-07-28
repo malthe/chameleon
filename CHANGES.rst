@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release ...
+
+- Fixed issue where a supplied template loader would not replace the
+  class-default loader.
+
 2.1.1 (2011-07-28)
 ------------------
 

@@ -259,7 +259,10 @@ class BaseTemplateFile(BaseTemplate):
 
         self.__dict__.update(kwargs)
 
-        if self.__dict__.get('debug') is True:
+        if loader is not None:
+            self.loader = loader
+
+        elif self.__dict__.get('debug') is True:
             self.loader = _make_module_loader()
 
         if EAGER_PARSING:
