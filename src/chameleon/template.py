@@ -116,6 +116,9 @@ class BaseTemplate(object):
     # available in the template variable scope
     builtins = {}
 
+    # Expression engine must be provided by subclass
+    engine = None
+
     def __init__(self, body, **kwargs):
         self.__dict__.update(kwargs)
 
