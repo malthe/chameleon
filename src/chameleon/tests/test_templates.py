@@ -19,7 +19,8 @@ try:
     str = unicode
 except:
     pass
-
+else:
+    bytes = str
 
 class Message(object):
     def __str__(self):
