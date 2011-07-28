@@ -418,6 +418,8 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 'target_language': language,
                 })
 
+            template.cook_check()
+
             try:
                 got = template.render(**params)
             except:
