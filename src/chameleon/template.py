@@ -110,6 +110,11 @@ class BaseTemplate(object):
 
     debug = DEBUG_MODE
 
+    # The ``builtins`` dictionary can be used by a template class to
+    # add symbols which may not be redefined and which are (cheaply)
+    # available in the template variable scope
+    builtins = {}
+
     def __init__(self, body, **kwargs):
         self.__dict__.update(kwargs)
 
@@ -139,15 +144,18 @@ class BaseTemplate(object):
 
     def cook(self, body):
         digest = self._digest(body)
-        program = self._cook(body, digest)
+        builtins = self.builtins.items()
+        names, values = zip(*builtins)
+        program = self._cook(body, digest, names)
 
-        for name, function in program.items():
-            if not name.startswith('render'):
-                continue
+        initialize = program['initialize']
+        functions = initialize(values)
 
+        for name, function in functions.items():
             setattr(self, "_" + name, function)
 
         self._cooked = True
+        self._builtins = tuple(b[1] for b in builtins)
 
         if self.keep_body:
             self.body = body
@@ -200,8 +208,8 @@ class BaseTemplate(object):
             if text[:len(prefix)] == prefix:
                 return "text/xml"
 
-    def _cook(self, body, digest):
-        source = self._make(body)
+    def _cook(self, body, digest, builtins):
+        source = self._make(body, builtins)
 
         if self.keep_source:
             self.source = source
@@ -217,13 +225,13 @@ class BaseTemplate(object):
         sha.update(class_name)
         return sha.hexdigest()
 
-    def _compile(self, program):
-        compiler = Compiler(self.engine, program)
+    def _compile(self, program, builtins):
+        compiler = Compiler(self.engine, program, builtins)
         return compiler.code
 
-    def _make(self, body):
+    def _make(self, body, builtins):
         program = self.parse(body)
-        return self._compile(program)
+        return self._compile(program, builtins)
 
 
 class BaseTemplateFile(BaseTemplate):
@@ -337,7 +345,7 @@ class BaseTemplateFile(BaseTemplate):
 
     filename = property(_get_filename, _set_filename)
 
-    def _cook(self, body, digest):
+    def _cook(self, body, digest, builtins):
         filename = os.path.basename(self.filename)
         mangled = mangle(filename)
         name = "%s_%s.py" % (mangled, digest)
@@ -346,8 +354,7 @@ class BaseTemplateFile(BaseTemplate):
         if cooked is None:
             log.debug('cache miss: %s' % self.filename)
             try:
-                source = self._make(body)
-
+                source = self._make(body, builtins)
 
                 if DEBUG_MODE:
                     source = "# filename: %s\n#\n%s" % (self.filename, source)

@@ -24,6 +24,7 @@ try:
 except NameError:
     pass
 
+
 class PageTemplate(BaseTemplate):
     """Template class for the Chameleon Page Templates language.
 
@@ -56,6 +57,10 @@ class PageTemplate(BaseTemplate):
 
     default_expression = 'python'
 
+    static_builtins = {
+        'nothing': None
+        }
+
     translate = staticmethod(fast_translate)
 
     encoding = None
@@ -63,13 +68,23 @@ class PageTemplate(BaseTemplate):
     mode = "xml"
 
     def __init__(self, *args, **kwargs):
+        self.macros = Macros(self)
+
         super(PageTemplate, self).__init__(*args, **kwargs)
         self.__dict__.update(kwargs)
-        self.macros = Macros(self)
 
     @property
     def engine(self):
         return TalesEngine(self.expression_types, self.default_expression)
+
+    @property
+    def builtins(self):
+        builtins = self.static_builtins.copy()
+        builtins.update({
+            'template': self,
+            'macros': self.macros,
+            })
+        return builtins
 
     def parse(self, body):
         escape = True if self.mode == "xml" else False
@@ -98,12 +113,9 @@ class PageTemplate(BaseTemplate):
             decode = str
 
         setdefault = k.setdefault
-        setdefault("template", self)
-        setdefault("macros", self.macros)
         setdefault("translate", translate)
         setdefault("convert", translate)
         setdefault("decode", decode)
-        setdefault("nothing", None)
 
         # Make sure we have a repeat dictionary
         if 'repeat' not in k: k['repeat'] = RepeatDict({})

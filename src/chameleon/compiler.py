@@ -203,10 +203,11 @@ class ExpressionCompiler(object):
 
     global_fallback = set(builtins.__dict__)
 
-    def __init__(self, engine, cache, markers=None):
+    def __init__(self, engine, cache, markers, builtin_filter):
         self.engine = engine
         self.cache = cache
         self.markers = markers
+        self.is_builtin = builtin_filter
 
     def __call__(self, expression, target):
         if isinstance(target, basestring):
@@ -250,8 +251,7 @@ class ExpressionCompiler(object):
 
         return stmts
 
-    @classmethod
-    def _dynamic_transform(cls, node):
+    def _dynamic_transform(self, node):
         # Don't rewrite nodes that have an annotation
         annotation = node_annotations.get(node)
         if annotation is not None:
@@ -263,15 +263,20 @@ class ExpressionCompiler(object):
         # internal and can be assumed to be locally defined. This
         # policy really should be part of the template program, not
         # defined here in the compiler.
-        if name.startswith('__') or name in cls.initial:
+        if name.startswith('__') or name in self.initial:
             return node
+
+        # Builtins are available as static symbols with a '__b_'
+        # prefix
+        if self.is_builtin(name):
+            return ast.Name(id='__b_%s' % name, ctx=ast.Load())
 
         if isinstance(node.ctx, ast.Store):
             return store_econtext(name)
 
         # If the name is a Python global, first try acquiring it from
         # the dynamic context, then fall back to the global.
-        if name in cls.global_fallback:
+        if name in self.global_fallback:
             return template(
                 "get(key, name)",
                 mode="eval",
@@ -385,16 +390,20 @@ class Compiler(object):
 
     lock = threading.Lock()
 
-    def __init__(self, engine, node):
+    def __init__(self, engine, node, builtins):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
         self._markers = set()
+        self._builtins = builtins
+
+        self.is_builtin = is_builtin = set(builtins).__contains__
 
         self._engine = ExpressionCompiler(
             engine,
             self._expression_cache,
-            self._markers
+            self._markers,
+            is_builtin
             )
 
         if isinstance(node_annotations, dict):
@@ -460,12 +469,15 @@ class Compiler(object):
             r"functools.partial(re.compile('\s+').sub, ' ')",
         )
 
+        functions = []
+
         # Visit defined macros
-        for macro in getattr(node, "macros", ()):
-            body += self.visit(macro)
+        macros = getattr(node, "macros", ())
+        for macro in macros:
+            functions += self.visit(macro)
 
         # Visit (implicit) main macro
-        body += self.visit_Macro(node)
+        functions += self.visit_Macro(node)
 
         # Prepend module-wide marker values
         for marker in self._markers:
@@ -474,6 +486,25 @@ class Compiler(object):
                 MARKER=store("__marker_%s" % marker),
                 CLS=Placeholder,
                 ) + body
+
+        # These are the names of the macro functions
+        names = ["render"] + ["render_%s" % macro.name for macro in macros]
+
+        body += [ast.FunctionDef(
+            name="initialize", args=ast.arguments(
+                args=[
+                    ast.Tuple(
+                        [param("__b_%s" % b) for b in self._builtins],
+                        ast.Param(),
+                        )
+                    ],
+                defaults=(),
+                ),
+            body=functions + [ast.Return(value=ast.Dict(
+                keys=[ast.Str(s=name) for name in names],
+                values=[load(name) for name in names],
+                ))],
+            )]
 
         return body
 

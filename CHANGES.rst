@@ -3,8 +3,23 @@ Changes
 
 In next release ...
 
+Features:
+
+- Template classes now have a ``builtins`` attribute which may be used
+  to define built-in variables always available in the template
+  variable scope.
+
+Bugfixes:
+
 - Fixed issue where a supplied template loader would not replace the
   class-default loader.
+
+Incompatibilities:
+
+- The compiled template module now contains an ``initialize`` function
+  which takes values that map to the template builtins. The return
+  value of this function is a dictionary that contains the render
+  functions.
 
 2.1.1 (2011-07-28)
 ------------------
