@@ -680,6 +680,8 @@ These are the available TALES expression types:
 
 * ``import`` - Import a global symbol using dotted notation.
 
+* ``load`` - Load a template relative to the current template or absolute.
+
 .. note:: The default expression type is ``python``.
 
 There's a mechanism to allow fallback to alternative expressions, if one should fail (raise an exception). The pipe character ('|') is used to separate two expressions.
@@ -747,6 +749,31 @@ Including a dollar sign::
     <p tal:content="string:$$$cost">
       cost: $42.00
     </p>
+
+``load``
+^^^^^^^^
+
+Loads a template instance.
+
+Syntax
+~~~~~~
+
+Load expression syntax::
+
+         Relative or absolute file path
+
+Description
+~~~~~~~~~~~
+
+The template will be loaded using the same template class as the
+calling template.
+
+Examples
+~~~~~~~~
+
+Loading a template and using it as a macro::
+
+  <div tal:define="master load: ../master.pt" metal:use-macro="master" />
 
 
 Built-in names

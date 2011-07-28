@@ -1,0 +1,1 @@
+<html tal:define="hello_world load: hello_world.pt" metal:use-macro="hello_world" />

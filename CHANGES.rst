@@ -5,6 +5,11 @@ In next release ...
 
 Features:
 
+- Added new expression type ``load:`` that allows loading a
+  template. Both relative and absolute paths are supported. If the
+  path given is relative, then it will be resolved with respect to the
+  directory of the template.
+
 - Added support for dynamic evaluation of expressions.
 
   Note that this is to support legacy applications. It is not

@@ -1,4 +1,5 @@
 from functools import partial
+from os.path import dirname
 
 from ..i18n import fast_translate
 from ..tales import TalesEngine
@@ -7,10 +8,12 @@ from ..tales import StringExpr
 from ..tales import NotExpr
 from ..tales import ExistsExpr
 from ..tales import ImportExpr
+from ..tales import ProxyExpr
 from ..tal import RepeatDict
 
 from ..template import BaseTemplate
 from ..template import BaseTemplateFile
+from ..loader import TemplateLoader
 
 from .program import MacroProgram
 
@@ -75,11 +78,7 @@ class PageTemplate(BaseTemplate):
 
     @property
     def builtins(self):
-        return {
-            'template': self,
-            'macros': self.macros,
-            'nothing': None,
-            }
+        return self._builtins()
 
     def parse(self, body):
         escape = True if self.mode == "xml" else False
@@ -121,9 +120,30 @@ class PageTemplate(BaseTemplate):
         self.cook_check()
         self._render(stream, econtext, rcontext)
 
+    def _builtins(self):
+        return {
+            'template': self,
+            'macros': self.macros,
+            'nothing': None,
+            }
+
 
 class PageTemplateFile(PageTemplate, BaseTemplateFile):
-    pass
+    expression_types = PageTemplate.expression_types.copy()
+    expression_types['load'] = partial(ProxyExpr, '__loader')
+
+    def _builtins(self):
+        path = dirname(self.filename)
+        loader = TemplateLoader(search_path=path)
+
+        # Bind loader to same template class --- this is probably what
+        # we want
+        template_class = type(self)
+
+        d = super(PageTemplateFile, self)._builtins()
+        d['__loader'] = loader.bind(template_class)
+
+        return d
 
 
 class PageTextTemplate(PageTemplate):
