@@ -19,12 +19,13 @@ Features:
   to define built-in variables always available in the template
   variable scope.
 
-Bugfixes:
-
-- Fixed issue where a supplied template loader would not replace the
-  class-default loader.
-
 Incompatibilities:
+
+- The file-based template class no longer accepts a parameter
+  ``loader``. This parameter would be used to load a template from a
+  relative path, using a ``find(filename)`` method. This was however,
+  undocumented, and probably not very useful since we have the
+  ``TemplateLoader`` mechanism already.
 
 - The compiled template module now contains an ``initialize`` function
   which takes values that map to the template builtins. The return
