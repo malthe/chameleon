@@ -361,8 +361,8 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             )
 
     def test_txt_files(self):
-        from ..zpt.template import PageTextTemplate
-        self.execute(".txt", PageTextTemplate)
+        from ..zpt.template import PageTextTemplateFile
+        self.execute(".txt", PageTextTemplateFile)
 
     def execute(self, ext, factory, **kwargs):
         from chameleon.utils import DebuggingOutputStream
