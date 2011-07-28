@@ -32,6 +32,18 @@ Incompatibilities:
   value of this function is a dictionary that contains the render
   functions.
 
+Bugfixes:
+
+- The file-based template class no longer verifies the existance of a
+  template file (using ``os.lstat``). This now happens implicitly if
+  eager parsing is enabled, or otherwise when first needed (e.g. at
+  render time).
+
+  This is classified as a bug fix because the previous behavior was
+  probably not what you'd expect, especially if an application
+  initializes a lot of templates without needing to render them
+  immediately.
+
 2.1.1 (2011-07-28)
 ------------------
 

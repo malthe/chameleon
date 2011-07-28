@@ -259,9 +259,6 @@ class BaseTemplateFile(BaseTemplate):
             os.path.normpath(os.path.expanduser(filename))
             )
 
-        # Make sure file exists
-        os.lstat(filename)
-
         self.filename = filename
 
         # Override reload setting only if value is provided explicitly
