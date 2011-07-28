@@ -212,9 +212,6 @@ class BaseTemplate(object):
     def _cook(self, body, digest, builtins):
         source = self._make(body, builtins)
 
-        if self.keep_source:
-            self.source = source
-
         filename = "%s.py" % digest
         return self.loader.get(filename) or \
                self.loader.build(source, filename)
@@ -228,7 +225,12 @@ class BaseTemplate(object):
 
     def _compile(self, program, builtins):
         compiler = Compiler(self.engine, program, builtins)
-        return compiler.code
+        source = compiler.code
+
+        if self.keep_source:
+            self.source = source
+
+        return source
 
     def _make(self, body, builtins):
         program = self.parse(body)
