@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release...
+
+Bugfixes:
+
+- If copying the exception fails in the exception handler, simply
+  re-raise the original exception and log a warning.
+
 2.2 (2011-07-28)
 ----------------
 

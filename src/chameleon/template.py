@@ -179,18 +179,23 @@ class BaseTemplate(object):
             cls, exc, tb = sys.exc_info()
             errors = rcontext.get('__error__')
             if errors:
-                exc = copy.copy(exc)
-                formatter = ExceptionFormatter(errors, econtext, rcontext)
-
                 try:
-                    new = type(cls.__name__, (cls, Exception), {
-                        '__str__': formatter,
-                        })
-                    exc.__class__ = new
+                    exc = copy.copy(exc)
                 except TypeError:
-                    d = exc.__dict__
-                    exc = Exception.__new__(new)
-                    exc.__dict__ = d
+                    name = type(exc).__name__
+                    log.warn("Unable to copy exception of type '%s'." % name)
+                else:
+                    formatter = ExceptionFormatter(errors, econtext, rcontext)
+
+                    try:
+                        new = type(cls.__name__, (cls, Exception), {
+                            '__str__': formatter,
+                            })
+                        exc.__class__ = new
+                    except TypeError:
+                        d = exc.__dict__
+                        exc = Exception.__new__(new)
+                        exc.__dict__ = d
 
                 raise_with_traceback(exc, tb)
 
