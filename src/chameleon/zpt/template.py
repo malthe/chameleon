@@ -66,6 +66,11 @@ class PageTemplate(BaseTemplate):
 
     mode = "xml"
 
+    # The ``builtins`` dictionary is updated with this dictionary at
+    # cook time. Note that it can be provided at class initialization
+    # using the ``extra_builtins`` keyword argument.
+    extra_builtins = {}
+
     def __init__(self, *args, **kwargs):
         self.macros = Macros(self)
 
@@ -78,7 +83,9 @@ class PageTemplate(BaseTemplate):
 
     @property
     def builtins(self):
-        return self._builtins()
+        builtins = self._builtins()
+        builtins.update(self.extra_builtins)
+        return builtins
 
     def parse(self, body):
         escape = True if self.mode == "xml" else False

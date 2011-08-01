@@ -3,6 +3,13 @@ Changes
 
 In next release...
 
+Features:
+
+- Added ``extra_builtins`` option to the page template class. These
+  builtins are added to the default builtins dictionary at cook time
+  and may be provided at initialization using the ``extra_builtins``
+  keyword argument.
+
 Bugfixes:
 
 - If copying the exception fails in the exception handler, simply
