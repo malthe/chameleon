@@ -116,6 +116,11 @@ class BaseTemplate(object):
     # available in the template variable scope
     builtins = {}
 
+    # The ``builtins`` dictionary is updated with this dictionary at
+    # cook time. Note that it can be provided at class initialization
+    # using the ``extra_builtins`` keyword argument.
+    extra_builtins = {}
+
     # Expression engine must be provided by subclass
     engine = None
 
@@ -148,7 +153,9 @@ class BaseTemplate(object):
 
     def cook(self, body):
         digest = self._digest(body)
-        names, builtins = zip(*self.builtins.items())
+        builtins_dict = self.builtins.copy()
+        builtins_dict.update(self.extra_builtins)
+        names, builtins = zip(*builtins_dict.items())
         program = self._cook(body, digest, names)
 
         initialize = program['initialize']
