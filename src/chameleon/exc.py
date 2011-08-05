@@ -92,7 +92,7 @@ def compute_source_marker(line, column, expression, size):
 
 
 class TemplateError(Exception):
-    def __init__(self, msg, token):
+    def __init__(self, msg='', token=None):
         if not isinstance(token, Token):
             token = Token(token, 0)
 
@@ -231,3 +231,18 @@ class ExceptionFormatter(object):
             formatted_exc = formatted_exc[len(formatted_exc_class):].lstrip()
 
         return "\n".join([formatted_exc] + out)
+
+def test_exception_can_be_copied():
+    """
+    Chameleon copies exceptions while formatting them for display (see
+    "BaseTemplate.render()"), so Chameleon's own exceptions need to be
+    copiable:
+
+    >>> import copy
+    >>> e = copy.copy(TemplateError('an error', u'a token'))
+    >>> e.msg
+    'an error'
+    >>> e.token
+    u'a token'
+
+    """
