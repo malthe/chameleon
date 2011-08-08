@@ -9,6 +9,7 @@ import shutil
 import tempfile
 
 from functools import wraps
+from functools import partial
 
 try:
     from unittest2 import TestCase
@@ -156,7 +157,7 @@ class ZopePageTemplatesTest(RenderTestCase):
     @property
     def factory(body):
         from ..zpt.template import PageTemplate
-        return PageTemplate
+        return partial(PageTemplate, keep_source=True)
 
     def template(body):
         def decorator(func):
