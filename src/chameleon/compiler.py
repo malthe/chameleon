@@ -66,6 +66,7 @@ COMPILER_INTERNALS_OR_DISALLOWED = set([
     "float",
     "long",
     "len",
+    "type",
     "None",
     "True",
     "False",
@@ -114,15 +115,19 @@ def emit_node_if_non_trivial(node):  # pragma: no cover
 
 
 @template
-def emit_convert(target, native=bytes, str=str, long=long):  # pragma: no cover
-    if target is not None:
-        _tt = type(target)
+def emit_convert(target, encoded=bytes, str=str, long=long):  # pragma: no cover
+    if target is None:
+        pass
+    elif target is False:
+        target = None
+    else:
+        __tt = type(target)
 
-        if _tt is int or _tt is float or _tt is long:
-            target = native(target)
-        elif _tt is native:
+        if __tt is int or __tt is float or __tt is long:
+            target = str(target)
+        elif __tt is encoded:
             target = decode(target)
-        elif _tt is not str:
+        elif __tt is not str:
             try:
                 target = target.__html__
             except AttributeError:
@@ -138,26 +143,26 @@ def emit_translate(target, msgid, default=None):  # pragma: no cover
 
 @template
 def emit_convert_and_escape(
-    target, msgid, quote=ast.Str(s="\0"), str=str, long=long,
-    native=bytes):  # pragma: no cover
+    target, quote=ast.Str(s="\0"), str=str, long=long,
+    encoded=bytes):  # pragma: no cover
     if target is None:
         pass
     elif target is False:
         target = None
     else:
-        _tt = type(target)
+        __tt = type(target)
 
-        if _tt is int or _tt is float or _tt is long:
+        if __tt is int or __tt is float or __tt is long:
             target = str(target)
         else:
             try:
-                if _tt is native:
-                    target = decode(msgid)
-                elif _tt is not str:
+                if __tt is encoded:
+                    target = decode(target)
+                elif __tt is not str:
                     try:
                         target = target.__html__
                     except:
-                        target = convert(msgid)
+                        target = convert(target)
                     else:
                         raise RuntimeError
             except RuntimeError:
@@ -165,7 +170,7 @@ def emit_convert_and_escape(
             else:
                 if target is not None:
                     try:
-                        escape = re_needs_escape(target) is not None
+                        escape = __re_needs_escape(target) is not None
                     except TypeError:
                         pass
                     else:
@@ -178,7 +183,7 @@ def emit_convert_and_escape(
                                 # HTML entity counterpart only if it's
                                 # precedes an HTML entity string.
                                 if ';' in target:
-                                    target = re_amp.sub('&amp;', target)
+                                    target = __re_amp.sub('&amp;', target)
 
                                 # Otherwise, it's safe to replace all
                                 # ampersands:
@@ -276,6 +281,8 @@ class ExpressionCompiler(object):
     initial = COMPILER_INTERNALS_OR_DISALLOWED
 
     global_fallback = set(builtins.__dict__)
+
+    __slots__ = "engine", "cache", "markers", "is_builtin"
 
     def __init__(self, engine, cache, markers, builtin_filter):
         self.engine = engine
@@ -470,7 +477,7 @@ class Compiler(object):
         self._markers = set()
         self._builtins = builtins
 
-        self.is_builtin = is_builtin = set(builtins).__contains__
+        is_builtin = set(builtins).__contains__
 
         self._engine = ExpressionCompiler(
             engine,
@@ -535,7 +542,7 @@ class Compiler(object):
             r"g_re_needs_escape = re.compile(r'[&<>\"\']').search")
 
         body += template(
-            r"re_whitespace = "
+            r"__re_whitespace = "
             r"functools.partial(re.compile('\s+').sub, ' ')",
         )
 
@@ -591,8 +598,8 @@ class Compiler(object):
         # Initialization
         body += template("__append = __stream.append")
         body += template("__i18n_domain = None")
-        body += template("re_amp = g_re_amp")
-        body += template("re_needs_escape = g_re_needs_escape")
+        body += template("__re_amp = g_re_amp")
+        body += template("__re_needs_escape = g_re_needs_escape")
 
         # Resolve defaults
         for name in self.defaults:
@@ -673,7 +680,7 @@ class Compiler(object):
         if node.msgid is not None:
             output = emit_translate(name, name)
         elif node.escape:
-            output = emit_convert_and_escape(name, name)
+            output = emit_convert_and_escape(name)
         else:
             output = emit_convert(name)
 
@@ -689,17 +696,17 @@ class Compiler(object):
         else:
             convert = emit_convert
 
+        expression = StringExpr(node.value, node.braces_required)
+
         def engine(expression, target):
             node = Expression(expression, False)
             return self._engine(node, target) + \
                    convert(target)
 
-        expression = StringExpr(node.value, node.braces_required)
-
         name = identifier("content")
 
         return expression(store(name), engine) + \
-               emit_node_if_non_trivial(load(name))
+               emit_node_if_non_trivial(name)
 
     def visit_Assignment(self, node):
         for name in node.names:
@@ -806,7 +813,7 @@ class Compiler(object):
         # Reduce white space and assign as message id
         msgid = identifier("msgid", id(node))
         body += template(
-            "msgid = re_whitespace(''.join(stream)).strip()",
+            "msgid = __re_whitespace(''.join(stream)).strip()",
             msgid=msgid, stream=stream
         )
 
@@ -881,17 +888,22 @@ class Compiler(object):
             yield stmt
 
     def visit_Attribute(self, node):
-        body = []
+        f = node.space + node.name + node.eq + node.quote + "%s" + node.quote
+
+        if isinstance(node.expression, ast.Str):
+            s = f % node.expression.s
+            return template("__append(S)", S=ast.Str(s))
 
         target = identifier("attr", node.name)
+
+        body = []
+
         body += self._engine(node.expression, store(target))
 
-        if node.escape:
-            body += emit_convert_and_escape(
-                target, target, quote=ast.Str(s=node.quote)
-                )
+        body += emit_convert_and_escape(
+            target, target, quote=ast.Str(s=node.quote)
+            )
 
-        f = node.space + node.name + node.eq + node.quote + "%s" + node.quote
         body += template(
             "if TARGET is not None: __append(FORMAT % TARGET)",
             FORMAT=ast.Str(s=f),
@@ -1059,8 +1071,8 @@ class Compiler(object):
 
             key = ast.Str(s=node.names[0])
 
-        index = identifier("_index", id(node))
-        assignment = [ast.Assign(targets=targets, value=load("_item"))]
+        index = identifier("__index", id(node))
+        assignment = [ast.Assign(targets=targets, value=load("__item"))]
 
         # Make repeat assignment in outer loop
         names = node.names
@@ -1098,7 +1110,7 @@ class Compiler(object):
 
         # Main repeat loop
         outer += [ast.For(
-            target=store("_item"),
+            target=store("__item"),
             iter=load("__iterator"),
             body=assignment + inner,
             )]
