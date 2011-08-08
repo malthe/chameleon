@@ -563,10 +563,7 @@ class MacroProgram(ElementProgram):
             if msgid is not missing:
                 value = nodes.Translate(msgid, value)
 
-            # Escape non-static values
-            escape = not isinstance(value, ast.Str)
-
-            attribute = nodes.Attribute(name, value, quote, eq, space, escape)
+            attribute = nodes.Attribute(name, value, quote, eq, space)
 
             # If value is non-static, wrap attribute in a definition
             # clause for the "default" value

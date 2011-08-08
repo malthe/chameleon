@@ -52,7 +52,7 @@ class Element(Node):
 class Attribute(Node):
     """Element attribute."""
 
-    _fields = "name", "expression", "quote", "eq", "space", "escape"
+    _fields = "name", "expression", "quote", "eq", "space"
 
 
 class Start(Node):
