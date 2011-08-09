@@ -370,5 +370,6 @@ class BaseTemplateFile(BaseTemplate):
     def _set_filename(self, filename):
         self.__dict__['filename'] = filename
         self._v_last_read = None
+        self._cooked = False
 
     filename = property(_get_filename, _set_filename)
