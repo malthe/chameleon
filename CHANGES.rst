@@ -16,6 +16,9 @@ Features:
 
 Bugfixes:
 
+- Fixed an issue where setting the ``filename`` attribute on a
+  file-based template would not automatically cause an invalidation.
+
 - Exceptions raised by Chameleon can now be copied via
   ``copy.copy``. This fixes issue #36.
   [leorochael]
