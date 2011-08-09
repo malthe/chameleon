@@ -221,22 +221,17 @@ class BaseTemplate(object):
             if text[:len(prefix)] == prefix:
                 return "text/xml"
 
+    def _get_module_name(self, digest):
+        return "%s.py" % digest
+
     def _cook(self, body, digest, builtins):
-        name = "%s.py" % digest
-
-        if self.filename != '<string>':
-            filename = os.path.basename(self.filename)
-            mangled = mangle(filename)
-            name = "%s_%s" % (mangled, name)
-
+        name = self._get_module_name(digest)
         cooked = self.loader.get(name)
         if cooked is None:
             try:
                 source = self._make(body, builtins)
-
-                if DEBUG_MODE and self.filename != '<string>':
-                    source = "# filename: %s\n#\n%s" % (self.filename, source)
-
+                if self.debug:
+                    source = "# template: %s\n#\n%s" % (self.filename, source)
                 cooked = self.loader.build(source, name)
             except TemplateError:
                 exc = sys.exc_info()[1]
@@ -360,6 +355,11 @@ class BaseTemplateFile(BaseTemplate):
             fd.close()
 
         return body
+
+    def _get_module_name(self, digest):
+        filename = os.path.basename(self.filename)
+        mangled = mangle(filename)
+        return "%s_%s.py" % (mangled, digest)
 
     def _get_filename(self):
         return self.__dict__.get('filename')
