@@ -26,24 +26,6 @@ entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 module_cache = {}
 
 
-def mangle(filename):
-    """Mangles template filename into top-level Python module name.
-
-    >>> mangle('hello_world.pt')
-    'hello_world'
-
-    >>> mangle('foo.bar.baz.pt')
-    'foo_bar_baz'
-
-    >>> mangle('foo-bar-baz.pt')
-    'foo_bar_baz'
-
-    """
-
-    base, ext = os.path.splitext(filename)
-    return base.replace('.', '_').replace('-', '_')
-
-
 def read_bom(source):
     for bom, encoding in encodings.items():
         if source.startswith(bom):
