@@ -408,11 +408,6 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 filename,
                 keep_source=True,
                 output_stream_factory=DebuggingOutputStream,
-
-                # The ``_digest_`` method is internal to the template
-                # class; we provide a custom function that lets us
-                # choose the filename for the generated Python module
-                _digest = lambda body, title=title: title,
                 )
 
             params = kwargs.copy()
