@@ -95,6 +95,9 @@ class BaseTemplate(object):
     Input must be unicode (or string on Python 3).
     """
 
+    # This attribute is strictly informational in this template class
+    # and is used in exception formatting. It may be set on
+    # initialization using the optional ``filename`` keyword argument.
     filename = '<string>'
 
     _cooked = False
