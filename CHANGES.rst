@@ -5,6 +5,10 @@ In next release...
 
 Features:
 
+- Enable template loader for string-based template classes. Note that
+  the ``filename`` keyword argument may be provided on initialization
+  to identify the template source by filename. This fixes issue #36.
+
 - Added ``extra_builtins`` option to the page template class. These
   builtins are added to the default builtins dictionary at cook time
   and may be provided at initialization using the ``extra_builtins``

@@ -222,11 +222,28 @@ class BaseTemplate(object):
                 return "text/xml"
 
     def _cook(self, body, digest, builtins):
-        source = self._make(body, builtins)
+        name = "%s.py" % digest
 
-        filename = "%s.py" % digest
-        return self.loader.get(filename) or \
-               self.loader.build(source, filename)
+        if self.filename != '<string>':
+            filename = os.path.basename(self.filename)
+            mangled = mangle(filename)
+            name = "%s_%s" % (mangled, name)
+
+        cooked = self.loader.get(name)
+        if cooked is None:
+            try:
+                source = self._make(body, builtins)
+
+                if DEBUG_MODE and self.filename != '<string>':
+                    source = "# filename: %s\n#\n%s" % (self.filename, source)
+
+                cooked = self.loader.build(source, name)
+            except TemplateError:
+                exc = sys.exc_info()[1]
+                exc.filename = self.filename
+                raise
+
+        return cooked
 
     def _digest(self, body):
         class_name = type(self).__name__.encode('utf-8')
@@ -352,27 +369,3 @@ class BaseTemplateFile(BaseTemplate):
         self._v_last_read = None
 
     filename = property(_get_filename, _set_filename)
-
-    def _cook(self, body, digest, builtins):
-        filename = os.path.basename(self.filename)
-        mangled = mangle(filename)
-        name = "%s_%s.py" % (mangled, digest)
-        cooked = self.loader.get(name)
-
-        if cooked is None:
-            log.debug('cache miss: %s' % self.filename)
-            try:
-                source = self._make(body, builtins)
-
-                if DEBUG_MODE:
-                    source = "# filename: %s\n#\n%s" % (self.filename, source)
-
-                cooked = self.loader.build(source, name)
-            except TemplateError:
-                exc = sys.exc_info()[1]
-                exc.filename = self.filename
-                raise
-        else:
-            log.debug('cache hit: %s' % self.filename)
-
-        return cooked

@@ -82,6 +82,8 @@ class ModuleLoader(object):
             log.debug("loading module from cache: %s." % filename)
             base, ext = os.path.splitext(filename)
             return self._load(base, path)
+        else:
+            log.debug('cache miss: %s' % filename)
 
     def build(self, source, filename):
         imp.acquire_lock()
