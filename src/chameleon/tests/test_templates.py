@@ -202,6 +202,16 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_attributes_on_tal_tag_fails(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
 
+    @error('''<span tal:define="dummy python: 0 < 1"></span>''')
+    def test_invalid_attribute_value_is_correctly_reported(self, body, exc):
+        # '<' is not valid in attribute values, but the error message should
+        # be informative.
+        self.assertNotEqual(exc.msg, 'Unexpected end tag.')
+        # XXX: perhaps replace the above with a specific self.assertEqual
+        self.assertTrue(body[exc.offset:].startswith('dummy'))
+        # XXX or perhaps:
+        #self.assertTrue(body[exc.offset:].startswith('< 1'))
+
     def test_custom_encoding_for_str_or_bytes(self):
         string = '<div>Тест${text}</div>'
         try:
