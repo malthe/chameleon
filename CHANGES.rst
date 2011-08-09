@@ -12,6 +12,10 @@ Features:
 
 Bugfixes:
 
+- Exceptions raised by Chameleon can now be copied via
+  ``copy.copy``. This fixes issue #36.
+  [leorochael]
+
 - If copying the exception fails in the exception handler, simply
   re-raise the original exception and log a warning.
 
