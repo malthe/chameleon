@@ -92,6 +92,16 @@ def compute_source_marker(line, column, expression, size):
 
 
 class TemplateError(Exception):
+    """An error raised by Chameleon.
+
+    Make sure the exceptions can be copied:
+
+    >>> from copy import copy
+    >>> copy(TemplateError('message', 'token'))
+    TemplateError('message', 'token')
+
+    """
+
     def __init__(self, msg, token):
         if not isinstance(token, Token):
             token = Token(token, 0)
@@ -99,6 +109,11 @@ class TemplateError(Exception):
         self.msg = msg
         self.token = token
         self.filename = token.filename
+
+    def __copy__(self):
+        inst = Exception.__new__(type(self))
+        inst.__dict__ = self.__dict__.copy()
+        return inst
 
     def __str__(self):
         text = "%s\n\n" % self.msg
@@ -120,7 +135,7 @@ class TemplateError(Exception):
 
     def __repr__(self):
         try:
-            return "%s(%r, %r)" % (
+            return "%s('%s', '%s')" % (
                 self.__class__.__name__, self.msg, self.token
                 )
         except AttributeError:
@@ -231,3 +246,4 @@ class ExceptionFormatter(object):
             formatted_exc = formatted_exc[len(formatted_exc_class):].lstrip()
 
         return "\n".join([formatted_exc] + out)
+
