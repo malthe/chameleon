@@ -667,10 +667,10 @@ class Compiler(object):
         macros = getattr(node, "macros", ())
         names = []
         for macro in macros:
-            functions += self.visit(macro)
-            name = "render" if macro.name is None \
-                   else "render_%s" % mangle(macro.name)
-            names.append(name)
+            stmts = self.visit(macro)
+            function = stmts[-1]
+            names.append(function.name)
+            functions += stmts
 
         # Prepend module-wide marker values
         for marker in self._markers:
