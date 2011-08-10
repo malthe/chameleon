@@ -1,0 +1,6 @@
+<html>
+  <body>
+    <img src="#" tal:attributes="class 1 > 0 and 'up' or 0 &lt; 1 and 'down';" />
+    <img src="#" tal:attributes="class 0 &gt; 1 and 'up' or 0 &lt; 1 and 'down';" />
+  </body>
+</html>

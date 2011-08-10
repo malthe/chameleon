@@ -23,6 +23,9 @@ Features:
 
 Bugfixes:
 
+- The Python expression compiler now correctly decodes HTML entities
+  ``'gt'`` and ``'lt'``. This fixes issue #32.
+
 - The string expression compiler now correctly handles encoded text
   (when support for encoded strings is enabled). This fixes issue #35.
 
