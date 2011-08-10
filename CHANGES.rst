@@ -5,6 +5,13 @@ In next release...
 
 Features:
 
+- The expression compiler now provides methods ``assign_text`` and
+  ``assign_value`` such that a template engine might configure this
+  value conversion to support e.g. encoded strings.
+
+  Note that currently, the only client for the ``assign_text`` method
+  is the string expression type.
+
 - Enable template loader for string-based template classes. Note that
   the ``filename`` keyword argument may be provided on initialization
   to identify the template source by filename. This fixes issue #36.
@@ -15,6 +22,9 @@ Features:
   keyword argument.
 
 Bugfixes:
+
+- The string expression compiler now correctly handles encoded text
+  (when support for encoded strings is enabled). This fixes issue #35.
 
 - Fixed an issue where setting the ``filename`` attribute on a
   file-based template would not automatically cause an invalidation.

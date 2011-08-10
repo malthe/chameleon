@@ -2,17 +2,19 @@ from functools import partial
 from os.path import dirname
 
 from ..i18n import fast_translate
-from ..tales import TalesEngine
 from ..tales import PythonExpr
 from ..tales import StringExpr
 from ..tales import NotExpr
 from ..tales import ExistsExpr
 from ..tales import ImportExpr
 from ..tales import ProxyExpr
+from ..tales import ExpressionParser
+
 from ..tal import RepeatDict
 
 from ..template import BaseTemplate
 from ..template import BaseTemplateFile
+from ..compiler import ExpressionEngine
 from ..loader import TemplateLoader
 
 from .program import MacroProgram
@@ -73,12 +75,16 @@ class PageTemplate(BaseTemplate):
         self.__dict__.update(kwargs)
 
     @property
-    def engine(self):
-        return TalesEngine(self.expression_types, self.default_expression)
-
-    @property
     def builtins(self):
         return self._builtins()
+
+    @property
+    def engine(self):
+        return partial(ExpressionEngine, self.expression_parser)
+
+    @property
+    def expression_parser(self):
+        return ExpressionParser(self.expression_types, self.default_expression)
 
     def parse(self, body):
         escape = True if self.mode == "xml" else False

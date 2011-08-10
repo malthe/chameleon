@@ -31,7 +31,7 @@ from ..exc import LanguageError
 from ..exc import ParseError
 from ..exc import CompilationError
 
-from ..utils import unescape
+from ..utils import decode_htmlentities
 
 try:
     str = unicode
@@ -116,6 +116,10 @@ class MacroProgram(ElementProgram):
     def visit_element(self, start, end, children):
         ns = start['ns_attrs']
 
+        for (prefix, attr), encoded in tuple(ns.items()):
+            if prefix == TAL:
+                ns[prefix, attr] = decode_htmlentities(encoded)
+
         # Validate namespace attributes
         validate_attributes(ns, TAL, tal.WHITELIST)
         validate_attributes(ns, METAL, metal.WHITELIST)
@@ -137,7 +141,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             switch = None
         else:
-            switch = nodes.Expression(clause, True)
+            switch = nodes.Value(clause)
 
         self._switches.append(switch)
 
@@ -152,11 +156,11 @@ class MacroProgram(ElementProgram):
 
             if use_macro:
                 inner = nodes.UseExternalMacro(
-                    nodes.Expression(use_macro, True), slots, False
+                    nodes.Value(use_macro), slots, False
                     )
             else:
                 inner = nodes.UseExternalMacro(
-                    nodes.Expression(extend_macro, True), slots, True
+                    nodes.Value(extend_macro), slots, True
                     )
         # -or- include tag
         else:
@@ -169,11 +173,8 @@ class MacroProgram(ElementProgram):
                 pass
             else:
                 key, value = tal.parse_substitution(clause)
-                value = unescape(value)
-                expression = nodes.Expression(value, key != "text")
-                msgid = ns.get((I18N, 'translate'))
-                content = self._make_content_node(
-                    expression, msgid, key, content)
+                xlate = True if ns.get((I18N, 'translate')) == '' else False
+                content = self._make_content_node(value, content, key, xlate)
 
                 if end is None:
                     # Make sure start-tag has opening suffix.
@@ -252,7 +253,7 @@ class MacroProgram(ElementProgram):
                 if clause == "":
                     omit = True
                 else:
-                    expression = nodes.Negate(nodes.Expression(clause, True))
+                    expression = nodes.Negate(nodes.Value(clause))
                     omit = expression
 
                     # Wrap start- and end-tags in condition
@@ -286,10 +287,8 @@ class MacroProgram(ElementProgram):
                 pass
             else:
                 key, value = tal.parse_substitution(clause)
-                value = unescape(value)
-                expression = nodes.Expression(value, key != "text")
-                msgid = ns.get((I18N, 'translate'))
-                inner = self._make_content_node(expression, msgid, key, inner)
+                xlate = True if ns.get((I18N, 'translate')) == '' else False
+                inner = self._make_content_node(value, inner, key, xlate)
 
         # metal:define-slot
         try:
@@ -312,7 +311,7 @@ class MacroProgram(ElementProgram):
             DEFINE = partial(
                 nodes.Define,
                 [nodes.Assignment(
-                    names, nodes.Expression(expr, True), context == "local")
+                    names, nodes.Value(expr), context == "local")
                  for (context, names, expr) in defines],
                 )
 
@@ -322,7 +321,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             CASE = skip
         else:
-            value = nodes.Expression(clause, True)
+            value = nodes.Value(clause)
             for switch in reversed(self._switches):
                 if switch is not None:
                     break
@@ -349,7 +348,7 @@ class MacroProgram(ElementProgram):
             assert len(defines) == 1
             context, names, expr = defines[0]
 
-            expression = nodes.Expression(expr, True)
+            expression = nodes.Value(expr)
 
             REPEAT = partial(
                 nodes.Repeat,
@@ -365,7 +364,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             CONDITION = skip
         else:
-            expression = nodes.Expression(clause, True)
+            expression = nodes.Value(clause)
             CONDITION = partial(nodes.Condition, expression)
 
         # tal:switch
@@ -436,8 +435,9 @@ class MacroProgram(ElementProgram):
         except KeyError:
             ON_ERROR = skip
         else:
-            expression = nodes.Expression(clause, True)
-            fallback = nodes.Content(expression, None, False)
+            expression = nodes.Value(clause)
+            translate = True if ns.get((I18N, 'translate')) == '' else False
+            fallback = nodes.Content(expression, (), translate)
             ON_ERROR = partial(nodes.OnError, fallback)
 
         clause = ns.get((META, 'interpolation'))
@@ -477,9 +477,12 @@ class MacroProgram(ElementProgram):
             return
 
         if self._interpolation[-1]:
+            char_escape = ('&', '<', '>') if self._escape else ()
+            expression = nodes.Substitution(node[4:-3], char_escape)
+
             return nodes.Sequence(
                 [nodes.Text(node[:4]),
-                 nodes.Interpolation(node[4:-3], self._escape, True),
+                 nodes.Interpolation(expression, True),
                  nodes.Text(node[-3:])
                  ])
 
@@ -489,7 +492,9 @@ class MacroProgram(ElementProgram):
         self._last = node
 
         if self._interpolation_enabled:
-            return nodes.Interpolation(node, self._escape, True)
+            char_escape = ('&', '<', '>') if self._escape else ()
+            expression = nodes.Substitution(node, char_escape)
+            return nodes.Interpolation(expression, True)
 
         return nodes.Text(node)
 
@@ -519,17 +524,19 @@ class MacroProgram(ElementProgram):
                 tal_content
                 )
 
-    def _make_content_node(self, expression, msgid, key, default):
-        content = nodes.Content(expression, msgid, key == "text")
+    def _make_content_node(self, expression, default, key, translate):
+        value = nodes.Value(expression)
+        char_escape = ('&', '<', '>') if key == 'text' else ()
+        content = nodes.Content(value, char_escape, translate)
 
         content = nodes.Condition(
-            nodes.Identity(expression, nodes.Marker("default")),
+            nodes.Identity(value, nodes.Marker("default")),
             default,
             content,
             )
 
         # Cache expression to avoid duplicate evaluation
-        content = nodes.Cache([expression], content)
+        content = nodes.Cache([value], content)
 
         # Define local marker "default"
         content = nodes.Define(
@@ -542,16 +549,19 @@ class MacroProgram(ElementProgram):
     def _create_attributes_nodes(self, prepared, I18N_ATTRIBUTES):
         attributes = []
         for name, text, quote, space, eq, expr in prepared:
+            char_escape = ('&', '<', '>', quote)
+
             # If (by heuristic) ``text`` contains one or
             # more interpolation expressions, make the attribute
             # dynamic
             if expr is None and text is not None and '${' in text:
-                value = nodes.Interpolation(text, True, True)
+                expr = nodes.Substitution(text, char_escape)
+                value = nodes.Interpolation(expr, True)
 
             # If this expression is non-trivial, the attribute is
             # dynamic (computed)
             elif expr is not None:
-                value = nodes.Expression(expr, False)
+                value = nodes.Substitution(expr, char_escape)
 
             # Otherwise, it's a static attribute.
             else:

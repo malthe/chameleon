@@ -45,14 +45,10 @@ def resolve_global(value):
     return Symbol(value)
 
 
-def dummy_engine(string, target):
-    pos = string.find('{')
-    if pos != -1:
-        raise ExpressionError("Bad input", string)
-    return [ast.Assign(targets=[target], value=ast.Str(s=string))]
+def test(expression, engine=None, **env):
+    if engine is None:
+        engine = SimpleEngine()
 
-
-def test(expression, engine=dummy_engine, **env):
     body = expression(store("result"), engine)
     module = ast.Module(body)
     module = ast.fix_missing_locations(module)
@@ -105,7 +101,7 @@ class TalesExpr(object):
     >>> class PythonPipeExpr(TalesExpr):
     ...     def translate(self, expression, target):
     ...         compiler = PythonExpr(expression)
-    ...         return compiler(target, dummy_engine)
+    ...         return compiler(target, None)
 
     >>> test(PythonPipeExpr('foo | bar | 42'))
     42
@@ -129,7 +125,8 @@ class TalesExpr(object):
 
         while remaining:
             if match_prefix(remaining) is not None:
-                assignment = engine(remaining, target)
+                compiler = engine.parse(remaining)
+                assignment = compiler.assign_value(target)
                 remaining = ""
             else:
                 for m in split_parts.finditer(remaining):
@@ -291,9 +288,7 @@ class ImportExpr(object):
 class NotExpr(object):
     """Negates the expression.
 
-    >>> def engine(expression, target):
-    ...     expr = PythonExpr(expression)
-    ...     return expr(target, None)
+    >>> engine = SimpleEngine(PythonExpr)
 
     >>> test(NotExpr('False'), engine)
     True
@@ -305,7 +300,8 @@ class NotExpr(object):
         self.expression = expression
 
     def __call__(self, target, engine):
-        body = engine(self.expression, target)
+        compiler = engine.parse(self.expression)
+        body = compiler.assign_value(target)
         return body + template("target = not target", target=target)
 
 
@@ -314,15 +310,16 @@ class IdentityExpr(object):
 
     Exists to demonstrate the interface.
 
-    >>> test(IdentityExpr('Hello world!'))
-    'Hello world!'
+    >>> test(IdentityExpr('42'))
+    42
     """
 
     def __init__(self, expression):
         self.expression = expression
 
     def __call__(self, target, engine):
-        return engine(self.expression, target)
+        compiler = engine.parse(self.expression)
+        return compiler.assign_value(target)
 
 
 class StringExpr(object):
@@ -340,36 +337,36 @@ class StringExpr(object):
     substitutions. The text- and substitution parts will be
     concatenated back into a string.
 
-    >>> test(StringExpr('Hello ${world}!'))
+    >>> test(StringExpr('Hello ${name}!'), name='world')
     'Hello world!'
 
     In the default configuration, braces may be omitted if the
     expression is an identifier.
 
-    >>> test(StringExpr('Hello $world!'))
+    >>> test(StringExpr('Hello $name!'), name='world')
     'Hello world!'
 
     The ``braces_required`` flag changes this setting:
 
-    >>> test(StringExpr('Hello $world!', True))
-    'Hello $world!'
+    >>> test(StringExpr('Hello $name!', True))
+    'Hello $name!'
 
     We can escape interpolation using the standard escaping
     syntax:
 
-    >>> test(StringExpr('\\${Hello}'))
-    '\\\${Hello}'
+    >>> test(StringExpr('\\${name}'))
+    '\\\${name}'
 
     Multiple interpolations in one:
 
-    >>> test(StringExpr('Hello ${a}${b}${c}!'))
+    >>> test(StringExpr(\"Hello ${'a'}${'b'}${'c'}!\"))
     'Hello abc!'
 
     Here's a more involved example taken from a javascript source:
 
     >>> result = test(StringExpr(\"\"\"
     ... function(oid) {
-    ...     $('#' + oid).autocomplete({source: ${source}});
+    ...     $('#' + oid).autocomplete({source: ${'source'}});
     ... }
     ... \"\"\"))
 
@@ -383,9 +380,19 @@ class StringExpr(object):
     instead counts the number of characters in the expresion and
     returns an integer result.
 
-    >>> def engine(expression, target):
-    ...     return [ast.Assign(targets=[target],
-    ...             value=ast.Num(n=len(expression)))]
+    >>> class engine:
+    ...     @staticmethod
+    ...     def parse(expression):
+    ...         class compiler:
+    ...             @staticmethod
+    ...             def assign_text(target):
+    ...                 return [
+    ...                     ast.Assign(
+    ...                         targets=[target],
+    ...                         value=ast.Num(n=len(expression))
+    ...                     )]
+    ...
+    ...         return compiler
 
     This will demonstrate how the string expression coerces the
     input to a string.
@@ -467,7 +474,8 @@ class StringExpr(object):
                 string = d["expression"] or d["variable"] or ""
 
                 try:
-                    body += engine(string, target)
+                    compiler = engine.parse(string)
+                    body += compiler.assign_text(target)
                 except ExpressionError:
                     matched = matched[m.start():m.end() - 1]
                     m = self.regex.search(matched)
@@ -508,9 +516,7 @@ class ExistsExpr(object):
     As a means to generate exceptions, we set up an expression engine
     which evaluates the provided expression using Python:
 
-    >>> def engine(expression, target):
-    ...     expr = PythonExpr(expression)
-    ...     return expr(target, None)
+    >>> engine = SimpleEngine(PythonExpr)
 
     >>> test(ExistsExpr('int(0)'), engine)
     1
@@ -526,7 +532,8 @@ class ExistsExpr(object):
 
     def __call__(self, target, engine):
         ignore = store("_ignore")
-        body = engine(self.expression, ignore)
+        compiler = engine.parse(self.expression)
+        body = compiler.assign_value(ignore)
 
         classes = map(resolve_global, self.exceptions)
 
@@ -543,52 +550,12 @@ class ExistsExpr(object):
             ]
 
 
-class TalesEngine(object):
-    """Expression engine.
-
-    This test demonstrates how to configure and invoke the engine.
-
-    >>> engine = TalesEngine({
-    ...     'python': PythonExpr,
-    ...     'not': NotExpr,
-    ...     'exists': ExistsExpr,
-    ...     'string': StringExpr,
-    ...     }, 'python')
-
-    An expression evaluation function:
-
-    >>> eval = lambda expression: test(IdentityExpr(expression), engine)
-
-    We have provided 'python' as the default expression type. This
-    means that when no prefix is given, the expression is evaluated as
-    a Python expression:
-
-    >>> eval('not False')
-    True
-
-    Note that the ``type`` prefixes bind left. If ``not`` and
-    ``exits`` are two expression type prefixes, consider the
-    following::
-
-    >>> eval('not: exists: int(None)')
-    True
-
-    The pipe operator binds right. In the following example, but
-    arguments are evaluated against ``not: exists: ``.
-
-    >>> eval('not: exists: help')
-    False
-
-    >>> eval('string:test ${1}${2}')
-    'test 12'
-
-    """
-
+class ExpressionParser(object):
     def __init__(self, factories, default):
         self.factories = factories
         self.default = default
 
-    def __call__(self, expression, target):
+    def __call__(self, expression):
         m = match_prefix(expression)
         if m is not None:
             prefix = m.group(1)
@@ -596,18 +563,47 @@ class TalesEngine(object):
         else:
             prefix = self.default
 
-        factory = self.get_factory(prefix)
-        compiler = factory(expression)
-        return compiler(target, self)
-
-    def get_factory(self, prefix=None):
-        if prefix is None:
-            prefix = self.default
-
         try:
-            return self.factories[prefix]
+            factory = self.factories[prefix]
         except KeyError:
             exc = sys.exc_info()[1]
             raise LookupError(
                 "Unknown expression type: %s." % str(exc)
                 )
+
+        return factory(expression)
+
+
+class SimpleEngine(object):
+    expression = PythonExpr
+
+    def __init__(self, expression=None):
+        if expression is not None:
+            self.expression = expression
+
+    def parse(self, string):
+        compiler = self.expression(string)
+        return SimpleCompiler(compiler, self)
+
+
+class SimpleCompiler(object):
+    def __init__(self, compiler, engine):
+        self.compiler = compiler
+        self.engine = engine
+
+    def assign_text(self, target):
+        """Assign expression string as a text value."""
+
+        return self._assign_value_and_coerce(target, "str")
+
+    def assign_value(self, target):
+        """Assign expression string as object value."""
+
+        return self.compiler(target, self.engine)
+
+    def _assign_value_and_coerce(self, target, builtin):
+        return self.assign_value(target) + template(
+            "target = builtin(target)",
+            target=target,
+            builtin=builtin
+            )

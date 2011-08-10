@@ -203,8 +203,31 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_attributes_on_tal_tag_fails(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
 
-    def test_custom_encoding_for_str_or_bytes(self):
+    def test_custom_encoding_for_str_or_bytes_in_content(self):
         string = '<div>Тест${text}</div>'
+        try:
+            string = string.decode('utf-8')
+        except AttributeError:
+            pass
+
+        template = self.factory(string, encoding="windows-1251")
+
+        text = 'Тест'
+
+        try:
+            text = text.decode('utf-8')
+        except AttributeError:
+            pass
+
+        rendered = template(text=text.encode('windows-1251'))
+
+        self.assertEqual(
+            rendered,
+            string.replace('${text}', text)
+            )
+
+    def test_custom_encoding_for_str_or_bytes_in_attributes(self):
+        string = '<img tal="Тест${text}" />'
         try:
             string = string.decode('utf-8')
         except AttributeError:

@@ -14,19 +14,15 @@ class Sequence(Node):
 
 
 class Content(Node):
-    """Content substitution.
+    """Content substitution."""
 
-    If ``msgid`` is non-trivial, the content will be subject to
-    translation. The provided ``default`` is the default content.
-    """
-
-    _fields = "expression", "msgid", "escape"
+    _fields = "expression", "char_escape", "translate"
 
 
-class Expression(Node):
-    """String expression for evaluation by expression engine."""
+class Value(Node):
+    """Expression object value."""
 
-    _fields = "value", "decode"
+    _fields = "value",
 
     def __repr__(self):
         try:
@@ -34,7 +30,15 @@ class Expression(Node):
         except AttributeError:
             line, column = 0, 0
 
-        return "<Expression %r (%d:%d)>" % (self.value, line, column)
+        return "<%s %r (%d:%d)>" % (
+            type(self).__name__, self.value, line, column
+            )
+
+
+class Substitution(Value):
+    """Expression value for text substitution."""
+
+    _fields = "value", "char_escape",
 
 
 class Negate(Node):
@@ -147,7 +151,7 @@ class Text(Node):
 class Interpolation(Text):
     """String interpolation output."""
 
-    _fields = "value", "escape", "braces_required"
+    _fields = "value", "braces_required"
 
 
 class Translate(Node):

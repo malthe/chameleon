@@ -42,7 +42,8 @@ from .tales import StringExpr
 from .i18n import fast_translate
 
 from .nodes import Text
-from .nodes import Expression
+from .nodes import Value
+from .nodes import Substitution
 from .nodes import Assignment
 from .nodes import Module
 from .nodes import Context
@@ -51,7 +52,7 @@ from .config import DEBUG_MODE
 from .exc import TranslationError
 from .utils import DebuggingOutputStream
 from .utils import Placeholder
-from .utils import decode_htmlentities
+from .utils import char2entity
 
 log = logging.getLogger('chameleon.compiler')
 
@@ -70,6 +71,7 @@ COMPILER_INTERNALS_OR_DISALLOWED = set([
     "None",
     "True",
     "False",
+    "RuntimeError",
     ])
 
 
@@ -143,7 +145,7 @@ def emit_translate(target, msgid, default=None):  # pragma: no cover
 
 @template
 def emit_convert_and_escape(
-    target, quote=ast.Str(s="\0"), str=str, long=long,
+    target, quote=None, quote_entity=None, str=str, long=long,
     encoded=bytes):  # pragma: no cover
     if target is None:
         pass
@@ -177,25 +179,140 @@ def emit_convert_and_escape(
                         if escape:
                             # Character escape
                             if '&' in target:
-                                # If there's a semicolon in the string, then
-                                # it might be part of an HTML entity. We
-                                # replace the ampersand character with its
-                                # HTML entity counterpart only if it's
-                                # precedes an HTML entity string.
-                                if ';' in target:
-                                    target = __re_amp.sub('&amp;', target)
-
-                                # Otherwise, it's safe to replace all
-                                # ampersands:
-                                else:
-                                    target = target.replace('&', '&amp;')
-
+                                target = target.replace('&', '&amp;')
                             if '<' in target:
                                 target = target.replace('<', '&lt;')
                             if '>' in target:
                                 target = target.replace('>', '&gt;')
-                            if quote in target:
-                                target = target.replace(quote, '&#34;')
+                            if quote is not None and quote in target:
+                                target = target.replace(quote, quote_entity)
+
+
+class ExpressionEngine(object):
+    """Expression engine.
+
+    This test demonstrates how to configure and invoke the engine.
+
+    >>> from chameleon import tales
+    >>> parser = tales.ExpressionParser({
+    ...     'python': tales.PythonExpr,
+    ...     'not': tales.NotExpr,
+    ...     'exists': tales.ExistsExpr,
+    ...     'string': tales.StringExpr,
+    ...     }, 'python')
+
+    >>> engine = ExpressionEngine(parser)
+
+    An expression evaluation function:
+
+    >>> eval = lambda expression: tales.test(
+    ...     tales.IdentityExpr(expression), engine)
+
+    We have provided 'python' as the default expression type. This
+    means that when no prefix is given, the expression is evaluated as
+    a Python expression:
+
+    >>> eval('not False')
+    True
+
+    Note that the ``type`` prefixes bind left. If ``not`` and
+    ``exits`` are two expression type prefixes, consider the
+    following::
+
+    >>> eval('not: exists: int(None)')
+    True
+
+    The pipe operator binds right. In the following example, but
+    arguments are evaluated against ``not: exists: ``.
+
+    >>> eval('not: exists: help')
+    False
+
+    >>> eval('string:test ${1}${2}')
+    'test 12'
+
+    """
+
+    supported_char_escape_set = set(('&', '<', '>'))
+
+    def __init__(self, parser, char_escape=()):
+        self._parser = parser
+        self._char_escape = char_escape
+
+    def __call__(self, string, target):
+        # BBB: This method is deprecated. Instead, a call should first
+        # be made to ``parse`` and then one of the assignment methods
+        # ("value" or "text").
+
+        compiler = self.parse(string)
+        return compiler(string, target)
+
+    def parse(self, string):
+        expression = self._parser(string)
+
+        def exception_wrapper(*args):
+            stmts = expression(*args)
+
+            try:
+                line, column = string.location
+                filename = string.filename
+            except AttributeError:
+                line, column = 0, 0
+                filename = "<string>"
+
+            return [ast.TryExcept(
+                body=stmts,
+                handlers=[ast.ExceptHandler(
+                    body=template(
+                        "rcontext.setdefault('__error__', [])."
+                        "append((string, line, col, src, sys.exc_info()[1]))\n"
+                        "raise",
+                        string=ast.Str(s=string),
+                        line=ast.Num(n=line),
+                        col=ast.Num(n=column),
+                        src=ast.Str(s=filename),
+                        sys=Symbol(sys),
+                        ),
+                    )],
+                )]
+
+        return ExpressionCompiler(exception_wrapper, self)
+
+    def _convert_text(self, target):
+        """Converts value given by ``target`` to text."""
+
+        if self._char_escape:
+            # This is a cop-out - we really only support a very select
+            # set of escape characters
+            quote = '"' if '"' in self._char_escape else "'"
+            if set(self._char_escape) - \
+                   self.supported_char_escape_set != set(quote):
+                raise RuntimeError(
+                    "Unsupported escape set: %s." % repr(self._char_escape)
+                    )
+
+            entity = char2entity(quote)
+
+            return emit_convert_and_escape(
+                target,
+                quote=ast.Str(s=quote),
+                quote_entity=ast.Str(s=entity),
+                )
+
+        return emit_convert(target)
+
+
+class ExpressionCompiler(object):
+    def __init__(self, compiler, engine):
+        self.compiler = compiler
+        self.engine = engine
+
+    def assign_value(self, target):
+        return self.compiler(target, self.engine)
+
+    def assign_text(self, target):
+        return self.assign_value(target) + \
+               self.engine._convert_text(target)
 
 
 class ExpressionEvaluator(object):
@@ -204,12 +321,9 @@ class ExpressionEvaluator(object):
     This is not particularly efficient, but supported for legacy
     applications.
 
-    >>> from chameleon.tales import TalesEngine
-    >>> from chameleon.tales import PythonExpr
-
-    >>> engine = TalesEngine({
-    ...     'python': PythonExpr,
-    ...     }, 'python')
+    >>> from chameleon import tales
+    >>> parser = tales.ExpressionParser({'python': tales.PythonExpr}, 'python')
+    >>> engine = functools.partial(ExpressionEngine, parser)
 
     >>> evaluate = ExpressionEvaluator(engine, {
     ...     'foo': 'bar',
@@ -268,12 +382,13 @@ class ExpressionEvaluator(object):
         return econtext['_result']
 
 
-class ExpressionCompiler(object):
-    """Internal wrapper around a TALES-engine.
+class ExpressionTransform(object):
+    """Internal wrapper to transform expression nodes into assignment
+    statements.
 
-    In addition to TALES expressions (strings which may appear wrapped
-    in an ``Expression`` node), this compiler also supports other
-    expression node types.
+    The node input may use the provided expression engine, but other
+    expression node types are supported such as ``Builtin`` which
+    simply resolves a built-in name.
 
     Used internally be the compiler.
     """
@@ -282,10 +397,8 @@ class ExpressionCompiler(object):
 
     global_fallback = set(builtins.__dict__)
 
-    __slots__ = "engine", "cache", "markers", "is_builtin"
-
-    def __init__(self, engine, cache, markers, builtin_filter):
-        self.engine = engine
+    def __init__(self, engine_factory, cache, markers, builtin_filter):
+        self.engine_factory = engine_factory
         self.cache = cache
         self.markers = markers
         self.is_builtin = builtin_filter
@@ -319,7 +432,7 @@ class ExpressionCompiler(object):
             # The engine interface supports simple strings, which
             # default to expression nodes
             if isinstance(expression, basestring):
-                expression = Expression(expression, True)
+                expression = Value(expression, True)
 
             kind = type(expression).__name__
             visitor = getattr(self, "visit_%s" % kind)
@@ -367,36 +480,15 @@ class ExpressionCompiler(object):
         # Otherwise, simply acquire it from the dynamic context.
         return load_econtext(name)
 
-    def visit_Expression(self, node, target):
-        if node.decode:
-            expression = decode_htmlentities(node.value)
-        else:
-            expression = node.value
+    def visit_Value(self, node, target):
+        engine = self.engine_factory()
+        compiler = engine.parse(node.value)
+        return compiler.assign_value(target)
 
-        stmts = self.engine(expression, target)
-
-        try:
-            line, column = node.value.location
-            filename = node.value.filename
-        except AttributeError:
-            line, column = 0, 0
-            filename = "<string>"
-
-        return [ast.TryExcept(
-            body=stmts,
-            handlers=[ast.ExceptHandler(
-                body=template(
-                    "rcontext.setdefault('__error__', [])."
-                    "append((expression, line, col, src, sys.exc_info()[1]))\n"
-                    "raise",
-                    expression=ast.Str(s=expression),
-                    line=ast.Num(n=line),
-                    col=ast.Num(n=column),
-                    src=ast.Str(s=filename),
-                    sys=Symbol(sys),
-                    ),
-                )],
-            )]
+    def visit_Substitution(self, node, target):
+        engine = self.engine_factory(char_escape=node.char_escape)
+        compiler = engine.parse(node.value)
+        return compiler.assign_text(target)
 
     def visit_Negate(self, node, target):
         return self.translate(node.value, target) + \
@@ -423,12 +515,21 @@ class ExpressionCompiler(object):
                template("TARGET = __expression == __value", TARGET=target)
 
     def visit_Interpolation(self, node, target):
-        def engine(expression, target):
-            node = Expression(expression, False)
-            return self.translate(node, target)
+        expr = node.value
+        if isinstance(expr, Value):
+            engine = self.engine_factory()
+            attr = "value"
+        elif isinstance(expr, Substitution):
+            engine = self.engine_factory(char_escape=expr.char_escape)
+            attr = "text"
+        else:
+            raise RuntimeError("Bad value: %r." % node.value)
 
-        expression = StringExpr(node.value, node.braces_required)
-        return expression(target, engine)
+        expression = StringExpr(expr.value, node.braces_required)
+        compiler = ExpressionCompiler(expression, engine)
+        assign = getattr(compiler, "assign_%s" % attr)
+
+        return assign(target)
 
     def visit_Translate(self, node, target):
         if node.msgid is not None:
@@ -470,7 +571,7 @@ class Compiler(object):
 
     lock = threading.Lock()
 
-    def __init__(self, engine, node, builtins={}):
+    def __init__(self, engine_factory, node, builtins={}):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
@@ -479,8 +580,8 @@ class Compiler(object):
 
         is_builtin = set(builtins).__contains__
 
-        self._engine = ExpressionCompiler(
-            engine,
+        self._engine = ExpressionTransform(
+            engine_factory,
             self._expression_cache,
             self._markers,
             is_builtin
@@ -676,36 +777,21 @@ class Compiler(object):
         name = "__content"
         body = self._engine(node.expression, store(name))
 
-        # content conversion steps
-        if node.msgid is not None:
-            output = emit_translate(name, name)
-        elif node.escape:
-            output = emit_convert_and_escape(name)
-        else:
-            output = emit_convert(name)
+        if node.translate:
+            body += emit_translate(name, name)
 
-        body += output
+        if node.char_escape:
+            body += emit_convert_and_escape(name)
+        else:
+            body += emit_convert(name)
+
         body += template("if NAME is not None: __append(NAME)", NAME=name)
 
         return body
 
     def visit_Interpolation(self, node):
-        if node.escape:
-            def convert(target):
-                return emit_convert_and_escape(target, target)
-        else:
-            convert = emit_convert
-
-        expression = StringExpr(node.value, node.braces_required)
-
-        def engine(expression, target):
-            node = Expression(expression, False)
-            return self._engine(node, target) + \
-                   convert(target)
-
         name = identifier("content")
-
-        return expression(store(name), engine) + \
+        return self._engine(node, name) + \
                emit_node_if_non_trivial(name)
 
     def visit_Assignment(self, node):
@@ -890,27 +976,18 @@ class Compiler(object):
     def visit_Attribute(self, node):
         f = node.space + node.name + node.eq + node.quote + "%s" + node.quote
 
+        # Static attributes are just outputted directly
         if isinstance(node.expression, ast.Str):
             s = f % node.expression.s
-            return template("__append(S)", S=ast.Str(s))
+            return template("__append(S)", S=ast.Str(s=s))
 
         target = identifier("attr", node.name)
-
-        body = []
-
-        body += self._engine(node.expression, store(target))
-
-        body += emit_convert_and_escape(
-            target, target, quote=ast.Str(s=node.quote)
-            )
-
-        body += template(
+        body = self._engine(node.expression, store(target))
+        return body + template(
             "if TARGET is not None: __append(FORMAT % TARGET)",
             FORMAT=ast.Str(s=f),
             TARGET=target,
             )
-
-        return body
 
     def visit_Cache(self, node):
         body = []

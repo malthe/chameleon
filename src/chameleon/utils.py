@@ -65,6 +65,12 @@ def read_encoded(source):
     return body.decode(encoding)
 
 
+def char2entity(c):
+    cp = ord(c)
+    name = htmlentitydefs.codepoint2name.get(cp)
+    return '&%s;' % name if name is not None else '&#%d;' % cp
+
+
 def substitute_entity(match, n2cp=htmlentitydefs.name2codepoint):
     ent = match.group(3)
 
