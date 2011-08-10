@@ -1439,6 +1439,23 @@ character: ``\${...}``.
 Note that if an object implements the ``__html__`` method, the result
 of this method will be inserted as-is (without XML escaping).
 
+Markup comments
+###############
+
+You can apply the "!" and "?" modifiers to change how comments are
+processed:
+
+Drop
+
+  ``<!--! This comment will be dropped from output -->``
+
+Verbatim
+
+  ``<!--? This comment will be included verbatim -->``
+
+  That is, evaluation of ``${...}`` expressions is disabled if the
+  comment opens with the "?" character.
+
 Notes
 =====
 

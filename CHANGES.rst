@@ -5,6 +5,14 @@ In next release...
 
 Features:
 
+- Added support for the following syntax to disable inline evaluation
+  in a comment:
+
+    <!--? comment appears verbatim (no ${...} evaluation) -->
+
+  Note that the initial question mark character (?) will be omitted
+  from output.
+
 - The parser now accepts '<' and '>' in attributes. Note that this is
   invalid markup. Previously, the '<' would not be accepted as a valid
   attribute value, but this would result in an 'unexpected end tag'

@@ -476,17 +476,17 @@ class MacroProgram(ElementProgram):
         if node.startswith('<!--!'):
             return
 
-        if self._interpolation[-1]:
-            char_escape = ('&', '<', '>') if self._escape else ()
-            expression = nodes.Substitution(node[4:-3], char_escape)
+        if node.startswith('<!--?') or not self._interpolation[-1]:
+            return nodes.Text('<!--' + node.lstrip('<!-?'))
 
-            return nodes.Sequence(
-                [nodes.Text(node[:4]),
-                 nodes.Interpolation(expression, True),
-                 nodes.Text(node[-3:])
-                 ])
+        char_escape = ('&', '<', '>') if self._escape else ()
+        expression = nodes.Substitution(node[4:-3], char_escape)
 
-        return nodes.Text(node)
+        return nodes.Sequence(
+            [nodes.Text(node[:4]),
+             nodes.Interpolation(expression, True),
+             nodes.Text(node[-3:])
+             ])
 
     def visit_text(self, node):
         self._last = node
