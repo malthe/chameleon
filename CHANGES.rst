@@ -36,6 +36,9 @@ Features:
 
 Bugfixes:
 
+- If a translation domain is set for a fill slot, use this setting
+  instead of the macro template domain. This fixes issue #37.
+
 - The Python expression compiler now correctly decodes HTML entities
   ``'gt'`` and ``'lt'``. This fixes issue #32.
 

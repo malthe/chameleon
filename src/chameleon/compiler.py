@@ -698,7 +698,6 @@ class Compiler(object):
 
         # Initialization
         body += template("__append = __stream.append")
-        body += template("__i18n_domain = None")
         body += template("__re_amp = g_re_amp")
         body += template("__re_needs_escape = g_re_needs_escape")
 
@@ -734,8 +733,9 @@ class Compiler(object):
                     param("__stream"),
                     param("econtext"),
                     param("rcontext"),
+                    param("__i18n_domain"),
                     ],
-                defaults=(),
+                defaults=[load("None")],
             ),
             body=body
             )
@@ -1113,7 +1113,7 @@ class Compiler(object):
         return (
             callbacks + \
             assignment + \
-            template("__macro.include(__stream, econtext.copy(), rcontext)") + \
+            template("__macro.include(__stream, econtext.copy(), rcontext, __i18n_domain)") + \
             template("econtext.update(rcontext)")
             )
 

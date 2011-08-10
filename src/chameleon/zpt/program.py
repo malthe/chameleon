@@ -373,6 +373,22 @@ class MacroProgram(ElementProgram):
         else:
             SWITCH = partial(nodes.Cache, [switch])
 
+        # i18n:domain
+        try:
+            clause = ns[I18N, 'domain']
+        except KeyError:
+            DOMAIN = skip
+        else:
+            DOMAIN = partial(nodes.Domain, clause)
+
+        # i18n:name
+        try:
+            clause = ns[I18N, 'name']
+        except KeyError:
+            NAME = skip
+        else:
+            NAME = partial(nodes.Name, clause)
+
         # The "slot" node next is the first node level that can serve
         # as a macro slot
         slot = wrap(
@@ -383,6 +399,8 @@ class MacroProgram(ElementProgram):
             CONDITION,
             REPEAT,
             SWITCH,
+            DOMAIN,
+            NAME
             )
 
         # metal:fill-slot
@@ -412,22 +430,6 @@ class MacroProgram(ElementProgram):
         else:
             self._macros[clause] = slot
             slot = nodes.UseInternalMacro(clause)
-
-        # i18n:domain
-        try:
-            clause = ns[I18N, 'domain']
-        except KeyError:
-            DOMAIN = skip
-        else:
-            DOMAIN = partial(nodes.Domain, clause)
-
-        # i18n:name
-        try:
-            clause = ns[I18N, 'name']
-        except KeyError:
-            NAME = skip
-        else:
-            NAME = partial(nodes.Name, clause)
 
         # tal:on-error
         try:
@@ -464,8 +466,6 @@ class MacroProgram(ElementProgram):
 
         return wrap(
             slot,
-            DOMAIN,
-            NAME,
             ON_ERROR
             )
 

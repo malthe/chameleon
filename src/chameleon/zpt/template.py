@@ -122,9 +122,9 @@ class PageTemplate(BaseTemplate):
 
         return super(PageTemplate, self).render(**k)
 
-    def include(self, stream, econtext, rcontext):
+    def include(self, *args, **kwargs):
         self.cook_check()
-        self._render(stream, econtext, rcontext)
+        self._render(*args, **kwargs)
 
     def _builtins(self):
         return {

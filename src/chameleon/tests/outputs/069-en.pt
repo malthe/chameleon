@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <title>Title ('title' translation into 'en' with domain 'test')</title>
+  </head>
+  <body>
+    <div id="content">
+
+        <!-- content here -->
+
+    </div>
+    <div id="footer">
+
+    </div>
+  </body>
+</html>
