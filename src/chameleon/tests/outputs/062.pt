@@ -17,3 +17,11 @@
 <div>
   <!-- ${left alone} -->
 </div>
+
+<!--[if IE 6]>
+  Special instructions for IE 6 here
+<![endif]-->
+
+<!--[if IE 6]>
+  ${left alone}
+<![endif]-->
