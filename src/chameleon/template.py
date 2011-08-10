@@ -7,6 +7,7 @@ import hashlib
 import shutil
 import logging
 import tempfile
+import inspect
 
 pkg_digest = hashlib.sha1(__name__.encode('utf-8'))
 
@@ -235,11 +236,19 @@ class BaseTemplate(object):
                 source = self._make(body, builtins)
                 if self.debug:
                     source = "# template: %s\n#\n%s" % (self.filename, source)
+                if self.keep_source:
+                    self.source = source
                 cooked = self.loader.build(source, name)
             except TemplateError:
                 exc = sys.exc_info()[1]
                 exc.filename = self.filename
                 raise
+        elif self.keep_source:
+            module = sys.modules.get(cooked.get('__name__'))
+            if module is not None:
+                self.source = inspect.getsource(module)
+            else:
+                self.source = None
 
         return cooked
 
@@ -252,12 +261,7 @@ class BaseTemplate(object):
 
     def _compile(self, program, builtins):
         compiler = Compiler(self.engine, program, builtins)
-        source = compiler.code
-
-        if self.keep_source:
-            self.source = source
-
-        return source
+        return compiler.code
 
     def _make(self, body, builtins):
         program = self.parse(body)
