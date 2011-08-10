@@ -5,6 +5,11 @@ In next release...
 
 Features:
 
+- The parser now accepts '<' and '>' in attributes. Note that this is
+  invalid markup. Previously, the '<' would not be accepted as a valid
+  attribute value, but this would result in an 'unexpected end tag'
+  error elsewhere. This fixes issue #38.
+
 - The expression compiler now provides methods ``assign_text`` and
   ``assign_value`` such that a template engine might configure this
   value conversion to support e.g. encoded strings.

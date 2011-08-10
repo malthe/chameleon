@@ -50,7 +50,7 @@ a("DeclCE",
   "DOCTYPE(?:%(DocTypeCE)s)?")
 a("PI_CE", "%(Name)s(?:%(PI_Tail)s)?")
 a("EndTagCE", "%(Name)s(?:%(S)s)?>?")
-a("AttValSE", "\"[^<\"]*\"|'[^<']*'")
+a("AttValSE", "\"[^\"]*\"|'[^']*'")
 a("ElemTagCE",
   "(%(Name)s)(?:(%(S)s)(%(Name)s)(((?:%(S)s)?=(?:%(S)s)?)"
   "(?:%(AttValSE)s|%(Simple)s)|(?!(?:%(S)s)?=)))*(?:%(S)s)?(/?>)?")

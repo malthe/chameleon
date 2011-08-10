@@ -175,12 +175,13 @@ class ZopePageTemplatesTest(RenderTestCase):
             def wrapper(self):
                 from ..exc import TemplateError
                 try:
-                    self.factory(body)
+                    template = self.factory(body)
                 except TemplateError:
                     exc = sys.exc_info()[1]
                     return func(self, body, exc)
                 else:
-                    self.fail("Expected exception.")
+                    result = template()
+                    self.fail("Expected exception; got: %s." % result)
 
             return wrapper
         return decorator
