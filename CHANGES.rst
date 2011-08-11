@@ -17,7 +17,7 @@ Bugfixes:
 
 - Fixed compiler issue with circular node annotation loop.
 
-2.3 (2011-10-10)
+2.3 (2011-08-10)
 ----------------
 
 Features:
