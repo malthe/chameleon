@@ -1,6 +1,22 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- The ``Builtin`` node type may now be used to represent any Python
+  local or global name. This allows expression compilers to refer to
+  e.g. ``get`` or ``getitem``, or to explicit require a builtin object
+  such as one from the ``extra_builtins`` dictionary.
+
+Bugfixes:
+
+- Builtins which are not explicitly disallowed may now be redefined
+  and used as variables (e.g. ``nothing``).
+
+- Fixed compiler issue with circular node annotation loop.
+
 2.3 (2011-10-10)
 ----------------
 

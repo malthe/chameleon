@@ -4,5 +4,8 @@
     <div tal:attributes="class string:dynamic" class="static">
       ${attrs['class']}
     </div>
+    <div tal:define="nothing string:nothing">
+      ${nothing}
+    </div>
   </body>
 </html>

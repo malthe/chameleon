@@ -136,6 +136,7 @@ class Static(Node):
     name = None
 
 
+
 class Comment(Node):
     _fields = "text", "space", "stmt"
 
@@ -152,9 +153,9 @@ class ASTCodeGenerator(object):
 
     def __init__(self, tree):
         self.lines_info = []
-        self.line_info = None
+        self.line_info = []
         self.lines = []
-        self.line = None
+        self.line = ""
         self.last = None
         self.indent = 0
         self.blame_stack = []
@@ -199,6 +200,10 @@ class ASTCodeGenerator(object):
                 self.last = self.blame_stack[-1]
                 self.line_info.append((len(self.line), self.last))
         self.line += s
+
+    def flush(self):
+        if self.line:
+            self._new_line()
 
     def visit(self, node):
         if node is None:
@@ -813,9 +818,10 @@ class AnnotationAwareVisitor(ast.NodeVisitor):
         super(AnnotationAwareVisitor, self).visit(node)
 
     def apply_transform(self, node):
-        result = self.transform(node)
-        if result is not node:
-            node_annotations[node] = result
+        if node not in node_annotations:
+            result = self.transform(node)
+            if result is not None and result is not node:
+                node_annotations[node] = result
 
 
 class NameLookupRewriteVisitor(AnnotationAwareVisitor):
@@ -843,6 +849,7 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
             self.visit(node.body)
         finally:
             self.scopes.pop()
+
 
 class ItemLookupOnAttributeErrorVisitor(AnnotationAwareVisitor):
     def __init__(self, transform):

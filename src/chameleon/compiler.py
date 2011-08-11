@@ -382,6 +382,68 @@ class ExpressionEvaluator(object):
         return econtext['_result']
 
 
+class NameTransform(object):
+    """
+    >>> nt = NameTransform(set(('foo', 'bar', )))
+    >>> def test(node):
+    ...     rewritten = nt(node)
+    ...     module = ast.Module([ast.fix_missing_locations(rewritten)])
+    ...     codegen = TemplateCodeGenerator(module)
+    ...     return codegen.code
+
+    Any odd name:
+
+    >>> test(load('frobnitz'))
+    "getitem('frobnitz')"
+
+    A 'builtin' name will first be looked up via ``get`` allowing fall
+    back to the global builtin value:
+
+    >>> test(load('foo'))
+    "get('foo', foo)"
+
+    Internal names (with two leading underscores) are left alone:
+
+    >>> test(load('__internal'))
+    '__internal'
+
+    Compiler internals or disallowed names:
+
+    >>> test(load('econtext'))
+    'econtext'
+
+    """
+
+    def __init__(self, builtins):
+        self.builtins = builtins
+
+    def __call__(self, node):
+        name = node.id
+
+        # Don't rewrite names that begin with an underscore; they are
+        # internal and can be assumed to be locally defined. This
+        # policy really should be part of the template program, not
+        # defined here in the compiler.
+        if name.startswith('__') or name in COMPILER_INTERNALS_OR_DISALLOWED:
+            return node
+
+        if isinstance(node.ctx, ast.Store):
+            return store_econtext(name)
+
+        # If the name is a Python global, first try acquiring it from
+        # the dynamic context, then fall back to the global.
+        if name in self.builtins:
+            return template(
+                "get(key, name)",
+                mode="eval",
+                key=ast.Str(s=name),
+                name=load(name),
+                )
+
+        # Otherwise, simply acquire it from the dynamic context.
+        return load_econtext(name)
+
+
 class ExpressionTransform(object):
     """Internal wrapper to transform expression nodes into assignment
     statements.
@@ -393,15 +455,15 @@ class ExpressionTransform(object):
     Used internally be the compiler.
     """
 
-    initial = COMPILER_INTERNALS_OR_DISALLOWED
+    global_builtins = set(builtins.__dict__)
 
-    global_fallback = set(builtins.__dict__)
-
-    def __init__(self, engine_factory, cache, markers, builtin_filter):
+    def __init__(self, engine_factory, cache, markers, extra_builtins):
         self.engine_factory = engine_factory
         self.cache = cache
         self.markers = markers
-        self.is_builtin = builtin_filter
+
+        builtins = self.global_builtins | extra_builtins
+        self._dynamic_transform = NameTransform(builtins)
 
     def __call__(self, expression, target):
         if isinstance(target, basestring):
@@ -444,41 +506,6 @@ class ExpressionTransform(object):
             stmts.insert(0, comment)
 
         return stmts
-
-    def _dynamic_transform(self, node):
-        # Don't rewrite nodes that have an annotation
-        annotation = node_annotations.get(node)
-        if annotation is not None:
-            return node
-
-        name = node.id
-
-        # Don't rewrite names that begin with an underscore; they are
-        # internal and can be assumed to be locally defined. This
-        # policy really should be part of the template program, not
-        # defined here in the compiler.
-        if name.startswith('__') or name in self.initial:
-            return node
-
-        # Builtins are available as static symbols
-        if self.is_builtin(name):
-            return ast.Name(id=name, ctx=ast.Load())
-
-        if isinstance(node.ctx, ast.Store):
-            return store_econtext(name)
-
-        # If the name is a Python global, first try acquiring it from
-        # the dynamic context, then fall back to the global.
-        if name in self.global_fallback:
-            return template(
-                "get(key, name)",
-                mode="eval",
-                key=ast.Str(s=name),
-                name=name
-                )
-
-        # Otherwise, simply acquire it from the dynamic context.
-        return load_econtext(name)
 
     def visit_Value(self, node, target):
         engine = self.engine_factory()
@@ -578,13 +605,11 @@ class Compiler(object):
         self._markers = set()
         self._builtins = builtins
 
-        is_builtin = set(builtins).__contains__
-
         self._engine = ExpressionTransform(
             engine_factory,
             self._expression_cache,
             self._markers,
-            is_builtin
+            set(builtins)
             )
 
         if isinstance(node_annotations, dict):

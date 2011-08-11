@@ -105,7 +105,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         super(TemplateCodeGenerator, self).visit_Module(node)
 
         # Make sure we terminate the line printer
-        self.visit_Pass(None)
+        self.flush()
 
         # Clear lines array for import visits
         body = self.lines
@@ -117,7 +117,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
             self.visit(assignment)
 
         # Make sure we terminate the line printer
-        self.visit_Pass(None)
+        self.flush()
 
         # Clear lines array for import visits
         defines = self.lines
@@ -145,7 +145,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
             self.visit(stmt)
 
         # Clear last import
-        self.visit_Pass(None)
+        self.flush()
 
         # Stich together lines
         self.lines += defines + body
@@ -198,7 +198,6 @@ class TemplateCodeGenerator(ASTCodeGenerator):
             self._write("%s#%s" % (node.space, line))
 
     def visit_Builtin(self, node):
-        assert hasattr(builtins, node.id)
         name = load(node.id)
         self.visit(name)
 
