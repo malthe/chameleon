@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed issue where i18n:domain would not be inherited through macros
+  and slots. This fixes issue #37.
+
 2.3.1 (2011-08-11)
 ------------------
 
@@ -55,7 +62,7 @@ Features:
 Bugfixes:
 
 - If a translation domain is set for a fill slot, use this setting
-  instead of the macro template domain. This fixes issue #37.
+  instead of the macro template domain.
 
 - The Python expression compiler now correctly decodes HTML entities
   ``'gt'`` and ``'lt'``. This fixes issue #32.

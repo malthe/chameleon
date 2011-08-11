@@ -1038,7 +1038,7 @@ class Compiler(object):
         else:
             render = "render_%s" % mangle(node.name)
 
-        return template("f(__stream, econtext.copy(), rcontext)", f=render) + \
+        return template("f(__stream, econtext.copy(), rcontext, __i18n_domain)", f=render) + \
                template("econtext.update(rcontext)")
 
     def visit_DefineSlot(self, node):
@@ -1046,7 +1046,7 @@ class Compiler(object):
         self._slots.add(name)
         body = self.visit(node.node)
 
-        orelse = template("SLOT(__stream, econtext.copy(), rcontext)", SLOT=name)
+        orelse = template("SLOT(__stream, econtext.copy(), rcontext, __i18n_domain)", SLOT=name)
         test = ast.Compare(
             left=load(name),
             ops=[ast.Is()],
