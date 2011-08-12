@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed horizontal alignment of exception location info
+  (i.e. 'String:', 'Filename:' and 'Location:') such that they match
+  the template exception formatter.
+
 2.3.2 (2011-08-11)
 ------------------
 
