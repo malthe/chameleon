@@ -170,10 +170,20 @@ def resolve_dotted(dotted):
     return module_cache[dotted]
 
 
+def limit_string(s, max_length=53):
+    if len(s) > max_length:
+        return s[:max_length - 3] + '...'
+
+    return s
+
+
 def format_kwargs(kwargs):
     items = []
     for name, value in kwargs.items():
-        if isinstance(value, (int, float, basestring)):
+        if isinstance(value, (native, unicode)):
+            short = limit_string(value)
+            items.append((name, short.replace('\n', '\\n')))
+        elif isinstance(value, (int, float, basestring)):
             items.append((name, value))
         elif isinstance(value, dict):
             items.append((name, '{...} (%d)' % len(value)))

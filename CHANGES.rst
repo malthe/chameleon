@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+Features:
+
+- In the exception output, string variable values are now limited to a
+  limited output of characters, single line only.
+
 Bugfixes:
 
 - Fixed horizontal alignment of exception location info
