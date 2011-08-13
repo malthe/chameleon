@@ -5,6 +5,9 @@ In next release ...
 
 Features:
 
+- The ``load:`` expression now passes the initial keyword arguments to
+  its template loader (e.g. ``auto_reload`` and ``encoding``).
+
 - In the exception output, string variable values are now limited to a
   limited output of characters, single line only.
 

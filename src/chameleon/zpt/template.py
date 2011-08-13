@@ -138,17 +138,20 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
     expression_types = PageTemplate.expression_types.copy()
     expression_types['load'] = partial(ProxyExpr, '__loader')
 
-    def _builtins(self):
-        path = dirname(self.filename)
-        loader = TemplateLoader(search_path=path)
+    def __init__(self, *args, **kwargs):
+        super(PageTemplateFile, self).__init__(*args, **kwargs)
 
-        # Bind loader to same template class --- this is probably what
-        # we want
+        path = dirname(self.filename)
+        loader = TemplateLoader(search_path=path, **kwargs)
         template_class = type(self)
 
-        d = super(PageTemplateFile, self)._builtins()
-        d['__loader'] = loader.bind(template_class)
+        # Bind relative template loader instance to the same template
+        # class, providing the same keyword arguments.
+        self._loader = loader.bind(template_class)
 
+    def _builtins(self):
+        d = super(PageTemplateFile, self)._builtins()
+        d['__loader'] = self._loader
         return d
 
 
