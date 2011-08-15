@@ -29,15 +29,23 @@ class TemplateLoader(object):
     To load templates using relative filenames, pass a sequence of
     paths (or a single path) as ``search_path``.
 
+    To apply a default filename extension to inputs which do not have
+    an extension already (i.e. no dot), provide this as
+    ``default_extension`` (e.g. ``'.pt'``).
+
     Additional keyword-arguments will be passed on to the template
     constructor.
     """
 
-    def __init__(self, search_path=None, **kwargs):
+    default_extension = None
+
+    def __init__(self, search_path=None, default_extension=None, **kwargs):
         if search_path is None:
             search_path = []
         if isinstance(search_path, basestring):
             search_path = [search_path]
+        if default_extension is not None:
+            self.default_extension = ".%s" % default_extension.lstrip('.')
         self.search_path = search_path
         self.registry = {}
         self.kwargs = kwargs
@@ -46,6 +54,9 @@ class TemplateLoader(object):
     def load(self, filename, cls=None):
         if cls is None:
             raise ValueError("Unbound template loader.")
+
+        if self.default_extension is not None and '.' not in filename:
+            filename += self.default_extension
 
         if os.path.isabs(filename):
             return cls(filename, **self.kwargs)
