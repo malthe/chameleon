@@ -133,7 +133,8 @@ def emit_convert(target, encoded=bytes, str=str, long=long):  # pragma: no cover
             try:
                 target = target.__html__
             except AttributeError:
-                target = convert(target)
+                __converted = convert(target)
+                target = str(target) if target is __converted else __converted
             else:
                 target = target()
 
@@ -164,7 +165,8 @@ def emit_convert_and_escape(
                     try:
                         target = target.__html__
                     except:
-                        target = convert(target)
+                        __converted = convert(target)
+                        target = str(target) if target is __converted else __converted
                     else:
                         raise RuntimeError
             except RuntimeError:

@@ -40,7 +40,8 @@ except ImportError:   # pragma: no cover
     def fast_translate(msgid, domain=None, mapping=None, context=None,
                        target_language=None, default=None):
         if default is None:
-            return str(msgid)
+            return msgid
+
         return default
 else:   # pragma: no cover
     def fast_translate(msgid, domain=None, mapping=None, context=None,

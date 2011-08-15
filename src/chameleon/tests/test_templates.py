@@ -255,6 +255,19 @@ class ZopePageTemplatesTest(RenderTestCase):
         rendered = template(test=object())
         self.assertTrue('object' in rendered)
 
+    def test_object_substitution_coerce_to_str(self):
+        template = self.factory('${test}', translate=None)
+
+        class dummy(object):
+            def __repr__(inst):
+                self.fail("call not expected")
+
+            def __str__(inst):
+                return '<dummy>'
+
+        rendered = template(test=dummy())
+        self.assertEqual(rendered, '<dummy>')
+
     def test_repr(self):
         from chameleon.zpt.template import PageTemplateFile
         template = PageTemplateFile(

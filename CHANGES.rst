@@ -3,11 +3,18 @@ Changes
 
 In next release ...
 
-- Features:
+Features:
 
-  The template loader class now accepts an optional argument
+- The template loader class now accepts an optional argument
   ``default_extension`` which accepts a filename extension which will
   be appended to the filename if there's not already an extension.
+
+Bugfixes:
+
+- If the translation function returns the identical object, manually
+  coerce it to string. This fixes a compatibility issue with
+  translation functions which do not convert non-string objects to a
+  string value, but simply return them unchanged.
 
 2.3.3 (2011-08-15)
 ------------------
