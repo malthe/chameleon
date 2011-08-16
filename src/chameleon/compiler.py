@@ -67,7 +67,6 @@ COMPILER_INTERNALS_OR_DISALLOWED = set([
     "float",
     "long",
     "len",
-    "type",
     "None",
     "True",
     "False",
@@ -117,7 +116,7 @@ def emit_node_if_non_trivial(node):  # pragma: no cover
 
 
 @template
-def emit_convert(target, encoded=bytes, str=str, long=long):  # pragma: no cover
+def emit_convert(target, encoded=bytes, str=str, long=long, type=type):  # pragma: no cover
     if target is None:
         pass
     elif target is False:
@@ -147,7 +146,7 @@ def emit_translate(target, msgid, default=None):  # pragma: no cover
 @template
 def emit_convert_and_escape(
     target, quote=None, quote_entity=None, str=str, long=long,
-    encoded=bytes):  # pragma: no cover
+    type=type, encoded=bytes):  # pragma: no cover
     if target is None:
         pass
     elif target is False:

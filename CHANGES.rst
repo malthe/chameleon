@@ -11,6 +11,9 @@ Features:
 
 Bugfixes:
 
+- Fixed an issue where assignment to a variable ``"type"`` would
+  fail. This fixes issue #40.
+
 - Fixed an issue where an (unsuccesful) assignment for a repeat loop
   to a compiler internal name would not result in an error.
 
