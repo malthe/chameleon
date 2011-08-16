@@ -582,7 +582,7 @@ class MacroProgram(ElementProgram):
             # clause for the "default" value
             if not isinstance(value, ast.Str):
                 default = ast.Str(s=text) if text is not None \
-                          else ast.Name(id="None", ctx=ast.Load())
+                          else ast.Name(id="True", ctx=ast.Load())
                 attribute = nodes.Define(
                     [nodes.Alias(["default"], default)],
                     attribute,

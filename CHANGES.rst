@@ -5,6 +5,10 @@ In next release ...
 
 Features:
 
+- When inserting content in either attributes or text, a value of
+  ``True`` (like ``False`` and ``None``) will result in no
+  action.
+
 - Use statically assigned variables for ``"attrs"`` and
   ``"default"``. This change yields a performance improvement of
   15-20%.
@@ -14,6 +18,10 @@ Features:
   be appended to the filename if there's not already an extension.
 
 Bugfixes:
+
+- The default symbol is now ``True`` for an attribute if the attribute
+  default is not provided. Note that the result is that the attribute
+  is dropped. This fixes issue #41.
 
 - Fixed an issue where assignment to a variable ``"type"`` would
   fail. This fixes issue #40.

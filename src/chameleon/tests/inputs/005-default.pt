@@ -3,6 +3,8 @@
     <img class="default" tal:attributes="class default" />
     <img tal:attributes="class default" />
     <span tal:content="default">Default</span>
+    <span tal:content="True">Default</span>
+    <span tal:content="False">Default</span>
     <span tal:content="default">
       <em>${'Computed default'}</em>
     </span>

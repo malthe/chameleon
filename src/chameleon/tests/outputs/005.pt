@@ -3,6 +3,8 @@
     <img class="default" />
     <img />
     <span>Default</span>
+    <span></span>
+    <span></span>
     <span>
       <em>Computed default</em>
     </span>

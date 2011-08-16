@@ -120,7 +120,7 @@ def emit_node_if_non_trivial(node):  # pragma: no cover
 def emit_convert(target, encoded=bytes, str=str, long=long, type=type):  # pragma: no cover
     if target is None:
         pass
-    elif target is False:
+    elif target is False or target is True:
         target = None
     else:
         __tt = type(target)
@@ -150,7 +150,7 @@ def emit_convert_and_escape(
     type=type, encoded=bytes):  # pragma: no cover
     if target is None:
         pass
-    elif target is False:
+    elif target is False or target is True:
         target = None
     else:
         __tt = type(target)
