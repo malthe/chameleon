@@ -128,8 +128,8 @@ class BaseTemplate(object):
     # Expression engine must be provided by subclass
     engine = None
 
-    def __init__(self, body, **kwargs):
-        self.__dict__.update(kwargs)
+    def __init__(self, body, **config):
+        self.__dict__.update(config)
 
         self.content_type = self.sniff_type(body)
         self.cook(body)
@@ -284,7 +284,7 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
-    def __init__(self, filename, auto_reload=None, **kwargs):
+    def __init__(self, filename, auto_reload=None, **config):
         # Normalize filename
         filename = os.path.abspath(
             os.path.normpath(os.path.expanduser(filename))
@@ -296,11 +296,11 @@ class BaseTemplateFile(BaseTemplate):
         if auto_reload is not None:
             self.auto_reload = auto_reload
 
-        self.__dict__.update(kwargs)
+        self.__dict__.update(config)
 
         # This is only necessary if the ``debug`` flag was passed as a
         # keyword argument
-        if kwargs.get('debug') is True:
+        if config.get('debug') is True:
             self.loader = _make_module_loader()
 
         if EAGER_PARSING:

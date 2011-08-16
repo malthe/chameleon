@@ -1,16 +1,9 @@
 Library Documentation
 =====================
 
-Chameleon Page Templates (CPT) is a system which can generate HTML and
-XML.
-
-The system is formed by the *Template Attribute Language* (*TAL*), the
-*Expression Syntax* (*TALES*), *Intertionalization* (*I18N*) and the
-*Macro Expansion Template Attribute Language* (*METAL*).
-
-Note that this template system is based on (and closely resembles)
-*Zope Page Templates* (ZPT). If you know that system, you should be
-able to pick up the present system right away.
+This section documents the package as a Python library. To learn about
+the page template language, consult the :ref:`language reference
+<language-reference>`.
 
 .. _getting-started-with-cpt:
 
@@ -20,71 +13,68 @@ Getting started
 There are several template constructor classes available, one for each
 of the combinations *text* or *xml*, and *string* or *file*.
 
-Most projects will benefit from the simplicity of the template loader
-utility::
+The file-based constructor requires an absolute path. To set up a
+templates directory *once*, use the template loader class::
+
+  import os
+
+  path = os.path.basedir(__file__)
 
   from chameleon import PageTemplateLoader
-  templates = PageTemplateLoader("/some/absolute/path")
+  templates = PageTemplateLoader(os.path.join(path, "templates"))
 
-To load a template file ``"hello.pt"`` relative to the provided path,
-use the dictionary syntax::
+Then, to load a template relative to the provided path, use dictionary
+syntax::
 
   template = templates['hello.pt']
 
-The alternative is to invoke the appropriate constructor
-directly. Let's try with a string input::
+Alternatively, use the appropriate template class directly. Let's try
+with a string input::
 
   from chameleon import PageTemplate
   template = PageTemplate("<div>Hello, $name.</div>")
 
-All template instances are callable. Provide arguments as keywords::
+All template instances are callable. Provide variables by keyword
+argument::
 
   >>> template(name='John')
   '<div>Hello, John.</div>'
 
 .. _fast:
 
-Architecture
-------------
+Performance
+-----------
 
-The Chameleon template engine works as a compiler, turning page template markup
-into a Python script. This technique significantly reduces processing
-overhead and yields an improvement in render performance by a factor
-of 5 to 10.
+The template engine compiles (or *translates*) template source code
+into Python byte-code. In simple templates this yields an increase in
+performance of about 7 times in comparison to the reference
+implementation.
 
-In real world applications such as `Plone <http://www.plone.org>`_,
-this translates to an overall performance increase of 30-60%.
+In benchmarks for the content management system `Plone
+<http://www.plone.org>`_, switching to Chameleon yields a request to
+response improvement of 20-50%.
 
-Compatibility
--------------
+Extension
+---------
 
-Chameleon runs on all Python platforms from 2.5 and up (including
-Python 3.1+ and `pypy <http://pypy.org>`_).
+You can extend the language through the expression engine by writing
+your own expression compiler.
 
+Let's try and write an expression compiler for an expression type that
+will simply uppercase the supplied value. We'll call it ``upper``.
 
-Writing an expression compiler
-------------------------------
-
-To extend the language with a new expression prefix, you need to write
-an expression compiler.
-
-Let's try and write a compiler for an expression type that will simply
-uppercase the supplied value.
+You can write such a compiler as a closure:
 
 .. code-block:: python
 
    import ast
 
-   class UppercaseExpr(object):
-       def __init__(self, string):
-           self.string = string
-
-       def __call__(self, target, engine):
+   def uppercase_expression(string):
+       def compiler(target, engine):
            uppercased = self.string.uppercase()
            value = ast.Str(uppercased)
            return [ast.Assign(targets=[target], value=value)]
-
-That's it for the compiler.
+       return compiler
 
 To make it available under a certain prefix, we'll add it to the
 expression types dictionary.
@@ -92,134 +82,31 @@ expression types dictionary.
 .. code-block:: python
 
    from chameleon import PageTemplate
+   PageTemplate.expression_types['upper'] = uppercase_expression
 
-   PageTemplate.expression_type['upper'] = UppercaseExpr
+Alternatively, you could subclass the template class and set the
+attribute ``expression_types`` to a dictionary that includes your
+expression:
 
-To avoid changing the existing template class, instead we could have
-subclassed, copied the existing ``expression_type`` dictionary and
-added our expression compiler there.
+.. code-block:: python
 
-Adding custom expressions can be a powerful way to make the templates
-in your project more expressive.
+   from chameleon import PageTemplateFile
+   from chameleon.tales import PythonExpr
 
+   class MyPageTemplateFile(PageTemplateFile):
+       expression_types = {
+           'python': PythonExpr,
+           'upper': uppercase_expression
+           }
 
-Incompatibilities and differences
----------------------------------
+You can now uppercase strings *natively* in your templates::
 
-There are a number of incompatibilities and differences between CPT
-and ZPT. We list them here for a brief overview:
+  <div tal:content="upper: hello, world" />
 
-    *Default expression*
+It's probably best to stick with a Python expression::
 
-       The default expression is Python (or ``"python:"``). The *path*
-       expression syntax is not supported in the base package.
+  <div tal:content="'hello, world'.upper()" />
 
-    *Template arguments*
-
-      Arguments passed by keyword to the render- or call method are
-      inserted directly into the template execution namespace. This is
-      different from ZPT where these are only available through the
-      ``options`` dictionary.
-
-      Zope::
-
-        <div tal:content="options/title" />
-
-      Chameleon::
-
-        <div tal:content="title" />
-
-    *Special symbols*
-
-      The ``CONTEXTS`` symbol is not available.
-
-The `z3c.pt <http://pypi.python.org/pypi/z3c.pt>`_ package works as a
-compatibility layer. The template classes in this package provide a
-implementation which is fully compatible with ZPT.
-
-
-.. _new-features:
-
-Language extensions
--------------------
-
-The Chameleon page templates language comes with a number of features
-and extensions. Some take inspiration from `Genshi
-<http://genshi.edgewall.org/>`_.
-
-    *Imports*
-
-       The package introduces the ``import:`` expression which imports
-       global names::
-
-         <div tal:define="compile import: re.compile">
-           ...
-
-    *Tuple unpacking*
-
-       The ``tal:define`` and ``tal:repeat`` clauses supports tuple
-       unpacking::
-
-          tal:define="(a, b, c) [1, 2, 3]"
-
-       Extended `iterable unpacking
-       <http://www.python.org/dev/peps/pep-3132/>`_ using the asterisk
-       character is not currently supported (even for versions of
-       Python that support it natively).
-
-    *Dictionary lookup as fallback after attribute error*
-
-       If attribute lookup (using the ``obj.<name>`` syntax) raises an
-       ``AttributeError`` exception, a secondary lookup is attempted
-       using dictionary lookup --- ``obj['<name>']``.
-
-       Behind the scenes, this is done by rewriting all
-       attribute-lookups to a custom lookup call:
-
-       .. code-block:: python
-
-            def lookup_attr(obj, key):
-                try:
-                    return getattr(obj, key)
-                except AttributeError as exc:
-                    try:
-                        get = obj.__getitem__
-                    except AttributeError:
-                        raise exc
-                    try:
-                        return get(key)
-                    except KeyError:
-                        raise exc
-
-    *Inline string substitution*
-
-       In element attributes and in the text or tail of an element,
-       string expression interpolation is available using the
-       ``${...}`` syntax::
-
-          <span class="content-${item_type}">
-             ${title or item_id}
-          </span>
-
-    *Literal content*
-
-       While the ``tal:content`` and ``tal:repeat`` attributes both
-       support the ``structure`` keyword which inserts the content as
-       a literal (without XML-escape), an object may also provide an
-       ``__html__`` method to the same effect.
-
-       The result of the method will be inserted as *structure*.
-
-       This is particularly useful for content which is substituted
-       using the expression operator: ``"${...}"`` since the
-       ``structure`` keyword is not allowed here.
-
-    *Switches*
-
-       Two new attributes have been added: ``tal:switch`` and
-       ``tal:case``. A case attribute works like a condition and only
-       allows content if the value matches that of the nearest parent
-       switch value.
 
 .. _whats-new:
 
@@ -254,10 +141,12 @@ New language features
 
 This series also introduces a number of new language features:
 
-1) Support for the ``tal:on-error`` from the reference specification
-has been added.
+1. Support for the ``tal:on-error`` from the reference specification
+   has been added.
 
-2) Two new attributes ``tal:switch`` and ``tal:case`` have been added to make element conditions more flexible.
+2. Two new attributes ``tal:switch`` and ``tal:case`` have been added
+   to make element conditions more flexible.
+
 
 Code improvements
 ~~~~~~~~~~~~~~~~~
@@ -287,28 +176,59 @@ series.
 API reference
 -------------
 
-This section contains an autogenerated API reference.
+This section describes the documented API of the library.
 
-The ``PageTemplate*`` constructors create template instances from
-source files.
+Template classes
+~~~~~~~~~~~~~~~~
+
+Use the ``PageTemplate*`` template classes to define a template from a
+string or file input:
 
 .. automodule:: chameleon
 
   .. autoclass:: chameleon.PageTemplate
 
-  .. autoclass:: chameleon.PageTemplateFile
+     Note: The remaining classes take the same general configuration
+     arguments.
+
+     .. automethod:: render
+
+  .. autoclass:: chameleon.PageTemplateFile(filename, **config)
 
   .. autoclass:: chameleon.PageTextTemplate
 
   .. autoclass:: chameleon.PageTextTemplateFile
 
+Template loader
+~~~~~~~~~~~~~~~
+
 Some systems have framework support for loading templates from
 files. The following loader class is directly compatible with the
 Pylons framework and may be adapted to other frameworks:
 
-.. class:: chameleon.PageTemplateLoader(search_path=None, **kwargs)
+.. class:: chameleon.PageTemplateLoader(search_path=None, default_extension=None, **config)
+
+   Load templates from ``search_path`` (must be a string or a list of
+   strings)::
+
+     templates = PageTemplateLoader(path)
+     example = templates['example.pt']
+
+   If ``default_extension`` is provided, this will be added to inputs
+   that do not already have an extension::
+
+     templates = PageTemplateLoader(path, ".pt")
+     example = templates['example']
+
+   Any additional keyword arguments will be passed to the template
+   constructor::
+
+     templates = PageTemplateLoader(path, debug=True, encoding="utf-8")
 
    .. automethod:: load
+
+Expression engine
+~~~~~~~~~~~~~~~~~
 
 For advanced integration, the compiler module provides support for
 dynamic expression evaluation:

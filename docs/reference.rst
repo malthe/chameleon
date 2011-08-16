@@ -97,7 +97,7 @@ These are the available statements:
   parent switch.
 
 .. note:: *TALES* is used as the expression language for the "stuff in
-   the quotes" typically. The default syntax is simply Python, but
+   the quotes". The default syntax is simply Python, but
    other inputs are possible --- see the section on :ref:`expressions
    <tales>`.
 
@@ -685,9 +685,16 @@ These are the available TALES expression types:
 
 .. note:: The default expression type is ``python``.
 
-There's a mechanism to allow fallback to alternative expressions, if one should fail (raise an exception). The pipe character ('|') is used to separate two expressions.
+.. warning:: The Zope reference engine defaults to a ``path`` expression type, which is closely tied to the Zope framework. This expression is not implemented in Chameleon (but it's available in a Zope framework compatibility package).
 
-.. warning:: The ZPT engine defaults to a ``path`` expression type, which is closely tied to the Zope framework. This expression is not implemented in Chameleon.
+There's a mechanism to allow fallback to alternative expressions, if
+one should fail (raise an exception). The pipe character ('|') is used
+to separate two expressions::
+
+  <div tal:define="page request.GET['page'] | 0">
+
+This mechanism applies only to the ``python`` expression type, and by
+derivation ``string``.
 
 .. _tales_built_in_names:
 
@@ -750,6 +757,16 @@ Including a dollar sign::
     <p tal:content="string:$$$cost">
       cost: $42.00
     </p>
+
+.. _import-expression:
+
+``import``
+^^^^^^^^^^
+
+Imports a module global.
+
+
+.. _load-expression:
 
 ``load``
 ^^^^^^^^
@@ -829,6 +846,7 @@ METAL defines a number of statements:
 
 * ``metal:define-macro`` Define a macro.
 * ``metal:use-macro`` Use a macro.
+* ``metal:extend-macro`` Extend a macro.
 * ``metal:define-slot`` Define a macro customization point.
 * ``metal:fill-slot`` Customize a macro.
 
@@ -1017,7 +1035,9 @@ not a string or a number and which does not provide an ``__html__``
 method.
 
 When any such object is inserted into the template, the translate
-function is invoked first to see if it needs translation.
+function is invoked first to see if it needs translation. The result
+is always coerced to a native string before it's inserted into the
+template.
 
 Translation function
 --------------------
@@ -1034,11 +1054,13 @@ The function has the following signature:
    def translate(msgid, domain=None, mapping=None, context=None, target_language=None, default=None):
        ...
 
-It must return a unicode (or *standard* on Python 3) string.
+The result should be a string or ``None``. If another type of object
+is returned, it's automatically coerced into a string.
 
-If `zope.i18n <http://pypi.python.org/pypi/zope.i18n>`_ is available, the translation machinery defaults to
-using its translation function. Note that this function requires
-messages to conform to the message class from `zope.i18nmessageid
+If `zope.i18n <http://pypi.python.org/pypi/zope.i18n>`_ is available,
+the translation machinery defaults to using its translation
+function. Note that this function requires messages to conform to the
+message class from `zope.i18nmessageid
 <http://pypi.python.org/pypi/zope.i18nmessageid>`_; specifically,
 messages must have attributes ``domain``, ``mapping`` and
 ``default``. Example use:
@@ -1457,8 +1479,129 @@ Verbatim
   That is, evaluation of ``${...}`` expressions is disabled if the
   comment opens with the "?" character.
 
+
+.. _new-features:
+
+Language extensions
+###################
+
+The page template language as implemented in the Chameleon library
+comes with a number of new features. Some take inspiration from
+`Genshi <http://genshi.edgewall.org/>`_.
+
+    *New expression types*
+
+       The :ref:`load <import-expression>` expression imports module globals::
+
+         <div tal:define="compile import: re.compile">
+           ...
+         </div>
+
+       This :ref:`load <load-expression>` expression
+
+    *Tuple unpacking*
+
+       The ``tal:define`` and ``tal:repeat`` statements supports tuple
+       unpacking::
+
+          tal:define="(a, b, c) [1, 2, 3]"
+
+       Extended `iterable unpacking
+       <http://www.python.org/dev/peps/pep-3132/>`_ using the asterisk
+       character is not currently supported (even for versions of
+       Python that support it natively).
+
+    *Dictionary lookup as fallback after attribute error*
+
+       If attribute lookup (using the ``obj.<name>`` syntax) raises an
+       ``AttributeError`` exception, a secondary lookup is attempted
+       using dictionary lookup --- ``obj['<name>']``.
+
+       Behind the scenes, this is done by rewriting all
+       attribute-lookups to a custom lookup call:
+
+       .. code-block:: python
+
+            def lookup_attr(obj, key):
+                try:
+                    return getattr(obj, key)
+                except AttributeError as exc:
+                    try:
+                        get = obj.__getitem__
+                    except AttributeError:
+                        raise exc
+                    try:
+                        return get(key)
+                    except KeyError:
+                        raise exc
+
+    *Inline string substitution*
+
+       In element attributes and in the text or tail of an element,
+       string expression interpolation is available using the
+       ``${...}`` syntax::
+
+          <span class="content-${item_type}">
+             ${title or item_id}
+          </span>
+
+    *Literal content*
+
+       While the ``tal:content`` and ``tal:repeat`` attributes both
+       support the ``structure`` keyword which inserts the content as
+       a literal (without XML-escape), an object may also provide an
+       ``__html__`` method to the same effect.
+
+       The result of the method will be inserted as *structure*.
+
+       This is particularly useful for content which is substituted
+       using the expression operator: ``"${...}"`` since the
+       ``structure`` keyword is not allowed here.
+
+    *Switches*
+
+       Two new attributes have been added: ``tal:switch`` and
+       ``tal:case``. A case attribute works like a condition and only
+       allows content if the value matches that of the nearest parent
+       switch value.
+
+
+Incompatibilities and differences
+#################################
+
+There are a number of incompatibilities and differences between the
+Chameleon language implementation and the Zope reference
+implementation (ZPT):
+
+    *Default expression*
+
+       The default expression type is Python.
+
+    *Template arguments*
+
+      Arguments passed by keyword to the render- or call method are
+      inserted directly into the template execution namespace. This is
+      different from ZPT where these are only available through the
+      ``options`` dictionary.
+
+      Zope::
+
+        <div tal:content="options/title" />
+
+      Chameleon::
+
+        <div tal:content="title" />
+
+    *Special symbols*
+
+      The ``CONTEXTS`` symbol is not available.
+
+The `z3c.pt <http://pypi.python.org/pypi/z3c.pt>`_ package works as a
+compatibility layer. The template classes in this package provide a
+implementation which is fully compatible with ZPT.
+
 Notes
-=====
+#####
 
 .. [1] This has been changed in 2.x. Previously, it was up to the
        expression engine to parse the expression values including any

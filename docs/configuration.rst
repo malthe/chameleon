@@ -39,3 +39,5 @@ debugging of the library itself.
    Enables a set of debugging settings which make it easier to
    discover and research issues with the engine itself.
 
+   This implicitly enables auto-reload for any template.
+

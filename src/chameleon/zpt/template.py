@@ -31,25 +31,41 @@ except NameError:
 
 
 class PageTemplate(BaseTemplate):
-    """Template class for the Chameleon Page Templates language.
+    """Constructor for the page template language.
 
-    This constructor takes a string input. To read a template source
-    from a file on disk, use the file-based constructor.
+    Takes a string input as the only positional argument::
 
-    To provide a target language for translation, pass
-    ``target_language`` as a keyword argument to the render method.
+      template = PageTemplate("<div>Hello, ${name}.</div>")
 
-    The default translation function is given as a class attribute
-    ``translate``. This may be overriden either on construction, or at
-    render-time (in both cases, pass keyword argument ``translate``
-    with a valid translation function).
+    Configuration (keyword arguments):
 
-    Content for substitution may be given as encoded input. To enable
-    this feature, the ``encoding`` keyword argument can be passed to
-    the constructor or render method. The default encoding is the
-    system default --- usually ``ascii``.
+      ``default_expression``
 
-    Output is always type ``unicode`` (or simply ``str`` on Python 3).
+        Set the default expression type. The default setting is
+        ``python``.
+
+      ``encoding``
+
+        The default text substitution value is a unicode string on
+        Python 2 or simply string on Python 3.
+
+        Pass an encoding to allow encoded byte string input
+        (e.g. UTF-8).
+
+      ``translate``
+
+        Use this option to set a translation function.
+
+        Example::
+
+          def translate(msgid, domain=None, mapping=None, default=None):
+              ...
+              return translation
+
+        Note that if ``target_language`` is provided at render time,
+        the translation function must support this argument.
+
+    Output is unicode on Python 2 and string on Python 3.
     """
 
     expression_types = {
@@ -68,11 +84,9 @@ class PageTemplate(BaseTemplate):
 
     mode = "xml"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, body, **config):
         self.macros = Macros(self)
-
-        super(PageTemplate, self).__init__(*args, **kwargs)
-        self.__dict__.update(kwargs)
+        super(PageTemplate, self).__init__(body, **config)
 
     @property
     def builtins(self):
@@ -90,7 +104,26 @@ class PageTemplate(BaseTemplate):
         escape = True if self.mode == "xml" else False
         return MacroProgram(body, self.mode, self.filename, escape=escape)
 
-    def render(self, encoding=None, translate=None, target_language=None, **k):
+    def render(self, encoding=None, translate=None, target_language=None, **vars):
+        """Render template to string.
+
+        The ``encoding`` and ``translate`` arguments are documented in
+        the template class constructor. If passed to this method, they
+        are used instead of the class defaults.
+
+        Additional arguments:
+
+          ``target_language``
+
+            This argument will be partially applied to the translation
+            function.
+
+            An alternative is thus to simply provide a custom
+            translation function which includes this information or
+            relies on a different mechanism.
+
+        """
+
         translate = translate if translate is not None else self.translate or \
                     type(self).translate
 
@@ -112,15 +145,15 @@ class PageTemplate(BaseTemplate):
         else:
             decode = str
 
-        setdefault = k.setdefault
+        setdefault = vars.setdefault
         setdefault("translate", translate)
         setdefault("convert", translate)
         setdefault("decode", decode)
 
         # Make sure we have a repeat dictionary
-        if 'repeat' not in k: k['repeat'] = RepeatDict({})
+        if 'repeat' not in vars: vars['repeat'] = RepeatDict({})
 
-        return super(PageTemplate, self).render(**k)
+        return super(PageTemplate, self).render(**vars)
 
     def include(self, *args, **kwargs):
         self.cook_check()
@@ -135,14 +168,25 @@ class PageTemplate(BaseTemplate):
 
 
 class PageTemplateFile(PageTemplate, BaseTemplateFile):
+    """File-based constructor.
+
+    Takes a string input as the only positional argument::
+
+      template = PageTemplateFile(absolute_path)
+
+    Note that the file-based template class comes with the expression
+    type ``load`` which loads templates relative to the provided
+    filename.
+    """
+
     expression_types = PageTemplate.expression_types.copy()
     expression_types['load'] = partial(ProxyExpr, '__loader')
 
-    def __init__(self, *args, **kwargs):
-        super(PageTemplateFile, self).__init__(*args, **kwargs)
+    def __init__(self, filename, **config):
+        super(PageTemplateFile, self).__init__(filename, **config)
 
         path = dirname(self.filename)
-        loader = TemplateLoader(search_path=path, **kwargs)
+        loader = TemplateLoader(search_path=path, **config)
         template_class = type(self)
 
         # Bind relative template loader instance to the same template
@@ -156,14 +200,26 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
 
 class PageTextTemplate(PageTemplate):
+    """Text-based template class.
+
+    Takes a non-XML input::
+
+      template = PageTextTemplate("Hello, ${name}.")
+
+    This is similar to the standard library class ``string.Template``,
+    but uses the expression engine to substitute variables.
+    """
+
     mode = "text"
 
 
 class PageTextTemplateFile(PageTemplateFile):
+    """File-based constructor."""
+
     mode = "text"
 
-    def render(self, *args, **kwargs):
-        result = super(PageTextTemplateFile, self).render(*args, **kwargs)
+    def render(self, **vars):
+        result = super(PageTextTemplateFile, self).render(**vars)
         return result.encode(self.encoding or 'utf-8')
 
 

@@ -1,5 +1,5 @@
-Chameleon Page Templates
-========================
+Chameleon
+=========
 
 Chameleon is an HTML/XML template engine for `Python
 <http://www.python.org>`_.
@@ -8,14 +8,15 @@ It's designed to generate the document output of a web application,
 typically HTML markup or XML.
 
 The language used is *page templates*, originally a `Zope
-<http://www.zope.org>`_ invention [1]_, but now available in a
-:ref:`fast <fast>`, :ref:`independent <no-dependencies>`
-implementation --- it comes with a moderate set of :ref:`new features
+<http://www.zope.org>`_ invention [1]_, but available here as a
+:ref:`standalone library <no-dependencies>` that you can use in any
+script or application running Python 2.5 and up (including 3.x and
+`pypy <http://pypy.org>`_). It comes with a set of :ref:`new features
 <new-features>`, too.
 
-You can use it in any Python web application with just about any
-version of Python (2.5 and up, including 3.x and `pypy
-<http://pypy.org>`_).
+The template engine compiles templates into Python byte-code and is optimized
+for speed. For a complex template language, the performance is
+:ref:`very good <fast>`.
 
   *Found a bug?* Please report issues to the `issue tracker <http://github.com/malthe/chameleon/issues>`_.
 
@@ -34,7 +35,7 @@ using setuptools or the newer `distribute
 .. _no-dependencies:
 
 There are no required library dependencies on Python 2.7 and up
-[2]_. On 2.5 and 2.6 the `ordereddict
+[2]_. On 2.5 and 2.6, the `ordereddict
 <http://pypi.python.org/pypi/ordereddict>`_ and `unittest2
 <http://pypi.python.org/pypi/unittest2>`_ packages are set as
 dependencies.
@@ -55,7 +56,7 @@ repetition, text replacement and translation.
 
 .. note:: If you've used page templates in a Zope environment previously, note that Chameleon uses Python as the default expression language (instead of *path* expressions).
 
-The basic language (knows as the *template attribute language* or TAL)
+The basic language (known as the *template attribute language* or TAL)
 is simple enough to grasp from an example:
 
 .. code-block:: genshi
@@ -75,47 +76,91 @@ is simple enough to grasp from an example:
 
 The ``${...}`` notation is short-hand for text insertion [3]_. The
 Python-expression inside the braces is evaluated and the result
-included in the output (all inserted text is escaped by default):
+included in the output (all inserted text is escaped by default; the
+exception to this rule is when an object implements an ``__html__()``
+method [4]_).
 
-.. code-block:: html
+The macro language (known as the *macro expansion language* or METAL)
+provides a means of filling in portions of a generic template:
 
-  <div id="section-${index + 1}">
-    ${content}
-  </div>
+.. code-block:: genshi
 
-Note that to insert the value of a symbol, the curly braces can be
-omitted entirely: ``Hello, $name!``.
+  <html xmlns="http://www.w3.org/1999/xhtml">             <metal:main use-macro="load: ../main.pt">
+    <head>                                                   <p metal:fill-slot="content" tal:replace="structure document.body" />
+      <title>Example &mdash; ${document.title}</title>    </metal:main>
+    </head>
+    <body>
+      <h1>${document.title}</h1>
 
-What's New in 2.x
-------------------
+      <div id="content">
+        <metal:content define-slot="content" />
+      </div>
+    </body>
+  </html>
 
-This version is a complete rewrite of the library. The biggest
-implications are the added compatibility for newer versions of Python
-(although support for 2.4 has been dropped), but also that there is
-currently no language implementation for Genshi.
+The template on the left is the macro and the template on the right
+uses the macro and fills in the "content" slot.
 
-For most users of the page templates implementation, it should be an
-easy upgrade. See the complete list of :ref:`changes <whats-new>` for
-more information.
+In the example, the built-in :ref:`load <load-expression>` expression
+is used to retrieve a template from the file system using a path
+relative to the calling template.
+
+It's possible to define several (named) macros in a single template
+and also to extend an existing macro and define additional slots. Note
+that variables defined in the template will be available to the macro
+(such as in the example with ``document``); in addition, a macro may
+define *global* variables which will be available to the calling
+template.
+
+The third language subset is the translation system (known as the
+*internationalization language* or I18N):
+
+.. code-block:: genshi
+
+  <html i18n:domain="example">
+
+    ...
+
+    <div i18n:translate="">
+       You have <span i18n:name="amount">${round(amount, 2)}</span> dollars in your account.
+    </div>
+
+    ...
+
+  </html>
+
+Each translation message is marked up using ``i18n:translate`` and
+values can be mapped using ``i18n:name``. Attributes are marked for
+translation using ``i18n:attributes``. The template engine generates
+`gettext <http://www.gnu.org/s/gettext/>`_ translation strings from
+the markup::
+
+  "You have ${amount} dollars in your account."
+
+If you use a web framework such as `Pyramid
+<https://docs.pylonsproject.org/docs/pyramid.html>`_, the translation
+system is set up automatically and will negotiate on a *target
+language* based on the HTTP request or other parameter. If not, then
+you need to configure this manually.
+
+Next steps
+----------
+
+This was just an introduction. There are a number of other basic
+statements that you need to know in order to use the language. This is
+all covered in the :ref:`language reference <language-reference>`.
+
+If you're already familiar with the page template language, you can
+skip ahead to the :ref:`getting started <getting-started-with-cpt>`
+section to learn how to use the template engine in your code.
+
+To learn about integration with your favorite web framework see the
+section on :ref:`framework integration <framework-integration>`.
 
 License
 -------
 
 This software is made available under a BSD-like license.
-
-Next steps
-----------
-
-The :ref:`language reference <language-reference>` is a not only a
-handy reference, but also doubles as a general introduction to the
-language with plenty of examples.
-
-If you're already familiar with page templates, you can skip ahead
-to the :ref:`getting started <getting-started-with-cpt>` section to
-learn how to use them in your code.
-
-To learn about integration with your favorite web framework see the
-section on :ref:`framework integration <framework-integration>`.
 
 
 Contents
@@ -148,7 +193,7 @@ Notes
        require a Zope software environment.
 
 .. [2] The translation system in Chameleon is pluggable and based on
-       `gettext <http://www.gnu.org/software/gettext/gettext.html>`_.
+       `gettext <http://www.gnu.org/s/gettext/>`_.
        There is built-in support for the `zope.i18n
        <http://pypi.python.org/pypi/zope.i18n>`_ package. If this
        package is installed, it will be used by default. The
@@ -158,3 +203,7 @@ Notes
        Zope application interface.
 
 .. [3] This syntax was taken from `Genshi <http://genshi.edgewall.org/>`_.
+
+.. [4] See the `WebHelpers
+       <https://docs.pylonsproject.org/projects/webhelpers/dev/modules/html/__init__.html>`_
+       library which provide a simple wrapper around this method.
