@@ -271,3 +271,11 @@ class Scope(dict):
         inst = Scope(self)
         inst.set_global = self.set_global
         return inst
+
+
+class ListDictProxy(object):
+    def __init__(self, l):
+        self._l = l
+
+    def get(self, key):
+        return self._l[-1].get(key)

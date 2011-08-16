@@ -273,7 +273,7 @@ class MacroProgram(ElementProgram):
 
                 # Assign static attributes dictionary to "attrs" value
                 inner = nodes.Define(
-                    [nodes.Assignment(["attrs"], STATIC_ATTRIBUTES, True)],
+                    [nodes.Alias(["attrs"], STATIC_ATTRIBUTES)],
                     inner,
                     )
 
@@ -543,7 +543,7 @@ class MacroProgram(ElementProgram):
 
         # Define local marker "default"
         content = nodes.Define(
-            [nodes.Assignment(["default"], nodes.Marker("default"), True)],
+            [nodes.Alias(["default"], nodes.Marker("default"))],
             content
             )
 
@@ -584,7 +584,7 @@ class MacroProgram(ElementProgram):
                 default = ast.Str(s=text) if text is not None \
                           else ast.Name(id="None", ctx=ast.Load())
                 attribute = nodes.Define(
-                    [nodes.Assignment(["default"], default, True)],
+                    [nodes.Alias(["default"], default)],
                     attribute,
                     )
 

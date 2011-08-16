@@ -53,6 +53,7 @@ from .exc import TranslationError
 from .utils import DebuggingOutputStream
 from .utils import Placeholder
 from .utils import char2entity
+from .utils import ListDictProxy
 
 log = logging.getLogger('chameleon.compiler')
 
@@ -385,7 +386,7 @@ class ExpressionEvaluator(object):
 
 class NameTransform(object):
     """
-    >>> nt = NameTransform(set(('foo', 'bar', )))
+    >>> nt = NameTransform(set(('foo', 'bar', )), {'boo': 'boz'})
     >>> def test(node):
     ...     rewritten = nt(node)
     ...     module = ast.Module([ast.fix_missing_locations(rewritten)])
@@ -413,10 +414,16 @@ class NameTransform(object):
     >>> test(load('econtext'))
     'econtext'
 
+    Aliased names:
+
+    >>> test(load('boo'))
+    'boz'
+
     """
 
-    def __init__(self, builtins):
+    def __init__(self, builtins, aliases):
         self.builtins = builtins
+        self.aliases = aliases
 
     def __call__(self, node):
         name = node.id
@@ -430,6 +437,10 @@ class NameTransform(object):
 
         if isinstance(node.ctx, ast.Store):
             return store_econtext(name)
+
+        aliased = self.aliases.get(name)
+        if aliased is not None:
+            return load(aliased)
 
         # If the name is a Python global, first try acquiring it from
         # the dynamic context, then fall back to the global.
@@ -456,15 +467,11 @@ class ExpressionTransform(object):
     Used internally be the compiler.
     """
 
-    global_builtins = set(builtins.__dict__)
-
-    def __init__(self, engine_factory, cache, markers, extra_builtins):
+    def __init__(self, engine_factory, cache, markers, transform):
         self.engine_factory = engine_factory
         self.cache = cache
         self.markers = markers
-
-        builtins = self.global_builtins | extra_builtins
-        self._dynamic_transform = NameTransform(builtins)
+        self.transform = transform
 
     def __call__(self, expression, target):
         if isinstance(target, basestring):
@@ -473,7 +480,7 @@ class ExpressionTransform(object):
         stmts = self.translate(expression, target)
 
         # Apply dynamic name rewrite transform to each statement
-        visitor = NameLookupRewriteVisitor(self._dynamic_transform)
+        visitor = NameLookupRewriteVisitor(self.transform)
 
         for stmt in stmts:
             visitor(stmt)
@@ -599,18 +606,26 @@ class Compiler(object):
 
     lock = threading.Lock()
 
+    global_builtins = set(builtins.__dict__)
+
     def __init__(self, engine_factory, node, builtins={}):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
         self._markers = set()
         self._builtins = builtins
+        self._aliases = [{}]
+
+        transform = NameTransform(
+            self.global_builtins | set(builtins),
+            ListDictProxy(self._aliases),
+            )
 
         self._engine = ExpressionTransform(
             engine_factory,
             self._expression_cache,
             self._markers,
-            set(builtins)
+            transform,
             )
 
         if isinstance(node_annotations, dict):
@@ -646,6 +661,8 @@ class Compiler(object):
                 yield stmt
 
     def visit_Element(self, node):
+        self._aliases.append(self._aliases[-1].copy())
+
         for stmt in self.visit(node.start):
             yield stmt
 
@@ -655,6 +672,8 @@ class Compiler(object):
         if node.end is not None:
             for stmt in self.visit(node.end):
                 yield stmt
+
+        self._aliases.pop()
 
     def visit_Module(self, node):
         body = []
@@ -819,6 +838,12 @@ class Compiler(object):
         name = identifier("content")
         return self._engine(node, name) + \
                emit_node_if_non_trivial(name)
+
+    def visit_Alias(self, node):
+        assert len(node.names) == 1
+        name = node.names[0]
+        target = self._aliases[-1][name] = identifier(name)
+        return self._engine(node.expression, target)
 
     def visit_Assignment(self, node):
         for name in node.names:

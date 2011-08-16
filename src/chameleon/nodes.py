@@ -112,6 +112,15 @@ class Assignment(Node):
     _fields = "names", "expression", "local"
 
 
+class Alias(Assignment):
+    """Alias assignment.
+
+    Note that ``expression`` should be a cached or global value.
+    """
+
+    local = False
+
+
 class Define(Node):
     """Variable definition in scope."""
 

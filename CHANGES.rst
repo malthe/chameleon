@@ -5,6 +5,10 @@ In next release ...
 
 Features:
 
+- Use statically assigned variables for ``"attrs"`` and
+  ``"default"``. This change yields a performance improvement of
+  15-20%.
+
 - The template loader class now accepts an optional argument
   ``default_extension`` which accepts a filename extension which will
   be appended to the filename if there's not already an extension.
