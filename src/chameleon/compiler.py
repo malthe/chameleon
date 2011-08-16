@@ -825,12 +825,12 @@ class Compiler(object):
         for name in node.names:
             if name in COMPILER_INTERNALS_OR_DISALLOWED:
                 raise TranslationError(
-                    "Name disallowed by compiler: %s.", name
+                    "Name disallowed by compiler.", name
                     )
 
             if name.startswith('__'):
                 raise TranslationError(
-                    "Name disallowed by compiler: %s (double underscore).",
+                    "Name disallowed by compiler (double underscore).",
                     name
                     )
 
@@ -1154,6 +1154,12 @@ class Compiler(object):
             contexts = "econtext",
         else:
             contexts = "econtext", "rcontext"
+
+        for name in node.names:
+            if name in COMPILER_INTERNALS_OR_DISALLOWED:
+                raise TranslationError(
+                    "Name disallowed by compiler.", name
+                    )
 
         if len(node.names) > 1:
             targets = [

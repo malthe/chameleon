@@ -11,6 +11,9 @@ Features:
 
 Bugfixes:
 
+- Fixed an issue where an (unsuccesful) assignment for a repeat loop
+  to a compiler internal name would not result in an error.
+
 - If the translation function returns the identical object, manually
   coerce it to string. This fixes a compatibility issue with
   translation functions which do not convert non-string objects to a
