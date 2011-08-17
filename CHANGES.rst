@@ -1,6 +1,12 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Added support for the set operator (``{item, item, ...}``).
+
 2.3.4 (2011-08-16)
 ------------------
 

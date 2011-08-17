@@ -645,6 +645,16 @@ class ASTCodeGenerator(object):
             self._write(', ')
         self._write('}')
 
+    def visit_Set(self, node):
+        self._write('{')
+        elts = list(node.elts)
+        last = elts.pop()
+        for elt in elts:
+            self.visit(elt)
+            self._write(', ')
+        self.visit(last)
+        self._write('}')
+
     # ListComp(expr elt, comprehension* generators)
     def visit_ListComp(self, node):
         self._write('[')
