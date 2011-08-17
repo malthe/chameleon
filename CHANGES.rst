@@ -7,6 +7,11 @@ Features:
 
 - Added support for the set operator (``{item, item, ...}``).
 
+Bugfixes:
+
+- Attribute fallback to dictionary lookup now works on multiple items
+  (e.g. ``d1.d2.d2``). This fixes issue #42.
+
 2.3.4 (2011-08-16)
 ------------------
 

@@ -867,7 +867,4 @@ class ItemLookupOnAttributeErrorVisitor(AnnotationAwareVisitor):
 
     def visit_Attribute(self, node):
         self.generic_visit(node)
-
-        # Only apply transform for name values
-        if isinstance(node.value, ast.Name) and isinstance(node.ctx, ast.Load):
-            self.apply_transform(node)
+        self.apply_transform(node)
