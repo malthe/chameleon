@@ -408,7 +408,7 @@ class MacroProgram(ElementProgram):
         except KeyError:
             pass
         else:
-            index =-(1 + int(bool(use_macro or extend_macro)))
+            index = -(1 + int(bool(use_macro or extend_macro)))
 
             try:
                 slots = self._use_macro[index]
