@@ -1086,7 +1086,7 @@ class Compiler(object):
     def visit_Name(self, node):
         """Translation name."""
 
-        if self._translations is None:
+        if not self._translations:
             raise TranslationError(
                 "Not allowed outside of translation.", node.name)
 
