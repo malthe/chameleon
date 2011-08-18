@@ -558,17 +558,22 @@ class MacroProgram(ElementProgram):
         for name, text, quote, space, eq, expr in prepared:
             char_escape = ('&', '<', '>', quote)
 
+            if name in tal.BOOLEAN_HTML_ATTRS:
+                default = ast.Str(s=name)
+            else:
+                default = None
+
             # If (by heuristic) ``text`` contains one or
             # more interpolation expressions, make the attribute
             # dynamic
             if expr is None and text is not None and '${' in text:
-                expr = nodes.Substitution(text, char_escape)
+                expr = nodes.Substitution(text, char_escape, default)
                 value = nodes.Interpolation(expr, True)
 
             # If this expression is non-trivial, the attribute is
             # dynamic (computed)
             elif expr is not None:
-                value = nodes.Substitution(expr, char_escape)
+                value = nodes.Substitution(expr, char_escape, default)
 
             # Otherwise, it's a static attribute.
             else:
@@ -586,7 +591,7 @@ class MacroProgram(ElementProgram):
             # clause for the "default" value
             if not isinstance(value, ast.Str):
                 default = ast.Str(s=text) if text is not None \
-                          else ast.Name(id="True", ctx=ast.Load())
+                          else nodes.Default()
                 attribute = nodes.Define(
                     [nodes.Alias(["default"], default)],
                     attribute,

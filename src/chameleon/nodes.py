@@ -19,6 +19,12 @@ class Content(Node):
     _fields = "expression", "char_escape", "translate"
 
 
+class Default(Node):
+    """Represents a default value."""
+
+    _fields = ()
+
+
 class Value(Node):
     """Expression object value."""
 
@@ -38,7 +44,9 @@ class Value(Node):
 class Substitution(Value):
     """Expression value for text substitution."""
 
-    _fields = "value", "char_escape",
+    _fields = "value", "char_escape", "default"
+
+    default = None
 
 
 class Negate(Node):

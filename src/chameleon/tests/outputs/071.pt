@@ -1,0 +1,10 @@
+<html>
+  <body>
+    <input type="input" checked="checked" />
+    <input type="input" />
+    <input type="input" />
+    <input type="input" checked="checked" />
+    <input type="input" checked />
+    <input type="input" checked="checked" />
+  </body>
+</html>

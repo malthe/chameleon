@@ -1,6 +1,23 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Certain HTML attribute names now have a special behavior for a
+  attribute value of ``True`` (or ``default`` if no default is
+  defined). For these attributes, this return value will result in the
+  name being printed as the value::
+
+    <input type="input" tal:attributes="checked True" />
+
+  will be rendered as::
+
+    <input type="input" checked="checked" />
+
+  This behavior is compatible with the reference implementation.
+
 2.3.5 (2011-08-18)
 ------------------
 

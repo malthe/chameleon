@@ -1,0 +1,10 @@
+<html>
+  <body>
+    <input type="input" tal:attributes="checked True" />
+    <input type="input" tal:attributes="checked False" />
+    <input type="input" tal:attributes="checked None" />
+    <input type="input" checked="checked" tal:attributes="checked default" />
+    <input type="input" checked tal:attributes="checked default" />
+    <input type="input" tal:attributes="checked default" />
+  </body>
+</html>

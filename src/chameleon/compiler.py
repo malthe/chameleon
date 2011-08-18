@@ -117,11 +117,13 @@ def emit_node_if_non_trivial(node):  # pragma: no cover
 
 
 @template
-def emit_convert(target, encoded=bytes, str=str, long=long, type=type):  # pragma: no cover
+def emit_convert(target, encoded=bytes, str=str, long=long, type=type, default=None):  # pragma: no cover
     if target is None:
         pass
-    elif target is False or target is True:
+    elif target is False:
         target = None
+    elif target is True:
+        target = default
     else:
         __tt = type(target)
 
@@ -147,11 +149,13 @@ def emit_translate(target, msgid, default=None):  # pragma: no cover
 @template
 def emit_convert_and_escape(
     target, quote=None, quote_entity=None, str=str, long=long,
-    type=type, encoded=bytes):  # pragma: no cover
+    type=type, encoded=bytes, default=None):  # pragma: no cover
     if target is None:
         pass
-    elif target is False or target is True:
+    elif target is False:
         target = None
+    elif target is True:
+        target = default
     else:
         __tt = type(target)
 
@@ -237,9 +241,10 @@ class ExpressionEngine(object):
 
     supported_char_escape_set = set(('&', '<', '>'))
 
-    def __init__(self, parser, char_escape=()):
+    def __init__(self, parser, char_escape=(), default=None):
         self._parser = parser
         self._char_escape = char_escape
+        self._default = default
 
     def __call__(self, string, target):
         # BBB: This method is deprecated. Instead, a call should first
@@ -286,19 +291,24 @@ class ExpressionEngine(object):
         if self._char_escape:
             # This is a cop-out - we really only support a very select
             # set of escape characters
-            quote = '"' if '"' in self._char_escape else "'"
+            for supported in '"', '\'', '':
+                if supported in self._char_escape:
+                    quote = supported
+                    break
+
             if set(self._char_escape) - \
-                   self.supported_char_escape_set != set(quote):
+                   self.supported_char_escape_set != set((quote, )):
                 raise RuntimeError(
                     "Unsupported escape set: %s." % repr(self._char_escape)
                     )
 
-            entity = char2entity(quote)
+            entity = char2entity(quote or '\0')
 
             return emit_convert_and_escape(
                 target,
                 quote=ast.Str(s=quote),
                 quote_entity=ast.Str(s=entity),
+                default=self._default,
                 )
 
         return emit_convert(target)
@@ -520,8 +530,13 @@ class ExpressionTransform(object):
         compiler = engine.parse(node.value)
         return compiler.assign_value(target)
 
+    def visit_Default(self, node, target):
+        return [ast.Assign(targets=[target], value=load("True"))]
+
     def visit_Substitution(self, node, target):
-        engine = self.engine_factory(char_escape=node.char_escape)
+        engine = self.engine_factory(
+            char_escape=node.char_escape, default=node.default
+            )
         compiler = engine.parse(node.value)
         return compiler.assign_text(target)
 
@@ -555,7 +570,10 @@ class ExpressionTransform(object):
             engine = self.engine_factory()
             attr = "value"
         elif isinstance(expr, Substitution):
-            engine = self.engine_factory(char_escape=expr.char_escape)
+            engine = self.engine_factory(
+                char_escape=expr.char_escape,
+                node=expr.default
+                )
             attr = "text"
         else:
             raise RuntimeError("Bad value: %r." % node.value)

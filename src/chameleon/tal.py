@@ -43,6 +43,17 @@ ATTR_RE = re.compile(r"\s*([^\s]+)\s+([^\s].*)\Z", re.S)
 
 ENTITY_RE = re.compile(r'(&(#?)(x?)(\d{1,5}|\w{1,8});)')
 
+BOOLEAN_HTML_ATTRS = frozenset([
+    # List of Boolean attributes in HTML that should be rendered in
+    # minimized form (e.g. <img ismap> rather than <img ismap="">)
+    # From http://www.w3.org/TR/xhtml1/#guidelines (C.10)
+    # TODO: The problem with this is that this is not valid XML and
+    # can't be parsed back!
+    "compact", "nowrap", "ismap", "declare", "noshade", "checked",
+    "disabled", "readonly", "multiple", "selected", "noresize",
+    "defer"
+    ])
+
 WHITELIST = frozenset([
     "define",
     "comment",

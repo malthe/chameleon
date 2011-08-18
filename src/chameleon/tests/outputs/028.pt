@@ -1,6 +1,6 @@
 <div xmlns="http://www.w3.org/1999/xhtml">
+  <option selected="selected"></option>
   <option></option>
-  <option></option>
-  <input />
+  <input checked="checked" />
   <input />
 </div>

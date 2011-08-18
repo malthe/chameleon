@@ -132,8 +132,15 @@ value of each expression is converted to a string, if necessary.
    for example ``html:table``, if you are generating an XML document
    with multiple namespaces.
 
-If an attribute expression evaluates to ``None``, ``True`` or
-``False``, that attribute is deleted from the statement element.
+In general, if an attribute expression evaluates to ``None``, ``True``
+or ``False``, that attribute is deleted from the statement element.
+
+However, for a special list of HTML attribute names, a value of
+``True`` will print the attribute name with the same value string
+(e.g. ``checked="checked"``):
+
+  "compact", "nowrap", "ismap", "declare", "noshade", "checked",
+  "disabled", "readonly", "multiple", "selected", "noresize", "defer"
 
 If the expression evaluates to the symbol ``default`` (a symbol which
 is always available when evaluating attributes), its value is defined
@@ -166,6 +173,10 @@ Replacing two attributes::
     <textarea rows="80" cols="20"
               tal:attributes="rows request.rows();cols request.cols()"
         />
+
+A checkbox input::
+
+    <input type="input" tal:attributes="checked True" />
 
 ``tal:condition``
 ^^^^^^^^^^^^^^^^^
