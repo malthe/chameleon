@@ -400,7 +400,6 @@ class MacroProgram(ElementProgram):
             REPEAT,
             SWITCH,
             DOMAIN,
-            NAME
             )
 
         # metal:fill-slot
@@ -430,6 +429,11 @@ class MacroProgram(ElementProgram):
         else:
             self._macros[clause] = slot
             slot = nodes.UseInternalMacro(clause)
+
+        slot = wrap(
+            slot,
+            NAME
+            )
 
         # tal:on-error
         try:

@@ -9,6 +9,10 @@ Features:
 
 Bugfixes:
 
+- If macro is defined on the same element as a translation name, this
+  no longer results in a "translation name not allowed outside
+  translation" error. This fixes issue #43.
+
 - Attribute fallback to dictionary lookup now works on multiple items
   (e.g. ``d1.d2.d2``). This fixes issue #42.
 
