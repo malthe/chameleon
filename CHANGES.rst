@@ -1,6 +1,11 @@
 Changes
 =======
 
+2.3.8 (2011-08-19)
+------------------
+
+- Fixed import error that affected Python 2.5 only.
+
 2.3.7 (2011-08-19)
 ------------------
 

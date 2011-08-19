@@ -1,4 +1,8 @@
-from ast import Str
+try:
+    import ast
+except ImportError:
+    from chameleon import ast24 as ast
+
 from functools import partial
 from os.path import dirname
 
@@ -107,7 +111,7 @@ class PageTemplate(BaseTemplate):
     @property
     def engine(self):
         if self.literal_false:
-            default_marker = Str(s="__default__")
+            default_marker = ast.Str(s="__default__")
         else:
             default_marker = Builtin("False")
 
@@ -123,7 +127,7 @@ class PageTemplate(BaseTemplate):
 
     def parse(self, body):
         if self.literal_false:
-            default_marker = Str(s="__default__")
+            default_marker = ast.Str(s="__default__")
         else:
             default_marker = Builtin("False")
 
