@@ -36,6 +36,12 @@ except TypeError:
 __docformat__ = 'restructuredtext en'
 
 
+def annotated(value):
+    node = load("annotation")
+    node_annotations[node] = value
+    return node
+
+
 def parse(source, mode='eval'):
     return compile(source, '', mode, ast.PyCF_ONLY_AST)
 
@@ -83,6 +89,10 @@ def swap(root, replacement, name):
             node.id == name):
             assert hasattr(replacement, '_fields')
             node_annotations.setdefault(node, replacement)
+
+
+def marker(name):
+    return ast.Str(s="__%s" % name)
 
 
 class Node(object):
@@ -134,7 +144,6 @@ class Static(Node):
     _fields = "value", "name"
 
     name = None
-
 
 
 class Comment(Node):

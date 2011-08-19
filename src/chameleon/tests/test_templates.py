@@ -186,16 +186,6 @@ class ZopePageTemplatesTest(RenderTestCase):
             return wrapper
         return decorator
 
-    @template("""<span tal:content='str(default)'>Default</span>""")
-    def test_default_is_not_a_string(self, template):
-        try:
-            template()
-        except RuntimeError:
-            exc = sys.exc_info()[1]
-            self.assertTrue('symbolic value' in str(exc))
-        else:
-            self.fail("Expected error.")
-
     @error("""<tal:block replace='bad /// ' />""")
     def test_syntax_error(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('bad ///'))
@@ -319,6 +309,20 @@ class ZopePageTemplatesTest(RenderTestCase):
         for name in COMPILER_INTERNALS_OR_DISALLOWED:
             body = "<d tal:define=\"%s 'foo'\">${%s}</d>" % (name, name)
             self.assertRaises(TranslationError, PageTemplate, body)
+
+    def test_literal_false(self):
+        template = self.factory(
+            '<input type="input" tal:attributes="checked False" />'
+            '<input type="input" tal:attributes="checked True" />'
+            '<input type="input" tal:attributes="checked None" />',
+            literal_false=True,
+            )
+        self.assertEqual(
+            template(),
+            '<input type="input" checked="False" />'
+            '<input type="input" checked="True" />'
+            '<input type="input" />',
+            )
 
     def test_default_debug_flag(self):
         from chameleon.zpt.template import PageTemplateFile

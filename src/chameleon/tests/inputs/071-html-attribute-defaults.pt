@@ -6,5 +6,6 @@
     <input type="input" checked="checked" tal:attributes="checked default" />
     <input type="input" checked tal:attributes="checked default" />
     <input type="input" tal:attributes="checked default" />
+    <input type="input" class="field" tal:attributes="class True" />
   </body>
 </html>

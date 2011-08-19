@@ -22,7 +22,7 @@ class Content(Node):
 class Default(Node):
     """Represents a default value."""
 
-    _fields = ()
+    _fields = "marker",
 
 
 class Value(Node):
@@ -95,15 +95,6 @@ class Equality(Node):
     """Condition expression that is true on equality."""
 
     _fields = "expression", "value"
-
-
-class Marker(Node):
-    """Represents a marker object.
-
-    The ``name`` string must be unique across the template program.
-    """
-
-    _fields = "name",
 
 
 class Cache(Node):

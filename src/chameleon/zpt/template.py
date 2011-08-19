@@ -1,3 +1,4 @@
+from ast import Str
 from functools import partial
 from os.path import dirname
 
@@ -16,6 +17,7 @@ from ..template import BaseTemplate
 from ..template import BaseTemplateFile
 from ..compiler import ExpressionEngine
 from ..loader import TemplateLoader
+from ..astutil import Builtin
 
 from .program import MacroProgram
 
@@ -52,6 +54,14 @@ class PageTemplate(BaseTemplate):
         Pass an encoding to allow encoded byte string input
         (e.g. UTF-8).
 
+      ``literal_false``
+
+        Attributes are not dropped for a value of ``False``. Instead,
+        the value is coerced to a string.
+
+        This setting exists to provide compatibility with the
+        reference implementation.
+
       ``translate``
 
         Use this option to set a translation function.
@@ -82,6 +92,8 @@ class PageTemplate(BaseTemplate):
 
     encoding = None
 
+    literal_false = False
+
     mode = "xml"
 
     def __init__(self, body, **config):
@@ -94,15 +106,32 @@ class PageTemplate(BaseTemplate):
 
     @property
     def engine(self):
-        return partial(ExpressionEngine, self.expression_parser)
+        if self.literal_false:
+            default_marker = Str(s="__default__")
+        else:
+            default_marker = Builtin("False")
+
+        return partial(
+            ExpressionEngine,
+            self.expression_parser,
+            default_marker=default_marker,
+            )
 
     @property
     def expression_parser(self):
         return ExpressionParser(self.expression_types, self.default_expression)
 
     def parse(self, body):
-        escape = True if self.mode == "xml" else False
-        return MacroProgram(body, self.mode, self.filename, escape=escape)
+        if self.literal_false:
+            default_marker = Str(s="__default__")
+        else:
+            default_marker = Builtin("False")
+
+        return MacroProgram(
+            body, self.mode, self.filename,
+            escape=True if self.mode == "xml" else False,
+            default_marker=default_marker,
+            )
 
     def render(self, encoding=None, translate=None, target_language=None, **vars):
         """Render template to string.

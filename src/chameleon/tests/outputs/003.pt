@@ -8,8 +8,8 @@
    6<div>Hello world!</div>
     <div>1</div>
     <div>1.0</div>
-    <div></div>
-    <div></div>
+    <div>True</div>
+    <div>False</div>
     <div>0</div>
     <div></div>
     &lt;div&gt;Hello world!&lt;/div&gt;

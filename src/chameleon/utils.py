@@ -242,11 +242,6 @@ class DebuggingOutputStream(list):
         list.append(self, value)
 
 
-class Placeholder(object):
-    def __str__(self):
-        raise RuntimeError("Evaluation of symbolic value disallowed.")
-
-
 class Scope(dict):
     set_local = setLocal = dict.__setitem__
 

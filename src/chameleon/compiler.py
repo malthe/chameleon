@@ -30,6 +30,7 @@ from .astutil import param
 from .astutil import swap
 from .astutil import subscript
 from .astutil import node_annotations
+from .astutil import annotated
 from .astutil import NameLookupRewriteVisitor
 from .astutil import Comment
 from .astutil import Symbol
@@ -51,7 +52,6 @@ from .nodes import Context
 from .config import DEBUG_MODE
 from .exc import TranslationError
 from .utils import DebuggingOutputStream
-from .utils import Placeholder
 from .utils import char2entity
 from .utils import ListDictProxy
 
@@ -117,12 +117,11 @@ def emit_node_if_non_trivial(node):  # pragma: no cover
 
 
 @template
-def emit_convert(target, encoded=bytes, str=str, long=long, type=type, default=None):  # pragma: no cover
+def emit_convert(target, encoded=bytes, str=str, long=long, type=type,
+                 default_marker=None, default=None):  # pragma: no cover
     if target is None:
         pass
-    elif target is False:
-        target = None
-    elif target is True:
+    elif target is default_marker:
         target = default
     else:
         __tt = type(target)
@@ -149,12 +148,10 @@ def emit_translate(target, msgid, default=None):  # pragma: no cover
 @template
 def emit_convert_and_escape(
     target, quote=None, quote_entity=None, str=str, long=long,
-    type=type, encoded=bytes, default=None):  # pragma: no cover
+    type=type, encoded=bytes, default_marker=None, default=None):  # pragma: no cover
     if target is None:
         pass
-    elif target is False:
-        target = None
-    elif target is True:
+    elif target is default_marker:
         target = default
     else:
         __tt = type(target)
@@ -241,10 +238,12 @@ class ExpressionEngine(object):
 
     supported_char_escape_set = set(('&', '<', '>'))
 
-    def __init__(self, parser, char_escape=(), default=None):
+    def __init__(self, parser, char_escape=(),
+                 default=None, default_marker=None):
         self._parser = parser
         self._char_escape = char_escape
         self._default = default
+        self._default_marker = default_marker
 
     def __call__(self, string, target):
         # BBB: This method is deprecated. Instead, a call should first
@@ -309,6 +308,7 @@ class ExpressionEngine(object):
                 quote=ast.Str(s=quote),
                 quote_entity=ast.Str(s=entity),
                 default=self._default,
+                default_marker=self._default_marker,
                 )
 
         return emit_convert(target)
@@ -477,10 +477,9 @@ class ExpressionTransform(object):
     Used internally be the compiler.
     """
 
-    def __init__(self, engine_factory, cache, markers, transform):
+    def __init__(self, engine_factory, cache, transform):
         self.engine_factory = engine_factory
         self.cache = cache
-        self.markers = markers
         self.transform = transform
 
     def __call__(self, expression, target):
@@ -531,11 +530,13 @@ class ExpressionTransform(object):
         return compiler.assign_value(target)
 
     def visit_Default(self, node, target):
-        return [ast.Assign(targets=[target], value=load("True"))]
+        value = annotated(node.marker)
+        return [ast.Assign(targets=[target], value=value)]
 
     def visit_Substitution(self, node, target):
         engine = self.engine_factory(
-            char_escape=node.char_escape, default=node.default
+            char_escape=node.char_escape,
+            default=node.default,
             )
         compiler = engine.parse(node.value)
         return compiler.assign_text(target)
@@ -543,12 +544,6 @@ class ExpressionTransform(object):
     def visit_Negate(self, node, target):
         return self.translate(node.value, target) + \
                template("TARGET = not TARGET", TARGET=target)
-
-    def visit_Marker(self, node, target):
-        self.markers.add(node.name)
-
-        return [ast.Assign(targets=[target],
-                           value=load("__marker_%s" % node.name))]
 
     def visit_Identity(self, node, target):
         expression = self.translate(node.expression, "__expression")
@@ -572,7 +567,7 @@ class ExpressionTransform(object):
         elif isinstance(expr, Substitution):
             engine = self.engine_factory(
                 char_escape=expr.char_escape,
-                node=expr.default
+                default=expr.default,
                 )
             attr = "text"
         else:
@@ -593,13 +588,11 @@ class ExpressionTransform(object):
                emit_translate(target, msgid, default=target)
 
     def visit_Static(self, node, target):
-        value = load("dummy")
-        node_annotations[value] = node
+        value = annotated(node)
         return [ast.Assign(targets=[target], value=value)]
 
     def visit_Builtin(self, node, target):
-        value = load("dummy")
-        node_annotations[value] = node
+        value = annotated(node)
         return [ast.Assign(targets=[target], value=value)]
 
 
@@ -630,7 +623,6 @@ class Compiler(object):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
-        self._markers = set()
         self._builtins = builtins
         self._aliases = [{}]
 
@@ -642,7 +634,6 @@ class Compiler(object):
         self._engine = ExpressionTransform(
             engine_factory,
             self._expression_cache,
-            self._markers,
             transform,
             )
 
@@ -734,14 +725,6 @@ class Compiler(object):
             function = stmts[-1]
             names.append(function.name)
             functions += stmts
-
-        # Prepend module-wide marker values
-        for marker in self._markers:
-            functions[:] = template(
-                "MARKER = CLS()",
-                MARKER=store("__marker_%s" % marker),
-                CLS=Placeholder,
-                ) + functions
 
         # Return function dictionary
         functions += [ast.Return(value=ast.Dict(

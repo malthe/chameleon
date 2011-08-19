@@ -132,20 +132,13 @@ value of each expression is converted to a string, if necessary.
    for example ``html:table``, if you are generating an XML document
    with multiple namespaces.
 
-In general, if an attribute expression evaluates to ``None``, ``True``
-or ``False``, that attribute is deleted from the statement element.
-
-However, for a special list of HTML attribute names, a value of
-``True`` will print the attribute name with the same value string
-(e.g. ``checked="checked"``):
-
-  "compact", "nowrap", "ismap", "declare", "noshade", "checked",
-  "disabled", "readonly", "multiple", "selected", "noresize", "defer"
+If an attribute expression evaluates to ``None``, the attribute is
+deleted from the statement element (or simply not inserted).
 
 If the expression evaluates to the symbol ``default`` (a symbol which
 is always available when evaluating attributes), its value is defined
-as the default static attribute value. A missing attribute default is
-by definition assigned a default value of ``True``.
+as the default static attribute value. If there is no such default
+value, a return value of ``default`` will drop the attribute.
 
 If you use ``tal:attributes`` on an element with an active
 ``tal:replace`` command, the ``tal:attributes`` statement is ignored.

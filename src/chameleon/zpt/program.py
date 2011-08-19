@@ -20,7 +20,10 @@ from ..namespaces import METAL_NS as METAL
 from ..namespaces import META_NS as META
 
 from ..astutil import Static
+from ..astutil import Builtin
 from ..astutil import parse
+from ..astutil import load
+from ..astutil import marker
 
 from .. import tal
 from .. import metal
@@ -82,6 +85,15 @@ class MacroProgram(ElementProgram):
     # Macro name (always trivial for a macro program)
     name = None
 
+    # This default marker value has the semantics that if an
+    # expression evaluates to that value, the expression default value
+    # is returned. For an attribute, if there is no default, this
+    # means that the attribute is dropped.
+    default_marker = None
+
+    # Escape mode (true value means XML-escape)
+    escape = True
+
     def __init__(self, *args, **kwargs):
         # Internal array for switch statements
         self._switches = []
@@ -95,8 +107,9 @@ class MacroProgram(ElementProgram):
         # Internal dictionary of macro definitions
         self._macros = {}
 
-        # Set escape mode (true value means XML-escape)
-        self._escape = kwargs.pop('escape', True)
+        self.escape = kwargs.pop('escape', self.escape)
+        self.default_marker = kwargs.pop('default_marker', None) or \
+                              self.default_marker
 
         super(MacroProgram, self).__init__(*args, **kwargs)
 
@@ -486,7 +499,7 @@ class MacroProgram(ElementProgram):
         if not self._interpolation[-1] or not '${' in node:
             return nodes.Text(node)
 
-        char_escape = ('&', '<', '>') if self._escape else ()
+        char_escape = ('&', '<', '>') if self.escape else ()
         expression = nodes.Substitution(node[4:-3], char_escape)
 
         return nodes.Sequence(
@@ -499,7 +512,7 @@ class MacroProgram(ElementProgram):
         self._last = node
 
         if self._interpolation[-1] and '${' in node:
-            char_escape = ('&', '<', '>') if self._escape else ()
+            char_escape = ('&', '<', '>') if self.escape else ()
             expression = nodes.Substitution(node, char_escape)
             return nodes.Interpolation(expression, True)
 
@@ -537,7 +550,7 @@ class MacroProgram(ElementProgram):
         content = nodes.Content(value, char_escape, translate)
 
         content = nodes.Condition(
-            nodes.Identity(value, nodes.Marker("default")),
+            nodes.Identity(value, marker("default")),
             default,
             content,
             )
@@ -547,7 +560,7 @@ class MacroProgram(ElementProgram):
 
         # Define local marker "default"
         content = nodes.Define(
-            [nodes.Alias(["default"], nodes.Marker("default"))],
+            [nodes.Alias(["default"], marker("default"))],
             content
             )
 
@@ -558,8 +571,8 @@ class MacroProgram(ElementProgram):
         for name, text, quote, space, eq, expr in prepared:
             char_escape = ('&', '<', '>', quote)
 
-            if name in tal.BOOLEAN_HTML_ATTRS:
-                default = ast.Str(s=name)
+            if text:
+                default = ast.Str(s=text)
             else:
                 default = None
 
@@ -591,7 +604,7 @@ class MacroProgram(ElementProgram):
             # clause for the "default" value
             if not isinstance(value, ast.Str):
                 default = ast.Str(s=text) if text is not None \
-                          else nodes.Default()
+                          else nodes.Default(self.default_marker)
                 attribute = nodes.Define(
                     [nodes.Alias(["default"], default)],
                     attribute,

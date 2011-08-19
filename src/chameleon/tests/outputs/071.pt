@@ -1,10 +1,11 @@
 <html>
   <body>
-    <input type="input" checked="checked" />
+    <input type="input" checked="True" />
     <input type="input" />
     <input type="input" />
     <input type="input" checked="checked" />
     <input type="input" checked />
-    <input type="input" checked="checked" />
+    <input type="input" />
+    <input type="input" class="True" />
   </body>
 </html>

@@ -1,6 +1,28 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Added an option ``literal_false`` that disables the default behavior
+  of dropping an attribute for a value of ``False`` (in addition to
+  ``None``). This modified behavior is the behavior exhibited in
+  reference implementation.
+
+Bugfixes:
+
+- Undo attribute special HTML attribute behavior (see previous
+  release).
+
+  This turned out not to be a compatible behavior; rather, boolean
+  values should simply be coerced to a string.
+
+  Meanwhile, the reference implementation does support an HTML mode in
+  which the special attribute behavior is exhibited.
+
+  We do not currently support this mode.
+
 2.3.6 (2011-08-18)
 ------------------
 
