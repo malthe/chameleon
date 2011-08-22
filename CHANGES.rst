@@ -1,6 +1,17 @@
 Changes
 =======
 
+In next release...
+
+Bugfixes:
+
+- The carriage return character (used on Windows platforms) would
+  incorrectly be included in Python comments.
+
+  It is now replaced with a line break.
+
+  This fixes issue #44.
+
 2.3.8 (2011-08-19)
 ------------------
 

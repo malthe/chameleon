@@ -193,7 +193,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         else:
             self.visit(node.stmt)
 
-        for line in node.text.split('\n'):
+        for line in node.text.replace('\r', '\n').split('\n'):
             self._new_line()
             self._write("%s#%s" % (node.space, line))
 
