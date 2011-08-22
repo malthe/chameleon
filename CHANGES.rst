@@ -3,6 +3,23 @@ Changes
 
 In next release...
 
+Features:
+
+- Added an option ``boolean_attributes`` to evaluate and render a
+  provided set of attributes using a boolean logic: if the attribute
+  is a true value, the value will be the attribute name, otherwise the
+  attribute is dropped.
+
+  In the reference implementation, the following attributes are
+  configured as boolean values when the template is rendered in
+  HTML-mode::
+
+      "compact", "nowrap", "ismap", "declare", "noshade",
+      "checked", "disabled", "readonly", "multiple", "selected",
+      "noresize", "defer"
+
+  Note that in Chameleon, these attributes must be manually provided.
+
 Bugfixes:
 
 - The carriage return character (used on Windows platforms) would

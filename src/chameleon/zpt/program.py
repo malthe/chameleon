@@ -94,6 +94,11 @@ class MacroProgram(ElementProgram):
     # Escape mode (true value means XML-escape)
     escape = True
 
+    # Attributes which should have boolean behavior (on true, the
+    # value takes the attribute name, on false, the attribute is
+    # dropped)
+    boolean_attributes = set()
+
     def __init__(self, *args, **kwargs):
         # Internal array for switch statements
         self._switches = []
@@ -110,6 +115,9 @@ class MacroProgram(ElementProgram):
         self.escape = kwargs.pop('escape', self.escape)
         self.default_marker = kwargs.pop('default_marker', None) or \
                               self.default_marker
+        self.boolean_attributes = kwargs.pop(
+            'boolean_attributes', self.boolean_attributes
+            )
 
         super(MacroProgram, self).__init__(*args, **kwargs)
 
@@ -586,7 +594,10 @@ class MacroProgram(ElementProgram):
             # If this expression is non-trivial, the attribute is
             # dynamic (computed)
             elif expr is not None:
-                value = nodes.Substitution(expr, char_escape, default)
+                if name in self.boolean_attributes:
+                    value = nodes.Boolean(expr, name)
+                else:
+                    value = nodes.Substitution(expr, char_escape, default)
 
             # Otherwise, it's a static attribute.
             else:

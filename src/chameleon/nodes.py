@@ -49,6 +49,10 @@ class Substitution(Value):
     default = None
 
 
+class Boolean(Value):
+    _fields = "value", "s"
+
+
 class Negate(Node):
     """Wraps an expression with a negation."""
 

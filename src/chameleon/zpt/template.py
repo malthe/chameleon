@@ -66,6 +66,25 @@ class PageTemplate(BaseTemplate):
         This setting exists to provide compatibility with the
         reference implementation.
 
+      ``boolean_attributes``
+
+        Attributes included in this set are treated as booleans: if a
+        true value is provided, the attribute value is the attribute
+        name, e.g.::
+
+            boolean_attributes = {"selected"}
+
+        If we insert an attribute with the name "selected" and
+        provide a true value, the attribute will be rendered::
+
+            selected="selected"
+
+        If a false attribute is provided (including the empty string),
+        the attribute is dropped.
+
+        The special return value ``default`` drops or inserts the
+        attribute based on the value element attribute value.
+
       ``translate``
 
         Use this option to set a translation function.
@@ -95,6 +114,8 @@ class PageTemplate(BaseTemplate):
     translate = staticmethod(fast_translate)
 
     encoding = None
+
+    boolean_attributes = set()
 
     literal_false = False
 
@@ -135,6 +156,7 @@ class PageTemplate(BaseTemplate):
             body, self.mode, self.filename,
             escape=True if self.mode == "xml" else False,
             default_marker=default_marker,
+            boolean_attributes=self.boolean_attributes,
             )
 
     def render(self, encoding=None, translate=None, target_language=None, **vars):

@@ -117,6 +117,16 @@ def emit_node_if_non_trivial(node):  # pragma: no cover
 
 
 @template
+def emit_bool(target, s, default_marker=None,
+                 default=None):  # pragma: no cover
+    if target is default_marker:
+        target = default
+    elif target:
+        target = s
+    else:
+        target = None
+
+@template
 def emit_convert(target, encoded=bytes, str=str, long=long, type=type,
                  default_marker=None, default=None):  # pragma: no cover
     if target is None:
@@ -284,6 +294,17 @@ class ExpressionEngine(object):
 
         return ExpressionCompiler(exception_wrapper, self)
 
+    def _convert_bool(self, target, s):
+        """Converts value given by ``target`` to a string ``s`` if the
+        target is a true value, otherwise ``None``.
+        """
+
+        return emit_bool(
+            target, ast.Str(s=s),
+            default=self._default,
+            default_marker=self._default_marker
+            )
+
     def _convert_text(self, target):
         """Converts value given by ``target`` to text."""
 
@@ -319,12 +340,17 @@ class ExpressionCompiler(object):
         self.compiler = compiler
         self.engine = engine
 
-    def assign_value(self, target):
-        return self.compiler(target, self.engine)
+    def assign_bool(self, target, s):
+        return self.assign_value(target) + \
+               self.engine._convert_bool(target, s)
 
     def assign_text(self, target):
         return self.assign_value(target) + \
                self.engine._convert_text(target)
+
+    def assign_value(self, target):
+        return self.compiler(target, self.engine)
+
 
 
 class ExpressionEvaluator(object):
@@ -558,6 +584,11 @@ class ExpressionTransform(object):
 
         return expression + value + \
                template("TARGET = __expression == __value", TARGET=target)
+
+    def visit_Boolean(self, node, target):
+        engine = self.engine_factory()
+        compiler = engine.parse(node.value)
+        return compiler.assign_bool(target, node.s)
 
     def visit_Interpolation(self, node, target):
         expr = node.value
