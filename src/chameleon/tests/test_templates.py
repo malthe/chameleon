@@ -324,7 +324,8 @@ class ZopePageTemplatesTest(RenderTestCase):
             '<input type="input" checked="False" />'
             '<input type="input" checked="True" />'
             '<input type="input" />'
-            '<input type="input" />'
+            '<input type="input" />',
+            template.source
             )
 
     def test_boolean_attributes(self):
@@ -345,7 +346,8 @@ class ZopePageTemplatesTest(RenderTestCase):
             '<input type="input" />'
             '<input type="input" />'
             '<input type="input" />'
-            '<input type="input" checked="checked" />'
+            '<input type="input" checked="checked" />',
+            template.source
             )
 
     def test_default_debug_flag(self):
