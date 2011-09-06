@@ -1,6 +1,16 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed issue where the use of the ``default`` name in an attribute
+  interpolation expression would print the attribute value. This is
+  unexpected, because it's an expression, not a static text suitable
+  for output. An attribute value of ``default`` now correctly drops
+  the attribute.
+
 2.4.0 (2011-08-22)
 ------------------
 

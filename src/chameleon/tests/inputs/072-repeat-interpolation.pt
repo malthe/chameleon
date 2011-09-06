@@ -1,0 +1,5 @@
+<html>
+  <body>
+    <li tal:repeat="i range(1, 4)" class="${'odd' if i % 2 != 0 else default}">${i}</li>
+  </body>
+</html>

@@ -579,24 +579,33 @@ class MacroProgram(ElementProgram):
         for name, text, quote, space, eq, expr in prepared:
             char_escape = ('&', '<', '>', quote)
 
-            if text:
-                default = ast.Str(s=text)
+            # Use a provided default text as the default marker
+            # (aliased to the name ``default``), otherwise use the
+            # program's default marker value.
+            if text is not None:
+                default_marker = ast.Str(s=text)
             else:
-                default = None
+                default_marker = self.default_marker
 
-            # If (by heuristic) ``text`` contains one or
-            # more interpolation expressions, make the attribute
-            # dynamic
+            # If (by heuristic) ``text`` contains one or more
+            # interpolation expressions, apply interpolation
+            # substitution to the text
             if expr is None and text is not None and '${' in text:
-                expr = nodes.Substitution(text, char_escape, default)
+                expr = nodes.Substitution(text, char_escape, None)
                 value = nodes.Interpolation(expr, True)
+                default_marker = self.default_marker
 
-            # If this expression is non-trivial, the attribute is
-            # dynamic (computed)
+            # If the expression is non-trivial, the attribute is
+            # dynamic (computed).
             elif expr is not None:
                 if name in self.boolean_attributes:
                     value = nodes.Boolean(expr, name)
                 else:
+                    if text is not None:
+                        default = default_marker
+                    else:
+                        default = None
+
                     value = nodes.Substitution(expr, char_escape, default)
 
             # Otherwise, it's a static attribute.
@@ -611,15 +620,11 @@ class MacroProgram(ElementProgram):
 
             attribute = nodes.Attribute(name, value, quote, eq, space)
 
-            # If value is non-static, wrap attribute in a definition
-            # clause for the "default" value
-            if not isinstance(value, ast.Str):
-                default = ast.Str(s=text) if text is not None \
-                          else nodes.Default(self.default_marker)
-                attribute = nodes.Define(
-                    [nodes.Alias(["default"], default)],
-                    attribute,
-                    )
+            # Always define a ``default`` alias
+            attribute = nodes.Define(
+                [nodes.Alias(["default"], default_marker)],
+                attribute,
+                )
 
             attributes.append(attribute)
 
