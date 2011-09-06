@@ -332,7 +332,11 @@ class ExpressionEngine(object):
                 default_marker=self._default_marker,
                 )
 
-        return emit_convert(target)
+        return emit_convert(
+            target,
+            default=self._default,
+            default_marker=self._default_marker,
+            )
 
 
 class ExpressionCompiler(object):
