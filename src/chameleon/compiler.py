@@ -878,7 +878,7 @@ class Compiler(object):
     def visit_Alias(self, node):
         assert len(node.names) == 1
         name = node.names[0]
-        target = self._aliases[-1][name] = identifier(name)
+        target = self._aliases[-1][name] = identifier(name, id(node))
         return self._engine(node.expression, target)
 
     def visit_Assignment(self, node):

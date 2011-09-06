@@ -5,6 +5,9 @@ In next release ...
 
 Bugfixes:
 
+- Fixed an issue where a default value for an attribute would
+  sometimes spill over into another attribute.
+
 - Fixed issue where the use of the ``default`` name in an attribute
   interpolation expression would print the attribute value. This is
   unexpected, because it's an expression, not a static text suitable
