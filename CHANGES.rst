@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed an issue in the compiler where an internal variable (such as a
+  translation default value) would be cached, resulting in variable
+  scope corruption (see issue #49).
+
 2.4.1 (2011-09-08)
 ------------------
 

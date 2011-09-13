@@ -532,7 +532,7 @@ class ExpressionTransform(object):
 
         cached = self.cache.get(expression)
 
-        if cached is not None:
+        if cached is not None and not target.id.startswith('__'):
             stmts = [ast.Assign(targets=[target], value=cached)]
         elif isinstance(expression, ast.expr):
             stmts = [ast.Assign(targets=[target], value=expression)]
