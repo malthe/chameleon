@@ -9,6 +9,7 @@ except NameError:
     long = int
 
 from functools import partial
+from copy import copy
 
 from ..program import ElementProgram
 
@@ -622,7 +623,7 @@ class MacroProgram(ElementProgram):
 
             # Always define a ``default`` alias
             attribute = nodes.Define(
-                [nodes.Alias(["default"], default_marker)],
+                [nodes.Alias(["default"], copy(default_marker))],
                 attribute,
                 )
 
