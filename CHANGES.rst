@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.4.3 (2011-09-13)
+------------------
+
 Features:
 
 - When an encoding is provided, pass the 'ignore' flag to avoid
