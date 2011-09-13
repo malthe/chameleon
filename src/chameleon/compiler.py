@@ -536,7 +536,6 @@ class ExpressionTransform(object):
             stmts = [ast.Assign(targets=[target], value=cached)]
         elif isinstance(expression, ast.expr):
             stmts = [ast.Assign(targets=[target], value=expression)]
-            self.cache[expression] = target
         else:
             # The engine interface supports simple strings, which
             # default to expression nodes
