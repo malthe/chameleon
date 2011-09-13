@@ -196,7 +196,7 @@ class PageTemplate(BaseTemplate):
                 return txl(msgid, **kwargs)
 
             def decode(inst):
-                return str(inst, encoding)
+                return str(inst, encoding, 'ignore')
         else:
             decode = str
 

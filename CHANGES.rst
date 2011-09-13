@@ -1,6 +1,11 @@
 Changes
 =======
 
+Features:
+
+- When an encoding is provided, pass the 'ignore' flag to avoid
+  decoding issues with bad input.
+
 Bugfixes:
 
 - Fixed pypy compatibility issue (introduced in previous release).
