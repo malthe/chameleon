@@ -1,5 +1,13 @@
 <html>
   <body>
-    <li tal:repeat="i range(1, 4)" class="${'odd' if i % 2 != 0 else default}">${i}</li>
+    <ul>
+      <li tal:repeat="i range(1, 4)" class="${'odd' if i % 2 != 0 else default}">${i}</li>
+    </ul>
+    <ul>
+      <li tal:repeat="i range(1, 4)" class="${'odd' if i % 2 != 0 else None}">${i}</li>
+    </ul>
+    <ul>
+      <li tal:repeat="i range(1, 4)" class="${'odd' if i % 2 != 0 else False}">${i}</li>
+    </ul>
   </body>
 </html>
