@@ -32,7 +32,7 @@ Alternatively, use the appropriate template class directly. Let's try
 with a string input::
 
   from chameleon import PageTemplate
-  template = PageTemplate("<div>Hello, $name.</div>")
+  template = PageTemplate("<div>Hello, ${name}.</div>")
 
 All template instances are callable. Provide variables by keyword
 argument::
