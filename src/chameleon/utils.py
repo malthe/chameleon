@@ -111,7 +111,7 @@ def derive_formatted_exception(exc, cls, formatter):
         exc.__class__ = new
     except TypeError:
         d = exc.__dict__
-        exc = Exception.__new__(new)
+        exc = cls.__new__(new)
         exc.__dict__ = d
 
     return exc
