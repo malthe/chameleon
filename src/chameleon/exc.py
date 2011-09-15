@@ -3,6 +3,7 @@
 import traceback
 
 from .utils import format_kwargs
+from .utils import safe_native
 from .tokenize import Token
 from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
 
@@ -89,6 +90,16 @@ def compute_source_marker(line, column, expression, size):
         s = s[:size].rstrip() + " ..."
 
     return s, column * " " + marker
+
+
+def format_exception(exc):
+    formatted = traceback.format_exception_only(type(exc), exc)[-1]
+    formatted_class = "%s:" % type(exc).__name__
+
+    if formatted.startswith(formatted_class):
+        formatted = formatted[len(formatted_class):].lstrip()
+
+    return formatted
 
 
 class TemplateError(Exception):
@@ -213,6 +224,17 @@ class ExceptionFormatter(object):
 
         for error in self._errors:
             expression, line, column, filename, exc = error
+
+            if isinstance(exc, UnicodeDecodeError):
+                string = safe_native(exc.object)
+
+                s, marker = compute_source_marker(
+                    string, exc.start, string[exc.start:exc.end], LENGTH
+                    )
+
+                out.append(" - Stream:     %s" % s)
+                out.append("               %s" % marker)
+
             out.append(" - Expression: \"%s\"" % expression)
             out.append(" - Filename:   %s" % (filename or "<string>"))
             out.append(" - Location:   (%d:%d)" % (line, column))
@@ -239,11 +261,6 @@ class ExceptionFormatter(object):
                         f.close()
 
         out.append(" - Arguments:  %s" % "\n".join(formatted))
+        formatted_exc = format_exception(exc)
 
-        formatted_exc = traceback.format_exception_only(type(exc), exc)[-1]
-        formatted_exc_class = "%s:" % type(exc).__name__
-        if formatted_exc.startswith(formatted_exc_class):
-            formatted_exc = formatted_exc[len(formatted_exc_class):].lstrip()
-
-        return "\n".join([formatted_exc] + out)
-
+        return "\n".join(map(safe_native, [formatted_exc] + out))

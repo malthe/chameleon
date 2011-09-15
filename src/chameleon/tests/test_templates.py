@@ -200,6 +200,38 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_attributes_on_tal_tag_fails(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
 
+    def test_unicode_decode_error(self):
+        template = self.from_file(
+            os.path.join(self.root, 'inputs', 'greeting.pt')
+            )
+
+        string = native = "the artist formerly known as ƤŗíƞĆě"
+        try:
+            string = string.decode('utf-8')
+        except AttributeError:
+            pass
+
+        class name:
+            @staticmethod
+            def __html__():
+                # This raises a decoding exception
+                string.encode('utf-8').decode('ascii')
+
+                self.fail("Expected exception raised.")
+
+        try:
+            template(name=name)
+        except UnicodeDecodeError:
+            exc = sys.exc_info()[1]
+            formatted = str(exc)
+
+            # There's a marker under the expression that has the
+            # unicode decode error
+            self.assertTrue('^^^^^' in formatted)
+            self.assertTrue(native in formatted)
+        else:
+            self.fail("expected error")
+
     def test_custom_encoding_for_str_or_bytes_in_content(self):
         string = '<div>Тест${text}</div>'
         try:

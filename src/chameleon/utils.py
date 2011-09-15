@@ -10,10 +10,25 @@ except ImportError:
 try:
     chr = unichr
     native = str
+    decode_string = unicode
+
+    def safe_native(s, encoding='utf-8'):
+        if not isinstance(s, unicode):
+            s = decode_string(s, encoding, 'replace')
+
+        return s.encode(encoding)
 except NameError:
+    decode_string = bytes.decode
     basestring = str
     unicode = str
     native = str
+
+    def safe_native(s, encoding='utf-8'):
+        if not isinstance(s, str):
+            s = decode_string(s, encoding, 'replace')
+
+        return s
+
 
 encodings = {
     codecs.BOM_UTF8: 'UTF8',
