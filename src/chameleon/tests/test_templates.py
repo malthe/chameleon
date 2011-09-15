@@ -17,11 +17,12 @@ except ImportError:
     from unittest import TestCase
 
 try:
-    str = unicode
-except:
-    pass
+    unicode
+except NameError:
+    unicode = str
 else:
     bytes = str
+
 
 class Message(object):
     def __str__(self):
@@ -155,15 +156,20 @@ class RenderTestCase(TestCase):
 
 class ZopePageTemplatesTest(RenderTestCase):
     @property
-    def factory(body):
+    def from_string(body):
         from ..zpt.template import PageTemplate
         return partial(PageTemplate, keep_source=True)
+
+    @property
+    def from_file(body):
+        from ..zpt.template import PageTemplateFile
+        return partial(PageTemplateFile, keep_source=True)
 
     def template(body):
         def decorator(func):
             @wraps(func)
             def wrapper(self):
-                template = self.factory(body)
+                template = self.from_string(body)
                 return func(self, template)
 
             return wrapper
@@ -175,7 +181,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             def wrapper(self):
                 from ..exc import TemplateError
                 try:
-                    template = self.factory(body)
+                    template = self.from_string(body)
                 except TemplateError:
                     exc = sys.exc_info()[1]
                     return func(self, body, exc)
@@ -201,7 +207,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         except AttributeError:
             pass
 
-        template = self.factory(string, encoding="windows-1251")
+        template = self.from_string(string, encoding="windows-1251")
 
         text = 'Тест'
 
@@ -224,7 +230,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         except AttributeError:
             pass
 
-        template = self.factory(string, encoding="windows-1251")
+        template = self.from_string(string, encoding="windows-1251")
 
         text = 'Тест'
 
@@ -241,12 +247,12 @@ class ZopePageTemplatesTest(RenderTestCase):
             )
 
     def test_null_translate_function(self):
-        template = self.factory('${test}', translate=None)
+        template = self.from_string('${test}', translate=None)
         rendered = template(test=object())
         self.assertTrue('object' in rendered)
 
     def test_object_substitution_coerce_to_str(self):
-        template = self.factory('${test}', translate=None)
+        template = self.from_string('${test}', translate=None)
 
         class dummy(object):
             def __repr__(inst):
@@ -259,24 +265,21 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertEqual(rendered, '<dummy>')
 
     def test_repr(self):
-        from chameleon.zpt.template import PageTemplateFile
-        template = PageTemplateFile(
+        template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt')
             )
         self.assertTrue(template.filename in repr(template))
 
     def test_underscore_variable(self):
-        from chameleon.zpt.template import PageTemplate
-        template = PageTemplate(
+        template = self.from_string(
             "<div tal:define=\"_dummy 'foo'\">${_dummy}</div>"
             )
         self.assertTrue(template(), "<div>foo</div>")
 
     def test_exception(self):
-        from chameleon.zpt.template import PageTemplate
         from traceback import format_exception_only
 
-        template = PageTemplate(
+        template = self.from_string(
             "<div tal:define=\"dummy foo\">${dummy}</div>"
             )
         try:
@@ -294,24 +297,22 @@ class ZopePageTemplatesTest(RenderTestCase):
             self.fail("expected error")
 
     def test_double_underscore_variable(self):
-        from chameleon.zpt.template import PageTemplate
         from chameleon.exc import TranslationError
         self.assertRaises(
-            TranslationError, PageTemplate,
+            TranslationError, self.from_string,
             "<div tal:define=\"__dummy 'foo'\">${__dummy}</div>",
             )
 
     def test_compiler_internals_are_disallowed(self):
         from chameleon.compiler import COMPILER_INTERNALS_OR_DISALLOWED
         from chameleon.exc import TranslationError
-        from chameleon.zpt.template import PageTemplate
 
         for name in COMPILER_INTERNALS_OR_DISALLOWED:
             body = "<d tal:define=\"%s 'foo'\">${%s}</d>" % (name, name)
-            self.assertRaises(TranslationError, PageTemplate, body)
+            self.assertRaises(TranslationError, self.from_string, body)
 
     def test_literal_false(self):
-        template = self.factory(
+        template = self.from_string(
             '<input type="input" tal:attributes="checked False" />'
             '<input type="input" tal:attributes="checked True" />'
             '<input type="input" tal:attributes="checked None" />'
@@ -329,7 +330,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             )
 
     def test_boolean_attributes(self):
-        template = self.factory(
+        template = self.from_string(
             '<input type="input" tal:attributes="checked False" />'
             '<input type="input" tal:attributes="checked True" />'
             '<input type="input" tal:attributes="checked None" />'
@@ -351,30 +352,27 @@ class ZopePageTemplatesTest(RenderTestCase):
             )
 
     def test_default_debug_flag(self):
-        from chameleon.zpt.template import PageTemplateFile
         from chameleon.config import DEBUG_MODE
-        template = PageTemplateFile(
+        template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt'),
             )
         self.assertEqual(template.debug, DEBUG_MODE)
         self.assertTrue('debug' not in template.__dict__)
 
     def test_debug_flag_on_string(self):
-        from chameleon.zpt.template import PageTemplate
         from chameleon.loader import ModuleLoader
 
         with open(os.path.join(self.root, 'inputs', 'hello_world.pt')) as f:
             source = f.read()
 
-        template = PageTemplate(source, debug=True)
+        template = self.from_string(source, debug=True)
 
         self.assertTrue(template.debug)
         self.assertTrue(isinstance(template.loader, ModuleLoader))
 
     def test_debug_flag_on_file(self):
-        from chameleon.zpt.template import PageTemplateFile
         from chameleon.loader import ModuleLoader
-        template = PageTemplateFile(
+        template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt'),
             debug=True,
             )
@@ -382,11 +380,10 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertTrue(isinstance(template.loader, ModuleLoader))
 
     def test_tag_mismatch(self):
-        from chameleon.zpt.template import PageTemplate
         from chameleon.exc import ParseError
 
         try:
-            template = PageTemplate("""
+            self.from_string("""
             <div metal:use-macro="layout">
             <div metal:fill-slot="name"></dav>
             </div>
@@ -396,6 +393,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             self.assertTrue("</dav>" in str(exc))
         else:
             self.fail("Expected error.")
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
@@ -435,8 +433,6 @@ class ZopeTemplatesTestSuite(RenderTestCase):
         self.execute(".txt", PageTextTemplateFile)
 
     def execute(self, ext, factory, **kwargs):
-        from chameleon.utils import DebuggingOutputStream
-
         def translate(msgid, domain=None, mapping=None, context=None,
                       target_language=None, default=None):
             if default is None:
@@ -474,7 +470,6 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             template = factory(
                 filename,
                 keep_source=True,
-                output_stream_factory=DebuggingOutputStream,
                 )
 
             params = kwargs.copy()
