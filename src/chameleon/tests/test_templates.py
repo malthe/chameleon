@@ -112,7 +112,6 @@ class RenderTestCase(TestCase):
     root = os.path.dirname(__file__)
 
     def find_files(self, ext):
-        from ..utils import read_encoded
         inputs = os.path.join(self.root, "inputs")
         outputs = os.path.join(self.root, "outputs")
         for filename in sorted(os.listdir(inputs)):
@@ -131,19 +130,6 @@ class RenderTestCase(TestCase):
                 self.fail("Missing output for: %s." % name)
 
             for output in globbed:
-                if not os.path.exists(output):
-                    f = open(path, 'rb')
-                    try:
-                        want = read_encoded(f.read())
-                    finally:
-                        f.close()
-                else:
-                    g = open(output, 'rb')
-                    try:
-                        want = read_encoded(g.read())
-                    finally:
-                        g.close()
-
                 name, ext = os.path.splitext(output)
                 basename = os.path.basename(name)
                 if '-' in basename:
@@ -151,7 +137,7 @@ class RenderTestCase(TestCase):
                 else:
                     language = None
 
-                yield path, want, language
+                yield path, output, language
 
 
 class ZopePageTemplatesTest(RenderTestCase):
@@ -491,16 +477,12 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 default[len(stripped):]
                 )
 
-        for filename, want, language in self.find_files(ext):
+        for input_path, output_path, language in self.find_files(ext):
             # Make friendly title so we can locate the generated
             # source when debugging
-            title = os.path.basename(filename).\
-                    replace('-', '_').\
-                    replace('.', '_')
-
-            self.shortDescription = lambda: filename
+            self.shortDescription = lambda: input_path
             template = factory(
-                filename,
+                input_path,
                 keep_source=True,
                 )
 
@@ -529,10 +511,25 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             from doctest import OutputChecker
             checker = OutputChecker()
 
+            if not os.path.exists(output_path):
+                output = template.body
+            else:
+                with open(output_path, 'rb') as f:
+                    output = f.read()
+
+            if template.content_type == 'text/xml':
+                encoding = template.read_xml_encoding(output) or \
+                           template.default_encoding
+            else:
+                content_type, encoding = template.detect_encoding(output)
+
+            want = output.decode(encoding)
+
             if checker.check_output(want, got, 0) is False:
                 from doctest import Example
-                example = Example(filename, want)
+                example = Example(input_path, want)
                 diff = checker.output_difference(
                     example, got, 0)
                 self.fail("(%s) - \n%s\n\nCode:\n%s" % (
-                    filename, diff.rstrip('\n'), template.source.encode('utf-8')))
+                    input_path, diff.rstrip('\n'),
+                    template.source.encode('utf-8')))

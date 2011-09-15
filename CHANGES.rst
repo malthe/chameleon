@@ -5,6 +5,9 @@ In next release ...
 
 Bugfixes:
 
+- An encoding specified in the XML document preamble is now read and
+  used to decode the template input to unicode. This fixes issue #55.
+
 - Encoded expression input on Python 3 is now correctly
   decoded. Previously, the string representation output would be
   included instead of an actually decoded string.

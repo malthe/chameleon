@@ -75,6 +75,11 @@ RE_META = re.compile(
     re.IGNORECASE
     )
 
+RE_ENCODING = re.compile(
+    r'encoding\s*=\s*(?:"|\')(?P<encoding>[\w\-]+)(?:"|\')'.encode('ascii'),
+    re.IGNORECASE
+    )
+
 log = logging.getLogger('chameleon.template')
 
 
@@ -323,6 +328,12 @@ class BaseTemplateFile(BaseTemplate):
 
         return None, self.default_encoding
 
+    def read_xml_encoding(self, body):
+        if body.startswith('<?xml'.encode('ascii')):
+            match = RE_ENCODING.search(body)
+            if match is not None:
+                return match.group('encoding').decode('ascii')
+
     def mtime(self):
         try:
             return os.path.getmtime(self.filename)
@@ -342,7 +353,8 @@ class BaseTemplateFile(BaseTemplate):
         if content_type == "text/xml":
             body += fd.read()
             fd.close()
-            body = body.decode('utf-8')
+            encoding = self.read_xml_encoding(body) or self.default_encoding
+            body = body.decode(encoding)
         else:
             body += fd.read()
             content_type, encoding = self.detect_encoding(body)
