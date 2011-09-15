@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Expression result conversion steps are now correctly included in
+  error handling such that the exception output points to the
+  expression location.
+
 2.4.3 (2011-09-13)
 ------------------
 

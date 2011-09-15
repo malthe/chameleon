@@ -266,8 +266,13 @@ class ExpressionEngine(object):
     def parse(self, string):
         expression = self._parser(string)
 
-        def exception_wrapper(*args):
-            stmts = expression(*args)
+        def exception_wrapper(target, engine, result_type=None, *args):
+            stmts = expression(target, engine)
+
+            if result_type is not None:
+                method = getattr(self, '_convert_%s' % result_type)
+                steps = method(target, *args)
+                stmts.extend(steps)
 
             try:
                 line, column = string.location
@@ -345,16 +350,13 @@ class ExpressionCompiler(object):
         self.engine = engine
 
     def assign_bool(self, target, s):
-        return self.assign_value(target) + \
-               self.engine._convert_bool(target, s)
+        return self.compiler(target, self.engine, "bool", s)
 
     def assign_text(self, target):
-        return self.assign_value(target) + \
-               self.engine._convert_text(target)
+        return self.compiler(target, self.engine, "text")
 
     def assign_value(self, target):
         return self.compiler(target, self.engine)
-
 
 
 class ExpressionEvaluator(object):
