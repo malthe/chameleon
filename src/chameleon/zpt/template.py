@@ -22,6 +22,7 @@ from ..template import BaseTemplateFile
 from ..compiler import ExpressionEngine
 from ..loader import TemplateLoader
 from ..astutil import Builtin
+from ..utils import decode_string
 
 from .program import MacroProgram
 
@@ -29,11 +30,6 @@ try:
     bytes
 except NameError:
     bytes = str
-
-try:
-    str = unicode
-except NameError:
-    pass
 
 
 class PageTemplate(BaseTemplate):
@@ -196,9 +192,9 @@ class PageTemplate(BaseTemplate):
                 return txl(msgid, **kwargs)
 
             def decode(inst):
-                return str(inst, encoding, 'ignore')
+                return decode_string(inst, encoding, 'ignore')
         else:
-            decode = str
+            decode = decode_string
 
         setdefault = vars.setdefault
         setdefault("translate", translate)

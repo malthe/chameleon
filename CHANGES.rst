@@ -3,7 +3,11 @@ Changes
 
 In next release ...
 
-Features:
+Bugfixes:
+
+- Encoded expression input on Python 3 is now correctly
+  decoded. Previously, the string representation output would be
+  included instead of an actually decoded string.
 
 - Expression result conversion steps are now correctly included in
   error handling such that the exception output points to the
