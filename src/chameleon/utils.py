@@ -88,6 +88,20 @@ def substitute_entity(match, n2cp=htmlentitydefs.name2codepoint):
             return match.group()
 
 
+def derive_formatted_exception(exc, cls, formatter):
+    try:
+        new = type(cls.__name__, (cls, Exception), {
+            '__str__': formatter,
+            })
+        exc.__class__ = new
+    except TypeError:
+        d = exc.__dict__
+        exc = Exception.__new__(new)
+        exc.__dict__ = d
+
+    return exc
+
+
 def unescape(string):
     for name in ('lt', 'gt', 'quot'):
         cp = htmlentitydefs.name2codepoint[name]

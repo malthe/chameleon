@@ -36,6 +36,7 @@ from .utils import DebuggingOutputStream
 from .utils import Scope
 from .utils import join
 from .utils import mangle
+from .utils import derive_formatted_exception
 from .nodes import Module
 
 try:
@@ -197,16 +198,7 @@ class BaseTemplate(object):
                     log.warn("Unable to copy exception of type '%s'." % name)
                 else:
                     formatter = ExceptionFormatter(errors, econtext, rcontext)
-
-                    try:
-                        new = type(cls.__name__, (cls, Exception), {
-                            '__str__': formatter,
-                            })
-                        exc.__class__ = new
-                    except TypeError:
-                        d = exc.__dict__
-                        exc = Exception.__new__(new)
-                        exc.__dict__ = d
+                    exc = derive_formatted_exception(exc, cls, formatter)
 
                 raise_with_traceback(exc, tb)
 
