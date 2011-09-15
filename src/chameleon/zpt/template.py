@@ -188,7 +188,7 @@ class PageTemplate(BaseTemplate):
 
             def translate(msgid, **kwargs):
                 if isinstance(msgid, bytes):
-                    msgid = str(msgid, encoding)
+                    msgid = decode_string(msgid, encoding)
                 return txl(msgid, **kwargs)
 
             def decode(inst):
