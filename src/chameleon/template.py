@@ -252,7 +252,7 @@ class BaseTemplate(object):
     def _digest(self, body):
         class_name = type(self).__name__.encode('utf-8')
         sha = pkg_digest.copy()
-        sha.update(body.encode('utf-8'))
+        sha.update(body.encode('utf-8', 'ignore'))
         sha.update(class_name)
         return sha.hexdigest()
 
