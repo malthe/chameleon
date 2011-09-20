@@ -462,9 +462,9 @@ class MacroProgram(ElementProgram):
         except KeyError:
             ON_ERROR = skip
         else:
-            expression = nodes.Value(clause)
+            key, value = tal.parse_substitution(clause)
             translate = True if ns.get((I18N, 'translate')) == '' else False
-            fallback = nodes.Content(expression, (), translate)
+            fallback = self._make_content_node(value, None, key, translate)
             ON_ERROR = partial(nodes.OnError, fallback)
 
         clause = ns.get((META, 'interpolation'))
@@ -557,20 +557,21 @@ class MacroProgram(ElementProgram):
         char_escape = ('&', '<', '>') if key == 'text' else ()
         content = nodes.Content(value, char_escape, translate)
 
-        content = nodes.Condition(
-            nodes.Identity(value, marker("default")),
-            default,
-            content,
-            )
+        if default is not None:
+            content = nodes.Condition(
+                nodes.Identity(value, marker("default")),
+                default,
+                content,
+                )
 
-        # Cache expression to avoid duplicate evaluation
-        content = nodes.Cache([value], content)
+            # Cache expression to avoid duplicate evaluation
+            content = nodes.Cache([value], content)
 
-        # Define local marker "default"
-        content = nodes.Define(
-            [nodes.Alias(["default"], marker("default"))],
-            content
-            )
+            # Define local marker "default"
+            content = nodes.Define(
+                [nodes.Alias(["default"], marker("default"))],
+                content
+                )
 
         return content
 

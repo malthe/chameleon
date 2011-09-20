@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- The ``tal:on-error`` statement is a substitution statement and
+  should support the "text" and "structure" insertion methods.
+
 2.4.4 (2011-09-15)
 ------------------
 
