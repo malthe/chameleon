@@ -1,5 +1,5 @@
 <html>
-  <body tal:on-error="string:error">
+  <body tal:on-error="string:${type(error).__name__} thrown.">
     <div tal:content="undefined" />
   </body>
 </html>

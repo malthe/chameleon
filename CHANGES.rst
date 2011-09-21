@@ -5,6 +5,9 @@ In next release ...
 
 Bugfixes:
 
+- The ``tal:on-error`` handler should have a ``error`` variable
+  defined that has the value of the exception thrown.
+
 - The ``tal:on-error`` statement is a substitution statement and
   should support the "text" and "structure" insertion methods.
 

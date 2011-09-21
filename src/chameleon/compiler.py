@@ -840,15 +840,20 @@ class Compiler(object):
         fallback = identifier("__fallback")
         body += template("fallback = len(__stream)", fallback=fallback)
 
+        self._enter_assignment(('error', ))
+        fallback_body = self.visit(node.fallback)
+        self._leave_assignment(('error', ))
+
         body += [ast.TryExcept(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
                 type=ast.Tuple(
                     elts=[Builtin(cls.__name__) for cls in self.exceptions],
                     ctx=ast.Load()),
-                name=None,
-                body=(template("del __stream[fallback:]", fallback=fallback) + \
-                      self.visit(node.fallback)
+                name=store("__error"),
+                body=(template("econtext['error'] = __error") + \
+                      template("del __stream[fallback:]", fallback=fallback) + \
+                      fallback_body
                       ),
                 )]
             )]
