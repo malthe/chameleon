@@ -18,6 +18,7 @@ try:
 except ImportError:
     from chameleon import ast24 as ast
 
+import sys
 import logging
 import weakref
 
@@ -468,7 +469,10 @@ class ASTCodeGenerator(object):
             self._write(' ')
             self.visit(node.type)
         if getattr(node, 'name', None):
-            self._write(', ')
+            if sys.version_info[0] == 2:
+                self._write(', ')
+            else:
+                self._write(' as ')
             self.visit(node.name)
         self._write(':')
         self._change_indent(1)
