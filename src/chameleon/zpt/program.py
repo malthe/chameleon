@@ -465,7 +465,7 @@ class MacroProgram(ElementProgram):
             key, value = tal.parse_substitution(clause)
             translate = True if ns.get((I18N, 'translate')) == '' else False
             fallback = self._make_content_node(value, None, key, translate)
-            ON_ERROR = partial(nodes.OnError, fallback)
+            ON_ERROR = partial(nodes.OnError, fallback, 'error')
 
         clause = ns.get((META, 'interpolation'))
         if clause in ('false', 'off'):

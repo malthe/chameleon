@@ -1,5 +1,5 @@
 <html>
-  <body tal:on-error="string:${type(error).__name__} thrown.">
+  <body tal:on-error="string:${type(error.value).__name__} thrown at ${error.lineno}:${error.offset}.">
     <div tal:content="undefined" />
   </body>
 </html>

@@ -410,3 +410,20 @@ class RepeatDict(dict):
         self[key] = RepeatItem(iterator, length)
 
         return iterator, length
+
+
+class ErrorInfo(object):
+    """Information about an exception passed to an on-error handler."""
+
+    if interfaces is not None:
+        zope.interface.implements(interfaces.ITALExpressionErrorInfo)
+
+    def __init__(self, err, position=(None, None)):
+        if isinstance(err, Exception):
+            self.type = err.__class__
+            self.value = err
+        else:
+            self.type = err
+            self.value = None
+        self.lineno = position[0]
+        self.offset = position[1]

@@ -40,6 +40,7 @@ from .codegen import TemplateCodeGenerator
 from .codegen import template
 
 from .tales import StringExpr
+from .tal import ErrorInfo
 from .i18n import fast_translate
 
 from .nodes import Text
@@ -840,9 +841,15 @@ class Compiler(object):
         fallback = identifier("__fallback")
         body += template("fallback = len(__stream)", fallback=fallback)
 
-        self._enter_assignment(('error', ))
+        self._enter_assignment((node.name, ))
         fallback_body = self.visit(node.fallback)
-        self._leave_assignment(('error', ))
+        self._leave_assignment((node.name, ))
+
+        error_assignment = template(
+            "econtext[key] = cls(__exc, rcontext['__error__'][-1][1:3])",
+            cls=ErrorInfo,
+            key=ast.Str(s=node.name),
+            )
 
         body += [ast.TryExcept(
             body=self.visit(node.node),
@@ -850,8 +857,8 @@ class Compiler(object):
                 type=ast.Tuple(
                     elts=[Builtin(cls.__name__) for cls in self.exceptions],
                     ctx=ast.Load()),
-                name=store("__error"),
-                body=(template("econtext['error'] = __error") + \
+                name=store("__exc"),
+                body=(error_assignment + \
                       template("del __stream[fallback:]", fallback=fallback) + \
                       fallback_body
                       ),

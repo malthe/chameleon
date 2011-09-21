@@ -1,6 +1,21 @@
 from zope.interface import Interface
 
 
+class ITALExpressionErrorInfo(Interface):
+
+    type = Attribute("type",
+                     "The exception class.")
+
+    value = Attribute("value",
+                      "The exception instance.")
+
+    lineno = Attribute("lineno",
+                       "The line number the error occurred on in the source.")
+
+    offset = Attribute("offset",
+                       "The character offset at which the error occurred.")
+
+
 class ITALIterator(Interface):  # pragma: no cover
     """A TAL iterator
 

@@ -185,7 +185,7 @@ class Domain(Node):
 
 
 class OnError(Node):
-    _fields = "fallback", "node"
+    _fields = "fallback", "name", "node"
 
 
 class UseInternalMacro(Node):
