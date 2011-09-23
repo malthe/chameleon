@@ -470,6 +470,7 @@ class ASTCodeGenerator(object):
             self.visit(node.type)
         if getattr(node, 'name', None):
             if sys.version_info[0] == 2:
+                assert getattr(node, 'type', None)
                 self._write(', ')
             else:
                 self._write(' as ')

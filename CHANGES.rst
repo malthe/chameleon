@@ -5,6 +5,8 @@ In next release ...
 
 Bugfixes:
 
+- The ``tal:on-error`` statement should catch all exceptions.
+
 - Fixed issue that would prevent escaping of interpolation expression
   values appearing in text.
 

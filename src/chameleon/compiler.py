@@ -858,9 +858,7 @@ class Compiler(object):
         body += [ast.TryExcept(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
-                type=ast.Tuple(
-                    elts=[Builtin(cls.__name__) for cls in self.exceptions],
-                    ctx=ast.Load()),
+                type=ast.Tuple(elts=[Builtin("Exception")], ctx=ast.Load()),
                 name=store("__exc"),
                 body=(error_assignment + \
                       template("del __stream[fallback:]", fallback=fallback) + \
