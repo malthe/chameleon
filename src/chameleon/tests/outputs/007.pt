@@ -2,6 +2,7 @@
   <body>
     Hello world!
     <div>Hello world!</div>
+    &lt;type 'str'&gt;
     &&
 
     $leftalone

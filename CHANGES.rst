@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed issue that would prevent escaping of interpolation expression
+  values appearing in text.
+
 2.4.5 (2011-09-21)
 ------------------
 

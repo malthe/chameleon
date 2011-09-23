@@ -280,7 +280,7 @@ class ZopePageTemplatesTest(RenderTestCase):
                 return '<dummy>'
 
         rendered = template(test=dummy())
-        self.assertEqual(rendered, '<dummy>')
+        self.assertEqual(rendered, '&lt;dummy&gt;')
 
     def test_repr(self):
         template = self.from_file(

@@ -4,5 +4,6 @@
     <img src="" alt="copyright (c) ${2010}" tal:attributes="src string:$hash" />
     <img src="" alt="copyright (c) ${2010}" tal:attributes="src string:${hash}" />
     <img src="${None}" alt="$ignored" />
+    <img src="" alt="${'%stype \'str\'%s' % (chr(60), chr(62))}" />
   </body>
 </html>

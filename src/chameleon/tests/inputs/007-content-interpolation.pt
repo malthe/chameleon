@@ -2,6 +2,7 @@
   <body>
     ${'Hello world!'}
     ${literal}
+    ${"%stype 'str'%s" % (chr(60), chr(62))}
     &&
     ${None}
     $leftalone

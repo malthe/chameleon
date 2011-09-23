@@ -266,8 +266,11 @@ class ExpressionEngine(object):
 
     def parse(self, string):
         expression = self._parser(string)
+        compiler = self.get_compiler(expression, string)
+        return ExpressionCompiler(compiler, self)
 
-        def exception_wrapper(target, engine, result_type=None, *args):
+    def get_compiler(self, expression, string):
+        def compiler(target, engine, result_type=None, *args):
             stmts = expression(target, engine)
 
             if result_type is not None:
@@ -298,7 +301,7 @@ class ExpressionEngine(object):
                     )],
                 )]
 
-        return ExpressionCompiler(exception_wrapper, self)
+        return compiler
 
     def _convert_bool(self, target, s):
         """Converts value given by ``target`` to a string ``s`` if the
@@ -317,16 +320,19 @@ class ExpressionEngine(object):
         if self._char_escape:
             # This is a cop-out - we really only support a very select
             # set of escape characters
-            for supported in '"', '\'', '':
-                if supported in self._char_escape:
-                    quote = supported
-                    break
+            other = set(self._char_escape) - self.supported_char_escape_set
 
-            if set(self._char_escape) - \
-                   self.supported_char_escape_set != set((quote, )):
-                raise RuntimeError(
-                    "Unsupported escape set: %s." % repr(self._char_escape)
-                    )
+            if other:
+                for supported in '"', '\'', '':
+                    if supported in self._char_escape:
+                        quote = supported
+                        break
+                else:
+                    raise RuntimeError(
+                        "Unsupported escape set: %s." % repr(self._char_escape)
+                        )
+            else:
+                quote = '\0'
 
             entity = char2entity(quote or '\0')
 
@@ -598,23 +604,21 @@ class ExpressionTransform(object):
 
     def visit_Interpolation(self, node, target):
         expr = node.value
-        if isinstance(expr, Value):
-            engine = self.engine_factory()
-            attr = "value"
-        elif isinstance(expr, Substitution):
+        if isinstance(expr, Substitution):
             engine = self.engine_factory(
                 char_escape=expr.char_escape,
                 default=expr.default,
                 )
             attr = "text"
+        elif isinstance(expr, Value):
+            engine = self.engine_factory()
+            attr = "value"
         else:
             raise RuntimeError("Bad value: %r." % node.value)
 
         expression = StringExpr(expr.value, node.braces_required)
-        compiler = ExpressionCompiler(expression, engine)
-        assign = getattr(compiler, "assign_%s" % attr)
-
-        return assign(target)
+        compiler = engine.get_compiler(expression, expr.value)
+        return compiler(target, engine)
 
     def visit_Translate(self, node, target):
         if node.msgid is not None:
