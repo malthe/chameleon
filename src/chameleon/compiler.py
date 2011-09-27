@@ -5,25 +5,6 @@ import logging
 import threading
 import functools
 
-try:
-    import ast
-except ImportError:
-    from chameleon import ast24 as ast
-
-try:
-    fast_string = str
-    str = unicode
-    bytes = fast_string
-except NameError:
-    long = int
-    basestring = str
-    fast_string = str
-
-try:
-    import __builtin__ as builtins
-except ImportError:
-    import builtins
-
 from .astutil import load
 from .astutil import store
 from .astutil import param
@@ -52,9 +33,21 @@ from .nodes import Context
 
 from .config import DEBUG_MODE
 from .exc import TranslationError
+
 from .utils import DebuggingOutputStream
 from .utils import char2entity
 from .utils import ListDictProxy
+from .utils import native_string
+from .utils import byte_string
+from .utils import string_type
+from .utils import unicode_string
+from .utils import version
+from .utils import ast
+from .utils import builtins
+
+
+if version >= (3, 0, 0):
+    long = int
 
 log = logging.getLogger('chameleon.compiler')
 
@@ -97,12 +90,12 @@ def load_econtext(name):
 
 
 def store_econtext(name):
-    name = fast_string(name)
+    name = native_string(name)
     return subscript(name, load("econtext"), ast.Store())
 
 
 def store_rcontext(name):
-    name = fast_string(name)
+    name = native_string(name)
     return subscript(name, load("rcontext"), ast.Store())
 
 
@@ -127,9 +120,12 @@ def emit_bool(target, s, default_marker=None,
     else:
         target = None
 
+
 @template
-def emit_convert(target, encoded=bytes, str=str, long=long, type=type,
-                 default_marker=None, default=None):  # pragma: no cover
+def emit_convert(
+    target, encoded=byte_string, str=unicode_string,
+    long=long, type=type,
+    default_marker=None, default=None):  # pragma: no cover
     if target is None:
         pass
     elif target is default_marker:
@@ -158,8 +154,9 @@ def emit_translate(target, msgid, default=None):  # pragma: no cover
 
 @template
 def emit_convert_and_escape(
-    target, quote=None, quote_entity=None, str=str, long=long,
-    type=type, encoded=bytes, default_marker=None, default=None):  # pragma: no cover
+    target, quote=None, quote_entity=None, str=unicode_string, long=long,
+    type=type, encoded=byte_string,
+    default_marker=None, default=None):  # pragma: no cover
     if target is None:
         pass
     elif target is default_marker:
@@ -178,7 +175,8 @@ def emit_convert_and_escape(
                         target = target.__html__
                     except:
                         __converted = convert(target)
-                        target = str(target) if target is __converted else __converted
+                        target = str(target) if target is __converted \
+                                 else __converted
                     else:
                         raise RuntimeError
             except RuntimeError:
@@ -522,7 +520,7 @@ class ExpressionTransform(object):
         self.transform = transform
 
     def __call__(self, expression, target):
-        if isinstance(target, basestring):
+        if isinstance(target, string_type):
             target = store(target)
 
         stmts = self.translate(expression, target)
@@ -536,7 +534,7 @@ class ExpressionTransform(object):
         return stmts
 
     def translate(self, expression, target):
-        if isinstance(target, basestring):
+        if isinstance(target, string_type):
             target = store(target)
 
         cached = self.cache.get(expression)
@@ -548,7 +546,7 @@ class ExpressionTransform(object):
         else:
             # The engine interface supports simple strings, which
             # default to expression nodes
-            if isinstance(expression, basestring):
+            if isinstance(expression, string_type):
                 expression = Value(expression, True)
 
             kind = type(expression).__name__
@@ -609,10 +607,8 @@ class ExpressionTransform(object):
                 char_escape=expr.char_escape,
                 default=expr.default,
                 )
-            attr = "text"
         elif isinstance(expr, Value):
             engine = self.engine_factory()
-            attr = "value"
         else:
             raise RuntimeError("Bad value: %r." % node.value)
 
@@ -924,7 +920,7 @@ class Compiler(object):
         for name in node.names:
             if not node.local:
                 assignment += template(
-                    "rcontext[KEY] = __value", KEY=ast.Str(s=fast_string(name))
+                    "rcontext[KEY] = __value", KEY=ast.Str(s=native_string(name))
                     )
 
         return assignment
@@ -1022,7 +1018,7 @@ class Compiler(object):
                 body.insert(
                     0, ast.Assign(
                         targets=[store(stream)],
-                        value=ast.Str(s=fast_string(""))))
+                        value=ast.Str(s=native_string(""))))
 
             mapping = ast.Dict(keys=keys, values=values)
         else:
@@ -1115,15 +1111,19 @@ class Compiler(object):
         else:
             render = "render_%s" % mangle(node.name)
 
-        return template("f(__stream, econtext.copy(), rcontext, __i18n_domain)", f=render) + \
-               template("econtext.update(rcontext)")
+        return template(
+            "f(__stream, econtext.copy(), rcontext, __i18n_domain)",
+            f=render) + \
+            template("econtext.update(rcontext)")
 
     def visit_DefineSlot(self, node):
         name = "__slot_%s" % mangle(node.name)
         self._slots.add(name)
         body = self.visit(node.node)
 
-        orelse = template("SLOT(__stream, econtext.copy(), rcontext, __i18n_domain)", SLOT=name)
+        orelse = template(
+            "SLOT(__stream, econtext.copy(), rcontext, __i18n_domain)",
+            SLOT=name)
         test = ast.Compare(
             left=load(name),
             ops=[ast.Is()],
@@ -1215,7 +1215,9 @@ class Compiler(object):
         return (
             callbacks + \
             assignment + \
-            template("__macro.include(__stream, econtext.copy(), rcontext, __i18n_domain)") + \
+            template(
+                "__macro.include(__stream, econtext.copy(), " \
+                "rcontext, __i18n_domain)") + \
             template("econtext.update(rcontext)")
             )
 
@@ -1239,7 +1241,7 @@ class Compiler(object):
         if len(node.names) > 1:
             targets = [
                 ast.Tuple(elts=[
-                    subscript(fast_string(name), load(context), ast.Store())
+                    subscript(native_string(name), load(context), ast.Store())
                     for name in node.names], ctx=ast.Store())
                 for context in contexts
                 ]
@@ -1250,7 +1252,7 @@ class Compiler(object):
         else:
             name = node.names[0]
             targets = [
-                subscript(fast_string(name), load(context), ast.Store())
+                subscript(native_string(name), load(context), ast.Store())
                 for context in contexts
                 ]
 
@@ -1320,7 +1322,7 @@ class Compiler(object):
             for stmt in template(
                 "BACKUP = get(KEY, __marker)",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(s=fast_string(name)),
+                KEY=ast.Str(s=native_string(name)),
                 ):
                 yield stmt
 
@@ -1330,6 +1332,6 @@ class Compiler(object):
                 "if BACKUP is __marker: del econtext[KEY]\n"
                 "else:                 econtext[KEY] = BACKUP",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(s=fast_string(name)),
+                KEY=ast.Str(s=native_string(name)),
                 ):
                 yield stmt

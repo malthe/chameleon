@@ -24,38 +24,24 @@ else:
                 pkg_digest.update(version)
 
 
-from .compiler import Compiler
-from .loader import ModuleLoader
-from .loader import MemoryLoader
 from .exc import TemplateError
 from .exc import ExceptionFormatter
+from .compiler import Compiler
 from .config import DEBUG_MODE
 from .config import AUTO_RELOAD
 from .config import EAGER_PARSING
 from .config import CACHE_DIRECTORY
+from .loader import ModuleLoader
+from .loader import MemoryLoader
+from .nodes import Module
 from .utils import DebuggingOutputStream
 from .utils import Scope
 from .utils import join
 from .utils import mangle
 from .utils import derive_formatted_exception
 from .utils import read_bytes
-from .nodes import Module
-
-try:
-    byte_string = str
-    str = unicode
-    bytes = byte_string
-except NameError:
-    def byte_string(string):
-        return string.encode('utf-8')
-
-version = sys.version_info[:3]
-if version < (3, 0, 0):
-    from .py25 import raise_with_traceback
-else:
-    def raise_with_traceback(exc, tb):
-        exc.__traceback__ = tb
-        raise exc
+from .utils import raise_with_traceback
+from .utils import byte_string
 
 
 log = logging.getLogger('chameleon.template')
@@ -126,7 +112,7 @@ class BaseTemplate(object):
     def __init__(self, body, **config):
         self.__dict__.update(config)
 
-        if not isinstance(body, str):
+        if isinstance(body, byte_string):
             body, encoding, content_type = read_bytes(
                 body, self.default_encoding
                 )

@@ -1,18 +1,29 @@
 import os
 import re
+import sys
 import codecs
 
+version = sys.version_info[:3]
 
 try:
-    import htmlentitydefs
+    import ast
 except ImportError:
-    from html import entities as htmlentitydefs
+    from chameleon import ast24 as ast
 
-try:
+# Python 2
+if version < (3, 0, 0):
+    import htmlentitydefs
+    import __builtin__ as builtins
+
+    from .py25 import raise_with_traceback
+
     chr = unichr
-    native = str
+    native_string = str
     decode_string = unicode
     encode_string = str
+    unicode_string = unicode
+    string_type = basestring
+    byte_string = str
 
     def safe_native(s, encoding='utf-8'):
         if not isinstance(s, unicode):
@@ -20,18 +31,28 @@ try:
 
         return s.encode(encoding)
 
-except NameError:
+# Python 3
+else:
+    from html import entities as htmlentitydefs
+    import builtins
+
+    byte_string = bytes
+    string_type = str
+    native_string = str
     decode_string = bytes.decode
-    basestring = str
-    unicode = str
-    native = str
-    encode_string = lambda s: bytes(s, 'ascii')
+    encode_string = lambda s: bytes(s, 'utf-8')
+    unicode_string = str
 
     def safe_native(s, encoding='utf-8'):
         if not isinstance(s, str):
             s = decode_string(s, encoding, 'replace')
 
         return s
+
+    def raise_with_traceback(exc, tb):
+        exc.__traceback__ = tb
+        raise exc
+
 
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
@@ -205,7 +226,7 @@ def join(stream):
         # Loop through stream and coerce each element into unicode;
         # this should raise an exception
         for element in stream:
-            unicode(element)
+            unicode_string(element)
 
         # In case it didn't, re-raise the original exception
         raise
@@ -213,7 +234,7 @@ def join(stream):
 
 def decode_htmlentities(string):
     """
-    >>> native(decode_htmlentities('&amp;amp;'))
+    >>> native_string(decode_htmlentities('&amp;amp;'))
     '&amp;'
 
     """
@@ -267,10 +288,10 @@ def limit_string(s, max_length=53):
 def format_kwargs(kwargs):
     items = []
     for name, value in kwargs.items():
-        if isinstance(value, (native, unicode)):
+        if isinstance(value, string_type):
             short = limit_string(value)
             items.append((name, short.replace('\n', '\\n')))
-        elif isinstance(value, (int, float, basestring)):
+        elif isinstance(value, (int, float)):
             items.append((name, value))
         elif isinstance(value, dict):
             items.append((name, '{...} (%d)' % len(value)))
@@ -322,10 +343,10 @@ class descriptorint(object):
 
 class DebuggingOutputStream(list):
     def append(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, string_type):
             raise TypeError(value)
 
-        unicode(value)
+        unicode_string(value)
         list.append(self, value)
 
 

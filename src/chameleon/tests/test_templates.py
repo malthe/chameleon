@@ -16,12 +16,8 @@ try:
 except ImportError:
     from unittest import TestCase
 
-try:
-    unicode
-except NameError:
-    unicode = str
-else:
-    bytes = str
+
+from chameleon.utils import byte_string
 
 
 class Message(object):
@@ -519,7 +515,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                      enumerate(template.source.split(
                          '\n'))])))
 
-            if isinstance(got, bytes):
+            if isinstance(got, byte_string):
                 got = got.decode('utf-8')
 
             from doctest import OutputChecker
