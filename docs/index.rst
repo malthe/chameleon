@@ -76,17 +76,31 @@ is simple enough to grasp from an example:
 
 The ``${...}`` notation is short-hand for text insertion [3]_. The
 Python-expression inside the braces is evaluated and the result
-included in the output (all inserted text is escaped by default; the
-exception to this rule is when an object implements an ``__html__()``
-method [4]_).
-
-The macro language (known as the *macro expansion language* or METAL)
-provides a means of filling in portions of a generic template:
+included in the output. By default, the string is escaped before
+insertion. To avoid this, use the ``structure:`` prefix:
 
 .. code-block:: genshi
 
-  <html xmlns="http://www.w3.org/1999/xhtml">             <metal:main use-macro="load: ../main.pt">
-    <head>                                                   <p metal:fill-slot="content" tal:replace="structure document.body" />
+  <div>${structure: ...}</div>
+
+Note that if the expression result is an object that implements an
+``__html__()`` method [4]_, this method will be called and the result
+treated as "structure". An example of such an object is the
+``Markup`` class that's included as a utility::
+
+  from chameleon.utils import Markup
+  username = "<tt>%s</tt>" % username
+
+The macro language (known as the *macro expansion language* or METAL)
+provides a means of filling in portions of a generic template.
+
+On the left, the macro template; on the right, a template that loads
+and uses the macro, filling in the "content" slot:
+
+.. code-block:: genshi
+
+  <html xmlns="http://www.w3.org/1999/xhtml">             <metal:main use-macro="load: main.pt">
+    <head>                                                   <p metal:fill-slot="content">${structure: document.body}<p/>
       <title>Example &mdash; ${document.title}</title>    </metal:main>
     </head>
     <body>
@@ -98,19 +112,13 @@ provides a means of filling in portions of a generic template:
     </body>
   </html>
 
-The template on the left is the macro and the template on the right
-uses the macro and fills in the "content" slot.
+In the example, the expression type :ref:`load <load-expression>` is
+used to retrieve a template from the file system using a path relative
+to the calling template.
 
-In the example, the built-in :ref:`load <load-expression>` expression
-is used to retrieve a template from the file system using a path
-relative to the calling template.
-
-It's possible to define several (named) macros in a single template
-and also to extend an existing macro and define additional slots. Note
-that variables defined in the template will be available to the macro
-(such as in the example with ``document``); in addition, a macro may
-define *global* variables which will be available to the calling
-template.
+The METAL system works with TAL such that you can for instance fill in
+a slot that appears in a ``tal:repeat`` loop, or refer to variables
+defined using ``tal:define``.
 
 The third language subset is the translation system (known as the
 *internationalization language* or I18N):
