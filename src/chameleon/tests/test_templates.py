@@ -186,6 +186,20 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_attributes_on_tal_tag_fails(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
 
+    def test_encoded(self):
+        filename = '074-encoded-template.pt'
+        with open(os.path.join(self.root, 'inputs', filename), 'rb') as f:
+            body = f.read()
+
+        self.from_string(body)
+
+    def test_utf8_encoded(self):
+        filename = '073-utf8-encoded.pt'
+        with open(os.path.join(self.root, 'inputs', filename), 'rb') as f:
+            body = f.read()
+
+        self.from_string(body)
+
     def test_unicode_decode_error(self):
         template = self.from_file(
             os.path.join(self.root, 'inputs', 'greeting.pt')
@@ -517,11 +531,15 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 with open(output_path, 'rb') as f:
                     output = f.read()
 
+            from chameleon.utils import read_xml_encoding
+            from chameleon.utils import detect_encoding
+
             if template.content_type == 'text/xml':
-                encoding = template.read_xml_encoding(output) or \
+                encoding = read_xml_encoding(output) or \
                            template.default_encoding
             else:
-                content_type, encoding = template.detect_encoding(output)
+                content_type, encoding = detect_encoding(
+                    output, template.default_encoding)
 
             want = output.decode(encoding)
 

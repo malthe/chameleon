@@ -1,5 +1,6 @@
+from __future__ import with_statement
+
 import os
-import re
 import sys
 import copy
 import atexit
@@ -37,6 +38,7 @@ from .utils import Scope
 from .utils import join
 from .utils import mangle
 from .utils import derive_formatted_exception
+from .utils import read_bytes
 from .nodes import Module
 
 try:
@@ -55,30 +57,6 @@ else:
         exc.__traceback__ = tb
         raise exc
 
-
-XML_PREFIXES = [
-    byte_string(prefix) for prefix in(
-        "<?xml",                      # ascii, utf-8
-        "\xef\xbb\xbf<?xml",          # utf-8 w/ byte order mark
-        "\0<\0?\0x\0m\0l",            # utf-16 big endian
-        "<\0?\0x\0m\0l\0",            # utf-16 little endian
-        "\xfe\xff\0<\0?\0x\0m\0l",    # utf-16 big endian w/ byte order mark
-        "\xff\xfe<\0?\0x\0m\0l\0",    # utf-16 little endian w/ byte order mark
-        )
-    ]
-
-XML_PREFIX_MAX_LENGTH = max(map(len, XML_PREFIXES))
-
-RE_META = re.compile(
-    r'\s*<meta\s+http-equiv=["\']?Content-Type["\']?'
-    r'\s+content=["\']?([^;]+);\s*charset=([^"\']+)["\']?\s*/?\s*>\s*',
-    re.IGNORECASE
-    )
-
-RE_ENCODING = re.compile(
-    r'encoding\s*=\s*(?:"|\')(?P<encoding>[\w\-]+)(?:"|\')'.encode('ascii'),
-    re.IGNORECASE
-    )
 
 log = logging.getLogger('chameleon.template')
 
@@ -99,8 +77,19 @@ def _make_module_loader():
 class BaseTemplate(object):
     """Template base class.
 
-    Input must be unicode (or string on Python 3).
+    Takes a string input which must be one of the following:
+
+    - a unicode string (or string on Python 3);
+    - a utf-8 encoded byte string;
+    - a byte string for an XML document that defines an encoding
+      in the document premamble;
+    - an HTML document that specifies the encoding via the META tag.
+
+    Note that the template input is decoded, parsed and compiled on
+    initialization.
     """
+
+    default_encoding = "utf-8"
 
     # This attribute is strictly informational in this template class
     # and is used in exception formatting. It may be set on
@@ -137,7 +126,17 @@ class BaseTemplate(object):
     def __init__(self, body, **config):
         self.__dict__.update(config)
 
-        self.content_type = self.sniff_type(body)
+        if not isinstance(body, str):
+            body, encoding, content_type = read_bytes(
+                body, self.default_encoding
+                )
+        else:
+            content_type = body.startswith('<?xml')
+            encoding = None
+
+        self.content_type = content_type
+        self.content_encoding = encoding
+
         self.cook(body)
 
         if self.__dict__.get('debug') is True:
@@ -211,17 +210,6 @@ class BaseTemplate(object):
 
         return join(stream)
 
-    def sniff_type(self, text):
-        """Return 'text/xml' if text appears to be XML, otherwise
-        return None.
-        """
-        if not isinstance(text, bytes):
-            text = text.encode('ascii', 'ignore')
-
-        for prefix in XML_PREFIXES:
-            if text[:len(prefix)] == prefix:
-                return "text/xml"
-
     def _get_module_name(self, digest):
         return "%s.py" % digest
 
@@ -273,10 +261,6 @@ class BaseTemplateFile(BaseTemplate):
     provided as the ``loader`` parameter.
     """
 
-    # The default encoding is only for file content since it is always
-    # 8-bit input
-    default_encoding = "utf-8"
-
     # Auto reload is not enabled by default because it's a significant
     # performance hit
     auto_reload = AUTO_RELOAD
@@ -315,25 +299,6 @@ class BaseTemplateFile(BaseTemplate):
             body = self.read()
             self.cook(body)
 
-    def detect_encoding(self, body):
-        # look for an encoding specification in the meta tag
-        try:
-            body = body.decode('ascii', 'ignore')
-        except UnicodeDecodeError:
-            pass
-        else:
-            match = RE_META.search(body)
-            if match is not None:
-                return match.groups()
-
-        return None, self.default_encoding
-
-    def read_xml_encoding(self, body):
-        if body.startswith('<?xml'.encode('ascii')):
-            match = RE_ENCODING.search(body)
-            if match is not None:
-                return match.group('encoding').decode('ascii')
-
     def mtime(self):
         try:
             return os.path.getmtime(self.filename)
@@ -341,29 +306,20 @@ class BaseTemplateFile(BaseTemplate):
             return 0
 
     def read(self):
-        fd = open(self.filename, "rb")
-        try:
-            body = fd.read(XML_PREFIX_MAX_LENGTH)
-        except:
-            fd.close()
-            raise
+        with open(self.filename, "rb") as f:
+            data = f.read()
 
-        content_type = self.content_type = self.sniff_type(body)
+        body, encoding, content_type = read_bytes(
+            data, self.default_encoding
+            )
 
-        if content_type == "text/xml":
-            body += fd.read()
-            fd.close()
-            encoding = self.read_xml_encoding(body) or self.default_encoding
-            body = body.decode(encoding)
-        else:
-            body += fd.read()
-            content_type, encoding = self.detect_encoding(body)
+        # In non-XML mode, we support various platform-specific line
+        # endings and convert them to the UNIX newline character
+        if content_type != "text/xml" and '\r' in body:
+            body = body.replace('\r\n', '\n').replace('\r', '\n')
 
-            # for HTML, we really want the file read in text mode:
-            fd.close()
-            fd = open(self.filename, 'rb')
-            body = fd.read().decode(encoding or self.default_encoding)
-            fd.close()
+        self.content_type = content_type
+        self.content_encoding = encoding
 
         return body
 

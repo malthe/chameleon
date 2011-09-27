@@ -46,90 +46,26 @@ class TypeSniffingTestCase(unittest.TestCase):
         return template
 
     def check_content_type(self, text, expected_type):
-        from chameleon.template import BaseTemplate
+        from chameleon.utils import read_bytes
+        content_type = read_bytes(text, 'ascii')[2]
+        self.assertEqual(content_type, expected_type)
 
-        class DummyTemplate(BaseTemplate):
-            def cook(self, body):
-                pass
+    def test_xml_encoding(self):
+        from chameleon.utils import xml_prefixes
+        from chameleon.utils import native
 
-        template = DummyTemplate(text)
-        self.assertEqual(template.content_type, expected_type)
+        document1 = native("<?xml version='1.0' encoding='ascii'?><doc/>")
+        document2 = native("<?xml\tversion='1.0' encoding='ascii'?><doc/>")
 
-    def test_sniffer_xml_ascii(self):
-        self.check_content_type(
-            "<?xml version='1.0' encoding='ascii'?><doc/>",
-            "text/xml")
-        self.check_content_type(
-            "<?xml\tversion='1.0' encoding='ascii'?><doc/>",
-            "text/xml")
+        for bom, encoding in xml_prefixes:
+            try:
+                "".encode(encoding)
+            except LookupError:
+                # System does not support this encoding
+                continue
 
-    def test_sniffer_xml_utf8(self):
-        # w/out byte order mark
-        self.check_content_type(
-            "<?xml version='1.0' encoding='utf-8'?><doc/>",
-            "text/xml")
-        self.check_content_type(
-            "<?xml\tversion='1.0' encoding='utf-8'?><doc/>",
-            "text/xml")
-        # with byte order mark
-        self.check_content_type(
-            "\xef\xbb\xbf<?xml version='1.0' encoding='utf-8'?><doc/>",
-            "text/xml")
-        self.check_content_type(
-            "\xef\xbb\xbf<?xml\tversion='1.0' encoding='utf-8'?><doc/>",
-            "text/xml")
-
-    def test_sniffer_xml_utf16_be(self):
-        # w/out byte order mark
-        self.check_content_type(
-            "\0<\0?\0x\0m\0l\0 \0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'"
-            "\0 \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>"
-            "\0<\0d\0o\0c\0/\0>",
-            "text/xml")
-        self.check_content_type(
-            "\0<\0?\0x\0m\0l\0\t\0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'"
-            "\0 \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>"
-            "\0<\0d\0o\0c\0/\0>",
-            "text/xml")
-        # with byte order mark
-        self.check_content_type(
-            "\xfe\xff"
-            "\0<\0?\0x\0m\0l\0 \0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'"
-            "\0 \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>"
-            "\0<\0d\0o\0c\0/\0>",
-            "text/xml")
-        self.check_content_type(
-            "\xfe\xff"
-            "\0<\0?\0x\0m\0l\0\t\0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'"
-            "\0 \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>"
-            "\0<\0d\0o\0c\0/\0>",
-            "text/xml")
-
-    def test_sniffer_xml_utf16_le(self):
-        # w/out byte order mark
-        self.check_content_type(
-            "<\0?\0x\0m\0l\0 \0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'\0"
-            " \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>\0"
-            "<\0d\0o\0c\0/\0>\n",
-            "text/xml")
-        self.check_content_type(
-            "<\0?\0x\0m\0l\0\t\0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'\0"
-            " \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>\0"
-            "<\0d\0o\0c\0/\0>\0",
-            "text/xml")
-        # with byte order mark
-        self.check_content_type(
-            "\xff\xfe"
-            "<\0?\0x\0m\0l\0 \0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'\0"
-            " \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>\0"
-            "<\0d\0o\0c\0/\0>\0",
-            "text/xml")
-        self.check_content_type(
-            "\xff\xfe"
-            "<\0?\0x\0m\0l\0\t\0v\0e\0r\0s\0i\0o\0n\0=\0'\01\0.\0000\0'\0"
-            " \0e\0n\0c\0o\0d\0i\0n\0g\0=\0'\0u\0t\0f\0-\08\0'\0?\0>\0"
-            "<\0d\0o\0c\0/\0>\0",
-            "text/xml")
+            self.check_content_type(document1.encode(encoding), "text/xml")
+            self.check_content_type(document2.encode(encoding), "text/xml")
 
     HTML_PUBLIC_ID = "-//W3C//DTD HTML 4.01 Transitional//EN"
     HTML_SYSTEM_ID = "http://www.w3.org/TR/html4/loose.dtd"
@@ -148,8 +84,7 @@ class TypeSniffingTestCase(unittest.TestCase):
     # sniffer; there are many, but it gets it right more often than
     # before.
     def donttest_sniffer_xml_simple(self):
-        self.check_content_type("<doc><element/></doc>",
-                                "text/xml")
+        self.check_content_type("<doc><element/></doc>", "text/xml")
 
     def test_html_default_encoding(self):
         body = safe_encode(

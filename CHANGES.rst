@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- The string-based template constructor now accepts encoded
+  input. This fixes issue #54.
+
 2.4.6 (2011-09-23)
 ------------------
 

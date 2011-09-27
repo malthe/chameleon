@@ -2,6 +2,7 @@ import os
 import re
 import codecs
 
+
 try:
     import htmlentitydefs
 except ImportError:
@@ -11,17 +12,20 @@ try:
     chr = unichr
     native = str
     decode_string = unicode
+    encode_string = str
 
     def safe_native(s, encoding='utf-8'):
         if not isinstance(s, unicode):
             s = decode_string(s, encoding, 'replace')
 
         return s.encode(encoding)
+
 except NameError:
     decode_string = bytes.decode
     basestring = str
     unicode = str
     native = str
+    encode_string = lambda s: bytes(s, 'ascii')
 
     def safe_native(s, encoding='utf-8'):
         if not isinstance(s, str):
@@ -29,16 +33,91 @@ except NameError:
 
         return s
 
-
-encodings = {
-    codecs.BOM_UTF8: 'UTF8',
-    codecs.BOM_UTF16_BE: 'UTF-16BE',
-    codecs.BOM_UTF16_LE: 'UTF-16LE',
-    }
-
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
 module_cache = {}
+
+xml_prefixes = (
+    (codecs.BOM_UTF8, 'utf-8-sig'),
+    (codecs.BOM_UTF16_BE, 'utf-16-be'),
+    (codecs.BOM_UTF16_LE, 'utf-16-le'),
+    (codecs.BOM_UTF16, 'utf-16'),
+    (codecs.BOM_UTF32_BE, 'utf-32-be'),
+    (codecs.BOM_UTF32_LE, 'utf-32-le'),
+    (codecs.BOM_UTF32, 'utf-32'),
+    )
+
+
+def _has_encoding(encoding):
+    try:
+        "".encode(encoding)
+    except LookupError:
+        return False
+    else:
+        return True
+
+
+# Precomputed prefix table
+_xml_prefixes = tuple(
+    (bom, str('<?xml').encode(encoding), encoding)
+    for bom, encoding in reversed(xml_prefixes)
+    if _has_encoding(encoding)
+    )
+
+_xml_decl = encode_string("<?xml")
+
+RE_META = re.compile(
+    r'\s*<meta\s+http-equiv=["\']?Content-Type["\']?'
+    r'\s+content=["\']?([^;]+);\s*charset=([^"\']+)["\']?\s*/?\s*>\s*',
+    re.IGNORECASE
+    )
+
+RE_ENCODING = re.compile(
+    r'encoding\s*=\s*(?:"|\')(?P<encoding>[\w\-]+)(?:"|\')'.encode('ascii'),
+    re.IGNORECASE
+    )
+
+
+def read_encoded(data):
+    return read_bytes(data, "utf-8")[0]
+
+
+def read_bytes(body, default_encoding):
+    for bom, prefix, encoding in _xml_prefixes:
+        if body.startswith(bom):
+            document = body.decode(encoding)
+            return document, encoding, \
+                   "text/xml" if document.startswith("<?xml") else None
+
+        if prefix != '<?xml' and body.startswith(prefix):
+            return body.decode(encoding), encoding, "text/xml"
+
+    if body.startswith(_xml_decl):
+        content_type = "text/xml"
+
+        encoding = read_xml_encoding(body) or default_encoding
+    else:
+        content_type, encoding = detect_encoding(body, default_encoding)
+
+    return body.decode(encoding), encoding, content_type
+
+
+def detect_encoding(body, default_encoding):
+    if not isinstance(body, str):
+        body = body.decode('ascii', 'ignore')
+
+    match = RE_META.search(body)
+    if match is not None:
+        return match.groups()
+
+    return None, default_encoding
+
+
+def read_xml_encoding(body):
+    if body.startswith('<?xml'.encode('ascii')):
+        match = RE_ENCODING.search(body)
+        if match is not None:
+            return match.group('encoding').decode('ascii')
 
 
 def mangle(filename):
@@ -57,27 +136,6 @@ def mangle(filename):
 
     base, ext = os.path.splitext(filename)
     return base.replace('.', '_').replace('-', '_')
-
-
-def read_bom(source):
-    for bom, encoding in encodings.items():
-        if source.startswith(bom):
-            return bom
-
-
-def decode(source):
-    bom = read_bom(source)
-    if bom is not None:
-        encoding = encodings[bom]
-        source = source[len(bom):]
-    else:
-        encoding = 'utf-8'
-    return bom, source, encoding
-
-
-def read_encoded(source):
-    bom, body, encoding = decode(source)
-    return body.decode(encoding)
 
 
 def char2entity(c):
