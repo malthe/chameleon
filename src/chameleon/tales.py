@@ -17,7 +17,7 @@ from .astutil import Builtin
 from .astutil import Symbol
 from .exc import ExpressionError
 from .utils import resolve_dotted
-from .utils import Structure
+from .utils import Markup
 from .tokenize import Token
 from .parser import groupdict
 from .parser import substitute
@@ -315,7 +315,7 @@ class StructureExpr(object):
     s'<tt>foo</tt>'
     """
 
-    wrapper_class = Symbol(Structure)
+    wrapper_class = Symbol(Markup)
 
     def __init__(self, expression):
         self.expression = expression

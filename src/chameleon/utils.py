@@ -384,7 +384,7 @@ class ListDictProxy(object):
         return self._l[-1].get(key)
 
 
-class Structure(object):
+class Markup(object):
     __slots__ = "s",
 
     def __init__(self, s):
