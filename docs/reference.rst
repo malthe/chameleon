@@ -75,26 +75,59 @@ Statements
 
 These are the available statements:
 
-- ``tal:attributes`` - dynamically change element attributes.
+==================  ==============
+ Statement           Description
+==================  ==============
+``tal:define``      Define variables.
+``tal:switch``      Defines a switch condition
+``tal:condition``   Include element only if expression is true.
+``tal:repeat``      Repeat an element.
+``tal:case``        Includes element only if expression is equal to parent switch.
+``tal:content``     Substitute the content of an element.
+``tal:replace``     Replace the element with dynamic content.
+``tal:omit-tag``    Omit the element tags, leaving only the inner content.
+``tal:attributes``  Dynamically change or insert element attributes.
+``tal:on-error``    Substitute the content of an element if processing fails.
+==================  ==============
 
-- ``tal:define`` - define variables.
+When there is only one TAL statement per element, the order in which
+they are executed is simple.  Starting with the root element, each
+element's statements are executed, then each of its child elements is
+visited, in order, to do the same::
 
-- ``tal:condition`` - include element only if expression is true.
+  <html>
+    <meta>
+      <title tal:content="context.title" />
+    </meta>
+    <body>
+      <div tal:condition="items">
+        <p>These are your items:</p>
+        <ul>
+          <li tal:repeat="item items" tal:content="item" />
+        </ul>
+      </div>
+    </body>
+  </html>
 
-- ``tal:content`` - substitute the content of an element.
+Any combination of statements may appear on the same element, except
+that the ``tal:content`` and ``tal:replace`` statements may not be
+used on the same element.
 
-- ``tal:omit-tag`` - omit the element tags, leaving only the inner content.
+.. note:: The ``tal:case`` and ``tal:switch`` statements are available
+          in Chameleon only.
 
-- ``tal:repeat`` - repeat an element.
+TAL does not use use the order in which statements are written in the
+tag to determine the order in which they are executed.  When an
+element has multiple statements, they are executed in the order
+printed in the table above.
 
-- ``tal:replace`` - replace the element with dynamic content.
-
-- ``tal:on-error`` - replaces the element if inclusion fails.
-
-- ``tal:switch`` - defines a switch condition
-
-- ``tal:case`` - includes element only if expression is equal to a
-  parent switch.
+There is a reasoning behind this ordering.  Because users often want
+to set up variables for use in other statements contained within this
+element or subelements, ``tal:define`` is executed first. Then any
+switch statement. ``tal:condition`` follows, then ``tal:repeat``, then
+``tal:case``. We are now rendering an element; first ``tal:content``
+or ``tal:replace``. Finally, before ``tal:attributes``, we have
+``tal:omit-tag`` (which is implied with ``tal:replace``).
 
 .. note:: *TALES* is used as the expression language for the "stuff in
    the quotes". The default syntax is simply Python, but
@@ -383,9 +416,6 @@ Examples
     <li tal:case="'folder'">
       Folder
     </li>
-    <li tal:case="default">
-      Other
-    </li>
   </ul>
 
 Note that any and all cases that match the switch will be allowed.
@@ -481,37 +511,27 @@ built-in variable named ``repeat``.
 
 The following information is available from the repeat variable:
 
-- ``index`` - repetition number, starting from zero.
+==================  ==============
+ Attribute           Description
+==================  ==============
+``index``           Repetition number, starting from zero.
+``number``          Repetition number, starting from one.
+``even``            True for even-indexed repetitions (0, 2, 4, ...).
+``odd``             True for odd-indexed repetitions (1, 3, 5, ...).
+``start``           True for the starting repetition (index 0).
+``end``             True for the ending, or final, repetition.
+``first``           True for the first item in a group - see note below
+``last``            True for the last item in a group - see note below
+``length``          Length of the sequence, which will be the total number of repetitions.
+``letter``          Repetition number as a lower-case letter: "a" - "z", "aa" - "az", "ba" - "bz", ..., "za" - "zz", "aaa" - "aaz", and so forth.
+``Letter``          Upper-case version of *letter*.
+``roman``           Repetition number as a lower-case roman numeral: "i", "ii", "iii", "iv", "v", etc.
+``Roman``           Upper-case version of *roman*.
+==================  ==============
 
-- ``number`` - repetition number, starting from one.
-
-- ``even`` - true for even-indexed repetitions (0, 2, 4, ...).
-
-- ``odd`` - true for odd-indexed repetitions (1, 3, 5, ...).
-
-- ``start`` - true for the starting repetition (index 0).
-
-- ``end`` - true for the ending, or final, repetition.
-
-- ``first`` - true for the first item in a group - see note below
-
-- ``last`` - true for the last item in a group - see note below
-
-- ``length`` - length of the sequence, which will be the total number
-  of repetitions.
-
-- ``letter`` - repetition number as a lower-case letter: "a" - "z",
-  "aa" - "az", "ba" - "bz", ..., "za" - "zz", "aaa" - "aaz", and so
-  forth.
-
-- ``Letter`` - upper-case version of *letter*.
-
-- ``roman`` - repetition number as a lower-case roman numeral:
-  "i", "ii", "iii", "iv", "v", etc.
-
-- ``Roman`` - upper-case version of *roman*.
-
-You can access the contents of the repeat variable using either dictionary- or attribute-style access, e.g. ``repeat['item'].start`` or ``repeat.item.start``.
+You can access the contents of the repeat variable using either
+dictionary- or attribute-style access, e.g. ``repeat['item'].start``
+or ``repeat.item.start``.
 
 .. note:: For legacy compatibility, the attributes ``odd``, ``even``, ``number``, ``letter``, ``Letter``, ``roman``, and ``Roman`` are callable (returning ``self``).
 
@@ -602,48 +622,6 @@ Inserting a title::
 Inserting HTML/XML::
 
         <div tal:replace="structure table" />
-
-Processing order
-----------------
-
-When there is only one TAL statement per element, the order in which
-they are executed is simple.  Starting with the root element, each
-element's statements are executed, then each of its child elements is
-visited, in order, to do the same.
-
-Any combination of statements may appear on the same element, except
-that the ``tal:content`` and ``tal:replace`` statements may not be
-used on the same element.
-
-TAL does not use use the order in which statements are written in the
-tag to determine the order in which they are executed.  When an
-element has multiple statements, they are executed in this order:
-
-#. ``tal:define``
-
-#. ``tal:switch``
-
-#. ``tal:condition``
-
-#. ``tal:repeat``
-
-#. ``tal:case``
-
-#. ``tal:content`` or ``tal:replace``
-
-#. ``tal:omit-tag``
-
-#. ``tal:attributes``
-
-#. ``tal:on-error``
-
-There is a reasoning behind this ordering.  Because users often want
-to set up variables for use in other statements contained within this
-element or subelements, ``tal:define`` is executed first.
-``tal:condition`` follows, then ``tal:repeat`` , then ``tal:content``
-or ``tal:replace``. Finally, before ``tal:attributes``, we have
-``tal:omit-tag`` (which is implied with ``tal:replace``).
-
 
 .. _tales:
 
