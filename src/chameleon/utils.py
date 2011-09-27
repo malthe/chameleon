@@ -382,3 +382,16 @@ class ListDictProxy(object):
 
     def get(self, key):
         return self._l[-1].get(key)
+
+
+class Structure(object):
+    __slots__ = "s",
+
+    def __init__(self, s):
+        self.s = s
+
+    def __html__(self):
+        return self.s
+
+    def __repr__(self):
+        return "s'%s'" % self.s

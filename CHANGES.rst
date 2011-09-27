@@ -5,8 +5,19 @@ In next release ...
 
 Features:
 
-- The string-based template constructor now accepts encoded
-  input. This fixes issue #54.
+- An expression type ``structure:`` is now available which wraps the
+  expression result as *structure* such that it is not escaped on
+  insertion, e.g.::
+
+    <div id="content">
+       ${structure: context.body}
+    </div>
+
+  This also means that the ``structure`` keyword for ``tal:content``
+  and ``tal:replace`` now has an alternative spelling via the
+  expression type ``structure:``.
+
+- The string-based template constructor now accepts encoded input.
 
 2.4.6 (2011-09-23)
 ------------------

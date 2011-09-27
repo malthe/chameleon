@@ -13,6 +13,7 @@ from ..tales import NotExpr
 from ..tales import ExistsExpr
 from ..tales import ImportExpr
 from ..tales import ProxyExpr
+from ..tales import StructureExpr
 from ..tales import ExpressionParser
 
 from ..tal import RepeatDict
@@ -103,6 +104,7 @@ class PageTemplate(BaseTemplate):
         'not': NotExpr,
         'exists': ExistsExpr,
         'import': ImportExpr,
+        'structure': StructureExpr,
         }
 
     default_expression = 'python'

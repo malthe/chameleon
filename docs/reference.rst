@@ -247,6 +247,12 @@ allowing HTML/XML markup to be inserted.  This can break your page if
 the text contains unanticipated markup (eg.  text submitted via a web
 form), which is the reason that it is not the default.
 
+.. note:: The ``structure`` keyword exists to provide backwards
+          compatibility.  In Chameleon, the ``structure:`` expression
+          type provides the same functionality (also for inline
+          expressions).
+
+
 Examples
 ~~~~~~~~
 
@@ -675,21 +681,25 @@ Types
 
 These are the available TALES expression types:
 
-* ``python`` - Evaluate a Python expression
-
-* ``string`` - Format a string
-
-* ``not`` - Negate the expression result
-
-* ``exists`` - Evaluate the result inside an exception handler; if one of the exceptions ``AttributeError``, ``LookupError``, ``TypeError``, ``NameError``, or ``KeyError`` is raised during evaluation, the result is ``False``, otherwise ``True``. Note that the original result is discarded in any case.
-
-* ``import`` - Import a global symbol using dotted notation.
-
-* ``load`` - Load a template relative to the current template or absolute.
+=============  ==============
+ Prefix        Description
+=============  ==============
+``exists``     Evaluate the result inside an exception handler; if one of the exceptions ``AttributeError``, ``LookupError``, ``TypeError``, ``NameError``, or ``KeyError`` is raised during evaluation, the result is ``False``, otherwise ``True``. Note that the original result is discarded in any case.
+``import``     Import a global symbol using dotted notation.
+``load``       Load a template relative to the current template or absolute.
+``not``        Negate the expression result
+``python``     Evaluate a Python expression
+``string``     Format a string
+``structure``  Wraps the expression result as *structure*.
+=============  ==============
 
 .. note:: The default expression type is ``python``.
 
-.. warning:: The Zope reference engine defaults to a ``path`` expression type, which is closely tied to the Zope framework. This expression is not implemented in Chameleon (but it's available in a Zope framework compatibility package).
+.. warning:: The Zope reference engine defaults to a ``path``
+             expression type, which is closely tied to the Zope
+             framework. This expression is not implemented in
+             Chameleon (but it's available in a Zope framework
+             compatibility package).
 
 There's a mechanism to allow fallback to alternative expressions, if
 one should fail (raise an exception). The pipe character ('|') is used
@@ -717,7 +727,8 @@ Python expression syntax::
 Description
 ~~~~~~~~~~~
 
-Python expressions are executed natively within the translated template source code. There is no built-in security apparatus.
+Python expressions are executed natively within the translated
+template source code. There is no built-in security apparatus.
 
 ``string``
 ^^^^^^^^^^
@@ -769,6 +780,16 @@ Including a dollar sign::
 
 Imports a module global.
 
+.. _structure-expression:
+
+``structure``
+^^^^^^^^^^^^^
+
+Wraps the expression result as *structure*: The replacement text is
+inserted into the document without escaping, allowing HTML/XML markup
+to be inserted.  This can break your page if the text contains
+unanticipated markup (eg.  text submitted via a web form), which is
+the reason that it is not the default.
 
 .. _load-expression:
 
@@ -1495,13 +1516,23 @@ comes with a number of new features. Some take inspiration from
 
     *New expression types*
 
-       The :ref:`load <import-expression>` expression imports module globals::
+       The :ref:`structure <structure-expression>` expression wraps an
+       expression result as *structure*::
+
+         <div>${structure: body.text}</div>
+
+       The :ref:`import <import-expression>` expression imports module globals::
 
          <div tal:define="compile import: re.compile">
            ...
          </div>
 
-       This :ref:`load <load-expression>` expression
+       This :ref:`load <load-expression>` expression loads templates
+       relative to the current template::
+
+         <div tal:define="compile load: main.pt">
+           ...
+         </div>
 
     *Tuple unpacking*
 

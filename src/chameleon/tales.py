@@ -17,6 +17,7 @@ from .astutil import Builtin
 from .astutil import Symbol
 from .exc import ExpressionError
 from .utils import resolve_dotted
+from .utils import Structure
 from .tokenize import Token
 from .parser import groupdict
 from .parser import substitute
@@ -303,6 +304,30 @@ class NotExpr(object):
         compiler = engine.parse(self.expression)
         body = compiler.assign_value(target)
         return body + template("target = not target", target=target)
+
+
+class StructureExpr(object):
+    """Wraps the expression result as 'structure'.
+
+    >>> engine = SimpleEngine(PythonExpr)
+
+    >>> test(StructureExpr('\"<tt>foo</tt>\"'), engine)
+    s'<tt>foo</tt>'
+    """
+
+    wrapper_class = Symbol(Structure)
+
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __call__(self, target, engine):
+        compiler = engine.parse(self.expression)
+        body = compiler.assign_value(target)
+        return body + template(
+            "target = wrapper(target)",
+            target=target,
+            wrapper=self.wrapper_class
+            )
 
 
 class IdentityExpr(object):
