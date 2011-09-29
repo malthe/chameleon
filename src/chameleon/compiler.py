@@ -4,6 +4,7 @@ import itertools
 import logging
 import threading
 import functools
+import collections
 
 from .astutil import load
 from .astutil import store
@@ -662,6 +663,8 @@ class Compiler(object):
         self._translations = []
         self._builtins = builtins
         self._aliases = [{}]
+        self._macros = []
+        self._current_slot = []
 
         transform = NameTransform(
             self.global_builtins | set(builtins),
@@ -1118,8 +1121,17 @@ class Compiler(object):
 
     def visit_DefineSlot(self, node):
         name = "__slot_%s" % mangle(node.name)
-        self._slots.add(name)
         body = self.visit(node.node)
+
+        if self._macros and self._current_slot:
+            if self._current_slot[-1] == node.name and not self._macros[-1]:
+                raise TranslationError(
+                    "Nested slot definition not allowed in non-extended "
+                    "macro definition.",
+                    node.name
+                    )
+
+        self._slots.add(name)
 
         orelse = template(
             "SLOT(__stream, econtext.copy(), rcontext, __i18n_domain)",
@@ -1168,14 +1180,20 @@ class Compiler(object):
         return body
 
     def visit_UseExternalMacro(self, node):
+        self._macros.append(node.extend)
+
         callbacks = []
         for slot in node.slots:
             key = "__slot_%s" % mangle(slot.name)
             fun = "__fill_%s" % mangle(slot.name)
 
+            self._current_slot.append(slot.name)
+
             body = template("getitem = econtext.__getitem__") + \
                    template("get = econtext.get") + \
                    self.visit(slot.node)
+
+            assert self._current_slot.pop() == slot.name
 
             callbacks.append(
                 ast.FunctionDef(
@@ -1194,21 +1212,23 @@ class Compiler(object):
 
             key = ast.Str(s=key)
 
-            if node.extend:
-                update_body = None
-            else:
-                update_body = template("_slots.append(NAME)", NAME=fun)
+            assignment = template(
+                "_slots = econtext[KEY] = DEQUE((NAME,))",
+                KEY=key, NAME=fun, DEQUE=Symbol(collections.deque),
+                )
 
-            callbacks.append(
-                ast.TryExcept(
+            if node.extend:
+                append = template("_slots.appendleft(NAME)", NAME=fun)
+
+                assignment = [ast.TryExcept(
                     body=template("_slots = getitem(KEY)", KEY=key),
-                    handlers=[ast.ExceptHandler(
-                        body=template(
-                            "_slots = econtext[KEY] = [NAME]",
-                            KEY=key, NAME=fun,
-                        ))],
-                    orelse=update_body
-                    ))
+                    handlers=[ast.ExceptHandler(body=assignment)],
+                    orelse=append,
+                    )]
+
+            callbacks.extend(assignment)
+
+        assert self._macros.pop() == node.extend
 
         assignment = self._engine(node.expression, store("__macro"))
 

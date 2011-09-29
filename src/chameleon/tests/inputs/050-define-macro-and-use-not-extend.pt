@@ -1,8 +1,6 @@
 <html metal:define-macro="main"
       metal:use-macro="load('032-master-template.pt').macros['main']">
   <metal:content fill-slot="content">
-    <span metal:define-slot="content">
-       Default content
-    </span>
+     Default content
   </metal:content>
 </html>

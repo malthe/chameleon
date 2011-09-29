@@ -5,9 +5,7 @@
   <body>
     <div id="content">
 
-    <span>
-       Default content
-    </span>
+     Default content
 
     </div>
     <div id="footer">

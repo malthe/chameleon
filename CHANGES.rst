@@ -1,6 +1,17 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed an issue where a macro extension chain nested two levels (a
+  template uses a macro that extends a macro) would lose the middle
+  slot definitions if slots were defined nested.
+
+  The compiler now throws an error if a nested slot definition is used
+  outside a macro extension context.
+
 2.5.0 (2011-09-23)
 ------------------
 
