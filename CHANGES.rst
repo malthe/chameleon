@@ -5,6 +5,9 @@ In next release ...
 
 Bugfixes:
 
+- The symbol names "convert", "decode" and "translate" are now no
+  longer set as read-only *compiler internals*. This fixes issue #65.
+
 - Fixed an issue where a macro extension chain nested two levels (a
   template uses a macro that extends a macro) would lose the middle
   slot definitions if slots were defined nested.

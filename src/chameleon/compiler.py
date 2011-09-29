@@ -55,9 +55,6 @@ log = logging.getLogger('chameleon.compiler')
 COMPILER_INTERNALS_OR_DISALLOWED = set([
     "econtext",
     "rcontext",
-    "translate",
-    "decode",
-    "convert",
     "str",
     "int",
     "float",
@@ -434,7 +431,11 @@ class ExpressionEvaluator(object):
 
 class NameTransform(object):
     """
-    >>> nt = NameTransform(set(('foo', 'bar', )), {'boo': 'boz'})
+    >>> nt = NameTransform(
+    ...     set(('foo', 'bar', )), {'boo': 'boz'},
+    ...     ('econtext', ),
+    ... )
+
     >>> def test(node):
     ...     rewritten = nt(node)
     ...     module = ast.Module([ast.fix_missing_locations(rewritten)])
@@ -469,9 +470,10 @@ class NameTransform(object):
 
     """
 
-    def __init__(self, builtins, aliases):
+    def __init__(self, builtins, aliases, internals):
         self.builtins = builtins
         self.aliases = aliases
+        self.internals = internals
 
     def __call__(self, node):
         name = node.id
@@ -480,7 +482,7 @@ class NameTransform(object):
         # internal and can be assumed to be locally defined. This
         # policy really should be part of the template program, not
         # defined here in the compiler.
-        if name.startswith('__') or name in COMPILER_INTERNALS_OR_DISALLOWED:
+        if name.startswith('__') or name in self.internals:
             return node
 
         if isinstance(node.ctx, ast.Store):
@@ -666,9 +668,13 @@ class Compiler(object):
         self._macros = []
         self._current_slot = []
 
+        internals = COMPILER_INTERNALS_OR_DISALLOWED | \
+                    set(self.defaults)
+
         transform = NameTransform(
             self.global_builtins | set(builtins),
             ListDictProxy(self._aliases),
+            internals,
             )
 
         self._engine = ExpressionTransform(
@@ -791,7 +797,7 @@ class Compiler(object):
         for name in self.defaults:
             body += template(
                 "NAME = econtext[KEY]",
-                NAME=name, KEY=ast.Str(s=name)
+                NAME=name, KEY=ast.Str(s="__" + name)
             )
 
         # Internal set of defined slots

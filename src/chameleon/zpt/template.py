@@ -177,7 +177,8 @@ class PageTemplate(BaseTemplate):
 
         """
 
-        translate = translate if translate is not None else self.translate or \
+        non_trivial_translate = translate is not None
+        translate = translate if non_trivial_translate else self.translate or \
                     type(self).translate
 
         # Curry language parameter if non-trivial
@@ -199,9 +200,12 @@ class PageTemplate(BaseTemplate):
             decode = decode_string
 
         setdefault = vars.setdefault
-        setdefault("translate", translate)
-        setdefault("convert", translate)
-        setdefault("decode", decode)
+        setdefault("__translate", translate)
+        setdefault("__convert", translate)
+        setdefault("__decode", decode)
+
+        if non_trivial_translate:
+            vars['translate'] = translate
 
         # Make sure we have a repeat dictionary
         if 'repeat' not in vars: vars['repeat'] = RepeatDict({})

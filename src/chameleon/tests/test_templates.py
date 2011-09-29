@@ -339,6 +339,20 @@ class ZopePageTemplatesTest(RenderTestCase):
             body = "<d tal:define=\"%s 'foo'\">${%s}</d>" % (name, name)
             self.assertRaises(TranslationError, self.from_string, body)
 
+    def test_translate_is_not_an_internal(self):
+        macro = self.from_string('<span i18n:translate="">bar</span>')
+        template = self.from_string(
+            '''
+            <tal:defs define="translate string:">
+              <span i18n:translate="">foo</span>
+              <metal:macro use-macro="macro" />
+            </tal:defs>
+            ''')
+
+        result = template(macro=macro)
+        self.assertTrue('foo' in result)
+        self.assertTrue('foo' in result)
+
     def test_literal_false(self):
         template = self.from_string(
             '<input type="input" tal:attributes="checked False" />'
