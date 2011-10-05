@@ -312,7 +312,7 @@ class StructureExpr(object):
     >>> engine = SimpleEngine(PythonExpr)
 
     >>> test(StructureExpr('\"<tt>foo</tt>\"'), engine)
-    s'<tt>foo</tt>'
+    '<tt>foo</tt>'
     """
 
     wrapper_class = Symbol(Markup)

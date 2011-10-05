@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- The markup class now inherits from the unicode string type such that
+  it's compatible with the string interface.
+
 2.5.1 (2011-09-29)
 ------------------
 

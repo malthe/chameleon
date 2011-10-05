@@ -384,14 +384,9 @@ class ListDictProxy(object):
         return self._l[-1].get(key)
 
 
-class Markup(object):
-    __slots__ = "s",
-
-    def __init__(self, s):
-        self.s = s
-
+class Markup(unicode_string):
     def __html__(self):
-        return self.s
+        return unicode_string(self)
 
     def __repr__(self):
         return "s'%s'" % self.s
