@@ -98,6 +98,9 @@ class Token(str):
         return s
 
     def __add__(self, other):
+        if other is None:
+            return self
+
         return Token(
             str.__add__(self, other), self.pos, self.source, self.filename)
 

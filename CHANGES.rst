@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+Bugfixes:
+
+- Fixed an issue where technically invalid input would result in a
+  compiler error.
+
 Features:
 
 - The markup class now inherits from the unicode string type such that
