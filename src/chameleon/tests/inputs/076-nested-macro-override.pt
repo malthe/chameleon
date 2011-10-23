@@ -1,0 +1,3 @@
+<metal:page use-macro="load('075-nested-macros.pt').macros['master']">
+  <metal:block fill-slot="content">bar</metal:block>
+</metal:page>

@@ -1,0 +1,11 @@
+<metal:page define-macro="master">
+  <tal:block metal:use-macro="load('032-master-template.pt').macros['main']">
+
+    <metal:block fill-slot="content">
+      <metal:override define-slot="content">
+        foo
+      </metal:override>
+    </metal:block>
+
+  </tal:block>
+</metal:page>

@@ -1129,14 +1129,6 @@ class Compiler(object):
         name = "__slot_%s" % mangle(node.name)
         body = self.visit(node.node)
 
-        if self._macros and self._current_slot:
-            if self._current_slot[-1] == node.name and not self._macros[-1]:
-                raise TranslationError(
-                    "Nested slot definition not allowed in non-extended "
-                    "macro definition.",
-                    node.name
-                    )
-
         self._slots.add(name)
 
         orelse = template(

@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed an issue where a nested macro slot definition would fail even
+  though there existed a parent macro definition. This fixes issue
+  #69.
+
 2.5.2 (2011-10-12)
 ------------------
 
