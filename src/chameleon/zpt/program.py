@@ -239,7 +239,8 @@ class MacroProgram(ElementProgram):
 
             # Prepare attributes from TAL language
             prepared = tal.prepare_attributes(
-                start['attrs'], TAL_ATTRIBUTES, ns, self.DROP_NS
+                start['attrs'], TAL_ATTRIBUTES,
+                I18N_ATTRIBUTES, ns, self.DROP_NS
                 )
 
             # Create attribute nodes

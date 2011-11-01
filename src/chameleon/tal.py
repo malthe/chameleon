@@ -128,7 +128,8 @@ def parse_defines(clause):
     return defines
 
 
-def prepare_attributes(attrs, dyn_attributes, ns_attributes, drop_ns):
+def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
+                       ns_attributes, drop_ns):
     drop = set([attribute['name'] for attribute, (ns, value)
                 in zip(attrs, ns_attributes)
                 if ns in drop_ns or (
@@ -169,9 +170,16 @@ def prepare_attributes(attrs, dyn_attributes, ns_attributes, drop_ns):
             eq = "="
             index = len(attributes)
             add = attributes.insert
+            normalized[name.lower()] = len(attributes) - 1
 
         attribute = name, text, quote, space, eq, expr
         add(index, attribute)
+
+    for name in i18n_attributes:
+        attr = name.lower()
+        if attr not in normalized:
+            attributes.append((name, name, '"', " ", "=", None))
+            normalized[attr] = len(attributes) - 1
 
     return attributes
 
