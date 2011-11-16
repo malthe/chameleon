@@ -24,6 +24,7 @@ from ..compiler import ExpressionEngine
 from ..loader import TemplateLoader
 from ..astutil import Builtin
 from ..utils import decode_string
+from ..utils import string_type
 
 from .program import MacroProgram
 
@@ -234,16 +235,51 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
     Note that the file-based template class comes with the expression
     type ``load`` which loads templates relative to the provided
     filename.
+
+    Below are listed the configuration arguments specific to
+    file-based templates; see the string-based template class for
+    general options and documentation::
+
+    Configuration (keyword arguments):
+
+      ``prepend_relative_search_path``
+
+        Inserts the path relative to the provided template file path
+        into the template search path.
+
+        The default setting is ``True``.
+
+      ``search_path``
+
+        If provided, this is used as the search path for the ``load:``
+        expression. It must be a string or an iterable yielding a
+        sequence of strings.
+
     """
 
     expression_types = PageTemplate.expression_types.copy()
     expression_types['load'] = partial(ProxyExpr, '__loader')
 
-    def __init__(self, filename, **config):
+    prepend_relative_search_path = True
+
+    def __init__(self, filename, search_path=None, **config):
         super(PageTemplateFile, self).__init__(filename, **config)
 
-        path = dirname(self.filename)
-        loader = TemplateLoader(search_path=path, **config)
+        if search_path is None:
+            search_path = []
+        else:
+            if isinstance(search_path, string_type):
+                search_path = [search_path]
+            else:
+                search_path = list(search_path)
+
+        # If the flag is set (this is the default), prepend the path
+        # relative to the template file to the search path
+        if self.prepend_relative_search_path:
+            path = dirname(self.filename)
+            search_path.insert(0, path)
+
+        loader = TemplateLoader(search_path=search_path, **config)
         template_class = type(self)
 
         # Bind relative template loader instance to the same template

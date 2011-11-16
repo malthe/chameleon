@@ -3,6 +3,18 @@ Changes
 
 In next release ...
 
+Features:
+
+- Added a configuration option ``prepend_relative_search_path`` which
+  decides whether the path relative to a file-based template is
+  prepended to the load search path. The default is ``True``.
+
+- Added a configuration option ``search_path`` to the file-based
+  template class, which adds additional paths to the template load
+  instance bound to the ``load:`` expression. The option takes a
+  string path or an iterable yielding string paths. The default value
+  is the empty set.
+
 Bugfixes:
 
 - An attributes in i18n:attributes no longer needs to match an
