@@ -1,0 +1,5 @@
+<button
+onclick="javascript:moveUp()"
+name="upButton" type="button" value="&uarr;"
+tal:attributes="onClick string:javascript:moveUp('${0}')"
+>&uarr;</button>
