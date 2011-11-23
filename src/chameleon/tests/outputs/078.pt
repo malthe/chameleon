@@ -1,4 +1,8 @@
-<button
-onClick="javascript:moveUp('0')"
-name="upButton" type="button" value="&uarr;"
->&uarr;</button>
+
+  <body>
+      <span id="foo-toDataContainer">
+        <script type="text/javascript">
+          copyDataForSubmit('foo');</script>
+      </span>
+  </body>
+

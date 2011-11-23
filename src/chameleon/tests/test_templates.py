@@ -161,22 +161,41 @@ class ZopePageTemplatesTest(RenderTestCase):
         def decorator(func):
             @wraps(func)
             def wrapper(self):
-                from ..exc import TemplateError
+                from chameleon.exc import TemplateError
                 try:
                     template = self.from_string(body)
                 except TemplateError:
                     exc = sys.exc_info()[1]
                     return func(self, body, exc)
                 else:
-                    result = template()
                     self.fail("Expected exception; got: %s." % result)
 
             return wrapper
         return decorator
 
-    @error("""<tal:block replace='bad /// ' />""")
-    def test_syntax_error(self, body, exc):
-        self.assertTrue(body[exc.offset:].startswith('bad ///'))
+    def test_syntax_error_in_strict_mode(self):
+        from chameleon.exc import ExpressionError
+
+        self.assertRaises(
+            ExpressionError,
+            self.from_string,
+            """<tal:block replace='bad /// ' />""",
+            strict=True
+            )
+
+    def test_syntax_error_in_non_strict_mode(self):
+        from chameleon.exc import ExpressionError
+
+        body = """<tal:block replace='bad /// ' />"""
+        template = self.from_string(body, strict=False)
+
+        try:
+            template()
+        except ExpressionError:
+            exc = sys.exc_info()[1]
+            self.assertTrue(body[exc.offset:].startswith('bad ///'))
+        else:
+            self.fail("Expected exception")
 
     @error("""<tal:dummy attributes=\"dummy 'dummy'\" />""")
     def test_attributes_on_tal_tag_fails(self, body, exc):
@@ -467,7 +486,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             literal=Literal("<div>Hello world!</div>"),
             content="<div>Hello world!</div>",
             message=Message(),
-            load=loader.bind(PageTemplateFile)
+            load=loader.bind(PageTemplateFile),
             )
 
     def test_txt_files(self):
@@ -505,10 +524,8 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             # Make friendly title so we can locate the generated
             # source when debugging
             self.shortDescription = lambda: input_path
-            template = factory(
-                input_path,
-                keep_source=True,
-                )
+
+            template = factory(input_path, keep_source=True, strict=False)
 
             params = kwargs.copy()
             params.update({

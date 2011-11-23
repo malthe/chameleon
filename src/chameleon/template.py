@@ -109,6 +109,10 @@ class BaseTemplate(object):
     # Expression engine must be provided by subclass
     engine = None
 
+    # When ``strict`` is set, expressions must be valid at compile
+    # time. When not set, this is only required at evaluation time.
+    strict = True
+
     def __init__(self, body, **config):
         self.__dict__.update(config)
 
@@ -231,7 +235,7 @@ class BaseTemplate(object):
         return sha.hexdigest()
 
     def _compile(self, program, builtins):
-        compiler = Compiler(self.engine, program, builtins)
+        compiler = Compiler(self.engine, program, builtins, strict=self.strict)
         return compiler.code
 
     def _make(self, body, builtins):

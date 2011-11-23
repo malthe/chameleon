@@ -1,5 +1,16 @@
-<button
-onclick="javascript:moveUp()"
-name="upButton" type="button" value="&uarr;"
-tal:attributes="onClick string:javascript:moveUp('${0}')"
->&uarr;</button>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      tal:omit-tag=""
+      tal:define="id 'foo'">
+  <body>
+      <span id="toDataContainer"
+            tal:attributes="id string:${id}-toDataContainer">
+        <script type="text/javascript" tal:content="string:
+          copyDataForSubmit('${id}');">
+          // initial copying of field "field.to" --> "field"
+          copyDataForSubmit("<i tal:replace="${id}"/>");
+        </script>
+      </span>
+  </body>
+</html>

@@ -5,6 +5,7 @@ import logging
 import threading
 import functools
 import collections
+import pickle
 
 from .astutil import load
 from .astutil import store
@@ -32,8 +33,10 @@ from .nodes import Assignment
 from .nodes import Module
 from .nodes import Context
 
+from .tokenize import Token
 from .config import DEBUG_MODE
 from .exc import TranslationError
+from .exc import ExpressionError
 
 from .utils import DebuggingOutputStream
 from .utils import char2entity
@@ -44,6 +47,7 @@ from .utils import string_type
 from .utils import unicode_string
 from .utils import version
 from .utils import ast
+from .utils import safe_native
 from .utils import builtins
 
 
@@ -95,6 +99,41 @@ def store_econtext(name):
 def store_rcontext(name):
     name = native_string(name)
     return subscript(name, load("rcontext"), ast.Store())
+
+
+def set_error(token, exception):
+    try:
+        line, column = token.location
+        filename = token.filename
+    except AttributeError:
+        line, column = 0, 0
+        filename = "<string>"
+
+    string = safe_native(token)
+
+    return template(
+        "rcontext.setdefault('__error__', [])."
+        "append((string, line, col, src, exc))",
+        string=ast.Str(s=string),
+        line=ast.Num(n=line),
+        col=ast.Num(n=column),
+        src=ast.Str(s=filename),
+        sys=Symbol(sys),
+        exc=exception,
+        )
+
+
+def try_except_wrap(stmts, token):
+    exception = template(
+        "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
+        )
+
+    body = set_error(token, exception) + template("raise")
+
+    return ast.TryExcept(
+        body=stmts,
+        handlers=[ast.ExceptHandler(body=body)],
+        )
 
 
 @template
@@ -274,28 +313,7 @@ class ExpressionEngine(object):
                 steps = method(target, *args)
                 stmts.extend(steps)
 
-            try:
-                line, column = string.location
-                filename = string.filename
-            except AttributeError:
-                line, column = 0, 0
-                filename = "<string>"
-
-            return [ast.TryExcept(
-                body=stmts,
-                handlers=[ast.ExceptHandler(
-                    body=template(
-                        "rcontext.setdefault('__error__', [])."
-                        "append((string, line, col, src, sys.exc_info()[1]))\n"
-                        "raise",
-                        string=ast.Str(s=string),
-                        line=ast.Num(n=line),
-                        col=ast.Num(n=column),
-                        src=ast.Str(s=filename),
-                        sys=Symbol(sys),
-                        ),
-                    )],
-                )]
+            return [try_except_wrap(stmts, string)]
 
         return compiler
 
@@ -517,16 +535,35 @@ class ExpressionTransform(object):
     Used internally be the compiler.
     """
 
-    def __init__(self, engine_factory, cache, transform):
+    loads_symbol = Symbol(pickle.loads)
+
+    def __init__(self, engine_factory, cache, transform, strict=True):
         self.engine_factory = engine_factory
         self.cache = cache
         self.transform = transform
+        self.strict = strict
 
     def __call__(self, expression, target):
         if isinstance(target, string_type):
             target = store(target)
 
-        stmts = self.translate(expression, target)
+        try:
+            stmts = self.translate(expression, target)
+        except ExpressionError:
+            if self.strict:
+                raise
+
+            exc = sys.exc_info()[1]
+            p = pickle.dumps(exc)
+
+            stmts = template(
+                "__exc = loads(p)", loads=self.loads_symbol, p=ast.Str(s=p)
+                )
+
+            token = Token(exc.token, exc.offset, filename=exc.filename)
+
+            stmts += set_error(token, load("__exc"))
+            stmts += [ast.Raise(exc=load("__exc"))]
 
         # Apply dynamic name rewrite transform to each statement
         visitor = NameLookupRewriteVisitor(self.transform)
@@ -659,7 +696,7 @@ class Compiler(object):
 
     global_builtins = set(builtins.__dict__)
 
-    def __init__(self, engine_factory, node, builtins={}):
+    def __init__(self, engine_factory, node, builtins={}, strict=True):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
@@ -681,6 +718,7 @@ class Compiler(object):
             engine_factory,
             self._expression_cache,
             transform,
+            strict=strict,
             )
 
         if isinstance(node_annotations, dict):

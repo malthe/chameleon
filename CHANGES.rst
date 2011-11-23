@@ -5,6 +5,14 @@ In next release ...
 
 Features:
 
+- Added option ``strict`` (enabled by default) which decides whether
+  expressions are required to be valid at compile time. That is, if
+  not set, an exception is only raised for an invalid expression at
+  evaluation time.
+
+- An expression error now results in an exception only if the
+  expression is attempted evaluated during a rendering.
+
 - Added a configuration option ``prepend_relative_search_path`` which
   decides whether the path relative to a file-based template is
   prepended to the load search path. The default is ``True``.
