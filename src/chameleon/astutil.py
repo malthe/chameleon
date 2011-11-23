@@ -430,7 +430,11 @@ class ASTCodeGenerator(object):
         self._new_line()
         self._write('raise')
         if not getattr(node, "type", None):
-            return
+            exc = getattr(node, "exc", None)
+            if exc is None:
+                return
+            self._write(' ')
+            return self.visit(exc)
         self._write(' ')
         self.visit(node.type)
         if not node.inst:
