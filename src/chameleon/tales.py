@@ -19,8 +19,8 @@ from .exc import ExpressionError
 from .utils import resolve_dotted
 from .utils import Markup
 from .tokenize import Token
-from .parser import groupdict
 from .parser import substitute
+from .compiler import Interpolator
 
 try:
     from .py26 import lookup_attr
@@ -431,106 +431,15 @@ class StringExpr(object):
     'There are 11 characters in \"hello world\"'
     """
 
-    braces_required_regex = re.compile(
-        r'(?<!\\)\$({(?P<expression>.*)})')
-
-    braces_optional_regex = re.compile(
-        r'(?<!\\)\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))')
-
     def __init__(self, expression, braces_required=False):
         # The code relies on the expression being a token string
         if not isinstance(expression, Token):
             expression = Token(expression, 0)
 
-        self.expression = expression
-        self.regex = self.braces_required_regex if braces_required else \
-                     self.braces_optional_regex
+        self.translator = Interpolator(expression, braces_required)
 
     def __call__(self, name, engine):
-        """The strategy is to find possible expression strings and
-        call the ``validate`` function of the parser to validate.
-
-        For every possible starting point, the longest possible
-        expression is tried first, then the second longest and so
-        forth.
-
-        Example 1:
-
-          ${'expressions use the ${<expression>} format'}
-
-        The entire expression is attempted first and it is also the
-        only one that validates.
-
-        Example 2:
-
-          ${'Hello'} ${'world!'}
-
-        Validation of the longest possible expression (the entire
-        string) will fail, while the second round of attempts,
-        ``${'Hello'}`` and ``${'world!'}`` respectively, validate.
-
-        """
-
-        body = []
-        nodes = []
-        text = self.expression
-
-        while text:
-            matched = text
-            m = self.regex.search(matched)
-            if m is None:
-                nodes.append(ast.Str(s=text))
-                break
-
-            part = text[:m.start()]
-            text = text[m.start():]
-
-            if part:
-                node = ast.Str(s=part)
-                nodes.append(node)
-
-            if not body:
-                target = name
-            else:
-                target = store("%s_%d" % (name.id, text.pos))
-
-            while True:
-                d = groupdict(m, matched)
-                string = d["expression"] or d["variable"] or ""
-
-                try:
-                    compiler = engine.parse(string)
-                    body += compiler.assign_text(target)
-                except ExpressionError:
-                    matched = matched[m.start():m.end() - 1]
-                    m = self.regex.search(matched)
-                    if m is None:
-                        raise
-                else:
-                    break
-
-            # if this is the first expression, use the provided
-            # assignment name; otherwise, generate one (here based
-            # on the string position)
-            node = load(target.id)
-            nodes.append(node)
-            text = text[len(m.group()):]
-
-        if len(nodes) == 1:
-            target = nodes[0]
-        else:
-            nodes = [
-                template("NODE if NODE is not None else ''", NODE=node, mode="eval")
-                for node in nodes
-                ]
-
-            target = ast.BinOp(
-                left=ast.Str(s="%s" * len(nodes)),
-                op=ast.Mod(),
-                right=ast.Tuple(elts=nodes, ctx=ast.Load()))
-
-        body += [ast.Assign(targets=[name], value=target)]
-        return body
+        return self.translator(name, engine)
 
 
 class ExistsExpr(object):

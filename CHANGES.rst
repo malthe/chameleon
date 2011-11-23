@@ -5,6 +5,14 @@ In next release ...
 
 Features:
 
+- Added support for implicit translation:
+
+  The ``implicit_i18n_translate`` option enables implicit translation
+  of text. The ``implicit_i18n_attributes`` enables implicit
+  translation of attributes. The latter must be a set and for an
+  attribute to be implicitly translated, its lowercase string value
+  must be included in the set.
+
 - Added option ``strict`` (enabled by default) which decides whether
   expressions are required to be valid at compile time. That is, if
   not set, an exception is only raised for an invalid expression at

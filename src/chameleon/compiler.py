@@ -22,8 +22,8 @@ from .astutil import Builtin
 from .codegen import TemplateCodeGenerator
 from .codegen import template
 
-from .tales import StringExpr
 from .tal import ErrorInfo
+from .tal import NAME
 from .i18n import fast_translate
 
 from .nodes import Text
@@ -37,6 +37,7 @@ from .tokenize import Token
 from .config import DEBUG_MODE
 from .exc import TranslationError
 from .exc import ExpressionError
+from .parser import groupdict
 
 from .utils import DebuggingOutputStream
 from .utils import char2entity
@@ -72,6 +73,7 @@ COMPILER_INTERNALS_OR_DISALLOWED = set([
 
 
 RE_MANGLE = re.compile('[\-: ]')
+RE_NAME = re.compile('^%s$' % NAME)
 
 if DEBUG_MODE:
     LIST = template("cls()", cls=DebuggingOutputStream, mode="eval")
@@ -235,6 +237,147 @@ def emit_convert_and_escape(
                                 target = target.replace('>', '&gt;')
                             if quote is not None and quote in target:
                                 target = target.replace(quote, quote_entity)
+
+
+class Interpolator(object):
+    braces_required_regex = re.compile(
+        r'(?<!\\)\$({(?P<expression>.*)})')
+
+    braces_optional_regex = re.compile(
+        r'(?<!\\)\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))')
+
+    def __init__(self, expression, braces_required, translate=False):
+        self.expression = expression
+        self.regex = self.braces_required_regex if braces_required else \
+                     self.braces_optional_regex
+        self.translate = translate
+
+    def __call__(self, name, engine):
+        """The strategy is to find possible expression strings and
+        call the ``validate`` function of the parser to validate.
+
+        For every possible starting point, the longest possible
+        expression is tried first, then the second longest and so
+        forth.
+
+        Example 1:
+
+          ${'expressions use the ${<expression>} format'}
+
+        The entire expression is attempted first and it is also the
+        only one that validates.
+
+        Example 2:
+
+          ${'Hello'} ${'world!'}
+
+        Validation of the longest possible expression (the entire
+        string) will fail, while the second round of attempts,
+        ``${'Hello'}`` and ``${'world!'}`` respectively, validate.
+
+        """
+
+        body = []
+        nodes = []
+        text = self.expression
+
+        expr_map = {}
+        translate = self.translate
+
+        while text:
+            matched = text
+            m = self.regex.search(matched)
+            if m is None:
+                nodes.append(ast.Str(s=text))
+                break
+
+            part = text[:m.start()]
+            text = text[m.start():]
+
+            if part:
+                node = ast.Str(s=part)
+                nodes.append(node)
+
+            if not body:
+                target = name
+            else:
+                target = store("%s_%d" % (name.id, text.pos))
+
+            while True:
+                d = groupdict(m, matched)
+                string = d["expression"] or d["variable"] or ""
+
+                try:
+                    compiler = engine.parse(string)
+                    body += compiler.assign_text(target)
+                except ExpressionError:
+                    matched = matched[m.start():m.end() - 1]
+                    m = self.regex.search(matched)
+                    if m is None:
+                        raise
+                else:
+                    break
+
+            # If one or more expressions are not simple names, we
+            # disable translation.
+            if RE_NAME.match(string) is None:
+                translate = False
+
+            # if this is the first expression, use the provided
+            # assignment name; otherwise, generate one (here based
+            # on the string position)
+            node = load(target.id)
+            nodes.append(node)
+
+            expr_map[node] = safe_native(string)
+
+            text = text[len(m.group()):]
+
+        if len(nodes) == 1:
+            target = nodes[0]
+
+            if translate and isinstance(target, ast.Str):
+                target = template(
+                    "translate(msgid, domain=__i18n_domain)",
+                    msgid=target, mode="eval",
+                    )
+        else:
+            if translate:
+                formatting_string = ""
+                keys = []
+                values = []
+
+                for node in nodes:
+                    if isinstance(node, ast.Str):
+                        formatting_string += node.s
+                    else:
+                        string = expr_map[node]
+                        formatting_string += "${%s}" % string
+                        keys.append(ast.Str(s=string))
+                        values.append(node)
+
+                target = template(
+                    "translate(msgid, mapping=mapping, domain=__i18n_domain)",
+                    msgid=ast.Str(s=formatting_string),
+                    mapping=ast.Dict(keys=keys, values=values),
+                    mode="eval"
+                    )
+            else:
+                nodes = [
+                    template(
+                        "NODE if NODE is not None else ''",
+                        NODE=node, mode="eval"
+                        )
+                    for node in nodes
+                    ]
+
+                target = ast.BinOp(
+                    left=ast.Str(s="%s" * len(nodes)),
+                    op=ast.Mod(),
+                    right=ast.Tuple(elts=nodes, ctx=ast.Load()))
+
+        body += [ast.Assign(targets=[name], value=target)]
+        return body
 
 
 class ExpressionEngine(object):
@@ -652,8 +795,11 @@ class ExpressionTransform(object):
         else:
             raise RuntimeError("Bad value: %r." % node.value)
 
-        expression = StringExpr(expr.value, node.braces_required)
-        compiler = engine.get_compiler(expression, expr.value)
+        interpolator = Interpolator(
+            expr.value, node.braces_required, node.translation
+            )
+
+        compiler = engine.get_compiler(interpolator, expr.value)
         return compiler(target, engine)
 
     def visit_Translate(self, node, target):

@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <title>Welcome</title>
+  </head>
+  <body>
+    <h1>Welcome</h1>
+    <span>An edge case: ${.</span>
+    <img alt="Site logo" href="http://host/logo.png" />
+    <img alt="Site logo" href="http://host/logo.png" />
+    <div id="content">
+      foo.
+      <br />
+      bar.
+    </div>
+  </body>
+</html>

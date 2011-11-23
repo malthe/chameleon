@@ -23,6 +23,7 @@ WHITELIST = frozenset([
     "attributes",
     "data",
     "name",
+    "mode",
     ])
 
 try:  # pragma: no cover

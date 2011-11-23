@@ -1,0 +1,16 @@
+<html tal:define="request dict(site_url='http://host')">
+  <head>
+    <title>Welcome</title>
+  </head>
+  <body>
+    <h1>Welcome</h1>
+    <span>An edge case: ${.</span>
+    <img tal:define="site_url request.site_url" alt="Site logo" href="${site_url}/logo.png" />
+    <img alt="Site logo" href="${request.site_url}/logo.png" />
+    <div id="content">
+      foo.
+      <br />
+      bar.
+    </div>
+  </body>
+</html>

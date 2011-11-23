@@ -1,3 +1,5 @@
+import re
+
 try:
     import ast
 except ImportError:
@@ -20,9 +22,7 @@ from ..namespaces import METAL_NS as METAL
 from ..namespaces import META_NS as META
 
 from ..astutil import Static
-from ..astutil import Builtin
 from ..astutil import parse
-from ..astutil import load
 from ..astutil import marker
 
 from .. import tal
@@ -58,7 +58,9 @@ def wrap(node, *wrappers):
 def validate_attributes(attributes, namespace, whitelist):
     for ns, name in attributes:
         if ns == namespace and name not in whitelist:
-            raise CompilationError("Bad attribute for namespace '%s'" % ns, name)
+            raise CompilationError(
+                "Bad attribute for namespace '%s'" % ns, name
+                )
 
 
 class MacroProgram(ElementProgram):
@@ -99,6 +101,15 @@ class MacroProgram(ElementProgram):
     # dropped)
     boolean_attributes = set()
 
+    # If provided, this should be a set of attributes for implicit
+    # translation. Any attribute whose name is included in the set
+    # will be translated even without explicit markup. Note that all
+    # values should be lowercase strings.
+    implicit_i18n_attributes = set()
+
+    # If set, text will be translated even without explicit markup.
+    implicit_i18n_translate = False
+
     def __init__(self, *args, **kwargs):
         # Internal array for switch statements
         self._switches = []
@@ -112,11 +123,14 @@ class MacroProgram(ElementProgram):
         # Internal dictionary of macro definitions
         self._macros = {}
 
-        self.escape = kwargs.pop('escape', self.escape)
-        self.default_marker = kwargs.pop('default_marker', None) or \
-                              self.default_marker
-        self.boolean_attributes = kwargs.pop(
-            'boolean_attributes', self.boolean_attributes
+        # Apply default values from **kwargs to self
+        self._pop_defaults(
+            kwargs,
+            'boolean_attributes',
+            'default_marker',
+            'escape',
+            'implicit_i18n_translate',
+            'implicit_i18n_attributes',
             )
 
         super(MacroProgram, self).__init__(*args, **kwargs)
@@ -215,8 +229,7 @@ class MacroProgram(ElementProgram):
             except KeyError:
                 pass
             else:
-                dynamic = (ns.get((TAL, 'content')) or \
-                           ns.get((TAL, 'replace')))
+                dynamic = ns.get((TAL, 'content')) or ns.get((TAL, 'replace'))
 
                 if not dynamic:
                     content = nodes.Translate(clause, content)
@@ -517,19 +530,52 @@ class MacroProgram(ElementProgram):
 
         return nodes.Sequence(
             [nodes.Text(node[:4]),
-             nodes.Interpolation(expression, True),
+             nodes.Interpolation(expression, True, False),
              nodes.Text(node[-3:])
              ])
 
     def visit_text(self, node):
         self._last = node
 
+        translation = self.implicit_i18n_translate
+
         if self._interpolation[-1] and '${' in node:
             char_escape = ('&', '<', '>') if self.escape else ()
             expression = nodes.Substitution(node, char_escape)
-            return nodes.Interpolation(expression, True)
+            return nodes.Interpolation(expression, True, translation)
 
-        return nodes.Text(node)
+        if not translation:
+            return nodes.Text(node)
+
+        seq = []
+        while node:
+            m = re.search('\s+', node)
+            if m is not None:
+                s = m.start()
+                if s:
+                    t = node[:s]
+                    seq.append(nodes.Translate(t, nodes.Text(t)))
+
+                e = m.end()
+                whitespace = nodes.Text(node[s:e])
+                seq.append(whitespace)
+
+                if e < len(node):
+                    node = node[e:]
+                    continue
+
+            else:
+                seq.append(nodes.Translate(node, nodes.Text(node)))
+
+            break
+
+        return nodes.Sequence(seq)
+
+    def _pop_defaults(self, kwargs, *attributes):
+        for attribute in attributes:
+            default = getattr(self, attribute)
+            value = kwargs.pop(attribute, default)
+            setattr(self, attribute, value)
 
     def _check_attributes(self, namespace, ns):
         if namespace in self.DROP_NS and ns.get((TAL, 'attributes')):
@@ -582,7 +628,10 @@ class MacroProgram(ElementProgram):
 
     def _create_attributes_nodes(self, prepared, I18N_ATTRIBUTES):
         attributes = []
+
         for name, text, quote, space, eq, expr in prepared:
+            implicit_i18n = name.lower() in self.implicit_i18n_attributes
+
             char_escape = ('&', '<', '>', quote)
 
             # Use a provided default text as the default marker
@@ -593,12 +642,15 @@ class MacroProgram(ElementProgram):
             else:
                 default_marker = self.default_marker
 
+            msgid = I18N_ATTRIBUTES.get(name, missing)
+
             # If (by heuristic) ``text`` contains one or more
             # interpolation expressions, apply interpolation
             # substitution to the text
             if expr is None and text is not None and '${' in text:
                 expr = nodes.Substitution(text, char_escape, None)
-                value = nodes.Interpolation(expr, True)
+                translation = implicit_i18n and msgid is missing
+                value = nodes.Interpolation(expr, True, translation)
                 default_marker = self.default_marker
 
             # If the expression is non-trivial, the attribute is
@@ -617,10 +669,11 @@ class MacroProgram(ElementProgram):
             # Otherwise, it's a static attribute.
             else:
                 value = ast.Str(s=text)
+                if msgid is missing and implicit_i18n:
+                    msgid = text
 
             # If translation is required, wrap in a translation
             # clause
-            msgid = I18N_ATTRIBUTES.get(name, missing)
             if msgid is not missing:
                 value = nodes.Translate(msgid, value)
 

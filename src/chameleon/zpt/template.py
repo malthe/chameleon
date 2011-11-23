@@ -96,6 +96,25 @@ class PageTemplate(BaseTemplate):
         Note that if ``target_language`` is provided at render time,
         the translation function must support this argument.
 
+      ``implicit_i18n_translate``
+
+        Enables implicit translation for text appearing inside
+        elements. Default setting is ``False``.
+
+        While implicit translation does work for text that includes
+        expression interpolation, each expression must be simply a
+        variable name (e.g. ``${foo}``); otherwise, the text will not
+        be marked for translation.
+
+      ``implicit_i18n_attributes``
+
+        Any attribute contained in this set will be marked for
+        implicit translation. Each entry must be a lowercase string.
+
+        Example::
+
+          implicit_i18n_attributes = set(['alt', 'title'])
+
     Output is unicode on Python 2 and string on Python 3.
     """
 
@@ -119,6 +138,10 @@ class PageTemplate(BaseTemplate):
     literal_false = False
 
     mode = "xml"
+
+    implicit_i18n_translate = False
+
+    implicit_i18n_attributes = set()
 
     def __init__(self, body, **config):
         self.macros = Macros(self)
@@ -156,6 +179,8 @@ class PageTemplate(BaseTemplate):
             escape=True if self.mode == "xml" else False,
             default_marker=default_marker,
             boolean_attributes=self.boolean_attributes,
+            implicit_i18n_translate=self.implicit_i18n_translate,
+            implicit_i18n_attributes=self.implicit_i18n_attributes,
             )
 
     def render(self, encoding=None, translate=None, target_language=None, **vars):
