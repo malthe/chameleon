@@ -17,6 +17,8 @@ Features:
 
 Bugfixes:
 
+- Exception instances now support pickle/unpickle.
+
 - An attributes in i18n:attributes no longer needs to match an
   existing or dynamic attribute in order to appear in the
   element. This fixes issue #66.

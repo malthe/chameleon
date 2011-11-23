@@ -102,13 +102,29 @@ def format_exception(exc):
     return formatted
 
 
+def reconstruct_exc(cls, state):
+    exc = Exception.__new__(cls)
+    exc.__dict__ = state
+    return exc
+
+
 class TemplateError(Exception):
     """An error raised by Chameleon.
+
+    >>> from chameleon.tokenize import Token
+    >>> token = Token('token')
+    >>> message = 'message'
 
     Make sure the exceptions can be copied:
 
     >>> from copy import copy
-    >>> copy(TemplateError('message', 'token'))
+    >>> copy(TemplateError(message, token))
+    TemplateError('message', 'token')
+
+    And pickle/unpickled:
+
+    >>> from pickle import dumps, loads
+    >>> loads(dumps(TemplateError(message, token)))
     TemplateError('message', 'token')
 
     """
@@ -118,13 +134,17 @@ class TemplateError(Exception):
             token = Token(token, 0)
 
         self.msg = msg
-        self.token = token
+        self.token = safe_native(token)
+        self.offset = getattr(token, "pos", 0)
         self.filename = token.filename
 
     def __copy__(self):
         inst = Exception.__new__(type(self))
         inst.__dict__ = self.__dict__.copy()
         return inst
+
+    def __reduce__(self):
+        return reconstruct_exc, (type(self), self.__dict__)
 
     def __str__(self):
         text = "%s\n\n" % self.msg
@@ -151,10 +171,6 @@ class TemplateError(Exception):
                 )
         except AttributeError:
             return object.__repr__(self)
-
-    @property
-    def offset(self):
-        return getattr(self.token, "pos", 0)
 
 
 class ParseError(TemplateError):
