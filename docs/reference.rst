@@ -398,8 +398,8 @@ The ``tal:switch`` statement is used to set a new parent value and the
 ``tal:case`` statement works like a condition and only allows content
 if the expression matches the value.
 
-If the case expression is is the symbol ``default``, it always matches
-the switch.
+Note that if the case expression is the symbol ``default``, it always
+matches the switch.
 
 .. note:: These statements are only available in Chameleon 2.x and not
           part of the ZPT specification.
@@ -418,7 +418,7 @@ Examples
     </li>
   </ul>
 
-Note that any and all cases that match the switch will be allowed.
+Note that any and all cases that match the switch will be included.
 
 
 ``tal:omit-tag``
