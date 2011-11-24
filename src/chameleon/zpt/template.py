@@ -115,6 +115,14 @@ class PageTemplate(BaseTemplate):
 
           implicit_i18n_attributes = set(['alt', 'title'])
 
+      ``strict``
+        Enabled by default. If disabled, expressions are only required
+        to be valid at evaluation time.
+
+        This setting exists to provide compatibility with the
+        reference implementation which compiles expressions at
+        evaluation time.
+
     Output is unicode on Python 2 and string on Python 3.
     """
 
