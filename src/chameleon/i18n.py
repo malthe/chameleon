@@ -24,6 +24,8 @@ WHITELIST = frozenset([
     "data",
     "name",
     "mode",
+    "xmlns",
+    "xml"
     ])
 
 try:  # pragma: no cover

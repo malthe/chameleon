@@ -1,6 +1,11 @@
 Changes
 =======
 
+Bugfixes:
+
+- Allow ``xml`` and ``xmlns`` attributes on TAL, I18N and METAL
+  namespace elements. This fixes issue #73.
+
 2.6.0 (2011-11-24)
 ------------------
 

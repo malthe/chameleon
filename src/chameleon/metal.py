@@ -18,4 +18,6 @@ WHITELIST = frozenset([
     "use-macro",
     "define-slot",
     "fill-slot",
+    "xmlns",
+    "xml"
     ])

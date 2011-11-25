@@ -56,6 +56,8 @@ WHITELIST = frozenset([
     "script",
     "switch",
     "case",
+    "xmlns",
+    "xml"
     ])
 
 
