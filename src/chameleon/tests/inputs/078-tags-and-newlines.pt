@@ -12,5 +12,12 @@
           copyDataForSubmit("<i tal:replace="${id}"/>");
         </script>
       </span>
+      <tal:block
+    repeat="value python: (1, 2, 3)"
+    ><span class="selected-option"
+           tal:content="value"
+    /><tal:block condition="not:repeat.value.end">, </tal:block
+  ></tal:block
+>
   </body>
 </html>
