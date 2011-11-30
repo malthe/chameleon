@@ -3,6 +3,9 @@ Changes
 
 Bugfixes:
 
+- Decode HTML entities in expression interpolation strings. This fixes
+  issue #74.
+
 - Allow ``xml`` and ``xmlns`` attributes on TAL, I18N and METAL
   namespace elements. This fixes issue #73.
 

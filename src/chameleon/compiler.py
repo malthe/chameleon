@@ -50,6 +50,7 @@ from .utils import version
 from .utils import ast
 from .utils import safe_native
 from .utils import builtins
+from .utils import decode_htmlentities
 
 
 if version >= (3, 0, 0):
@@ -306,6 +307,8 @@ class Interpolator(object):
             while True:
                 d = groupdict(m, matched)
                 string = d["expression"] or d["variable"] or ""
+
+                string = decode_htmlentities(string)
 
                 try:
                     compiler = engine.parse(string)

@@ -8,5 +8,6 @@
     ${None}
     $leftalone
     <div>${None}</div>
+    <div>${1 &lt; 2 and 'Hello world' or None}</div>
   </body>
 </html>
