@@ -275,6 +275,17 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
     Configuration (keyword arguments):
 
+      ``loader_class``
+
+        The provided class will be used to create the template loader
+        object. The default implementation supports relative and
+        absolute path specs.
+
+        The class must accept keyword arguments ``search_path``
+        (sequence of paths to search for relative a path spec) and
+        ``default_extension`` (if provided, this should be added to
+        any path spec).
+
       ``prepend_relative_search_path``
 
         Inserts the path relative to the provided template file path
@@ -295,7 +306,8 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
     prepend_relative_search_path = True
 
-    def __init__(self, filename, search_path=None, **config):
+    def __init__(self, filename, search_path=None, loader_class=TemplateLoader,
+                 **config):
         super(PageTemplateFile, self).__init__(filename, **config)
 
         if search_path is None:
@@ -312,7 +324,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
             path = dirname(self.filename)
             search_path.insert(0, path)
 
-        loader = TemplateLoader(search_path=search_path, **config)
+        loader = loader_class(search_path=search_path, **config)
         template_class = type(self)
 
         # Bind relative template loader instance to the same template

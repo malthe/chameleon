@@ -1,6 +1,16 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Added configuration option ``loader_class`` which sets the class
+  used to create the template loader object.
+
+  The class (essentially a callable) is created at template
+  construction time.
+
 2.6.1 (2011-11-30)
 ------------------
 
