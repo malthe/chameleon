@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.6.1 (2011-11-30)
+------------------
+
 Bugfixes:
 
 - Decode HTML entities in expression interpolation strings. This fixes
