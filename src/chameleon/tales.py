@@ -1,11 +1,6 @@
 import re
 import sys
 
-try:
-    import ast
-except ImportError:
-    from chameleon import ast24 as ast
-
 from .astutil import parse
 from .astutil import store
 from .astutil import load
@@ -18,6 +13,7 @@ from .astutil import Symbol
 from .exc import ExpressionError
 from .utils import resolve_dotted
 from .utils import Markup
+from .utils import ast
 from .tokenize import Token
 from .parser import substitute
 from .compiler import Interpolator

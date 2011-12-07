@@ -6,9 +6,24 @@ import codecs
 version = sys.version_info[:3]
 
 try:
-    import ast
+    import ast as _ast
 except ImportError:
-    from chameleon import ast24 as ast
+    from chameleon import ast24 as _ast
+
+
+class ASTProxy(object):
+    aliases = {
+        # Python 3.3
+        'TryExcept': 'Try',
+        'TryFinally': 'Try',
+        }
+
+    def __getattr__(self, name):
+        return _ast.__dict__.get(name) or getattr(_ast, self.aliases[name])
+
+
+ast = ASTProxy()
+
 
 # Python 2
 if version < (3, 0, 0):

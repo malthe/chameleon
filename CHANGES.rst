@@ -3,6 +3,12 @@ Changes
 
 In next release ...
 
+Bugfixes:
+
+- The ``TryExcept`` and ``TryFinally`` AST nodes are not available on
+  Python 3.3. These have been aliased to ``Try``. This fixes issue
+  #75.
+
 Features:
 
 - Added configuration option ``loader_class`` which sets the class
