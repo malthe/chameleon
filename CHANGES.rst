@@ -5,6 +5,10 @@ In next release ...
 
 Bugfixes:
 
+- Fixed issue where ``tal:on-error`` would not respect
+  ``tal:omit-tag`` or namespace elements which are omitted by default
+  (such as ``<tal:block />``).
+
 - Fixed issue where ``macros`` attribute would not be available on
   file-based templates due to incorrect initialization.
 
