@@ -5,11 +5,17 @@ In next release ...
 
 Bugfixes:
 
+- Fixed issue where ``macros`` attribute would not be available on
+  file-based templates due to incorrect initialization.
+
 - The ``TryExcept`` and ``TryFinally`` AST nodes are not available on
   Python 3.3. These have been aliased to ``Try``. This fixes issue
   #75.
 
 Features:
+
+- The template object now has a method ``write(body)`` which
+  explicitly decodes and cooks a string input.
 
 - Added configuration option ``loader_class`` which sets the class
   used to create the template loader object.

@@ -113,22 +113,14 @@ class BaseTemplate(object):
     # time. When not set, this is only required at evaluation time.
     strict = True
 
-    def __init__(self, body, **config):
+    def __init__(self, body=None, **config):
         self.__dict__.update(config)
 
-        if isinstance(body, byte_string):
-            body, encoding, content_type = read_bytes(
-                body, self.default_encoding
-                )
-        else:
-            content_type = body.startswith('<?xml')
-            encoding = None
+        if body is not None:
+            self.write(body)
 
-        self.content_type = content_type
-        self.content_encoding = encoding
-
-        self.cook(body)
-
+        # This is only necessary if the ``debug`` flag was passed as a
+        # keyword argument
         if self.__dict__.get('debug') is True:
             self.loader = _make_module_loader()
 
@@ -200,6 +192,20 @@ class BaseTemplate(object):
 
         return join(stream)
 
+    def write(self, body):
+        if isinstance(body, byte_string):
+            body, encoding, content_type = read_bytes(
+                body, self.default_encoding
+                )
+        else:
+            content_type = body.startswith('<?xml')
+            encoding = None
+
+        self.content_type = content_type
+        self.content_encoding = encoding
+
+        self.cook(body)
+
     def _get_module_name(self, digest):
         return "%s.py" % digest
 
@@ -267,12 +273,7 @@ class BaseTemplateFile(BaseTemplate):
         if auto_reload is not None:
             self.auto_reload = auto_reload
 
-        self.__dict__.update(config)
-
-        # This is only necessary if the ``debug`` flag was passed as a
-        # keyword argument
-        if config.get('debug') is True:
-            self.loader = _make_module_loader()
+        super(BaseTemplateFile, self).__init__(**config)
 
         if EAGER_PARSING:
             self.cook_check()
