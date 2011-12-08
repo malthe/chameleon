@@ -192,6 +192,8 @@ class RepeatItem(object):
 
     __slots__ = "length", "_iterator"
 
+    __allow_access_to_unprotected_subobjects__ = True
+
     def __init__(self, iterator, length):
         self.length = length
         self._iterator = iterator

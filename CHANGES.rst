@@ -18,6 +18,14 @@ Bugfixes:
 
 Features:
 
+- The TAL repeat item now makes a security declaration that grants
+  access to unprotected subobjects on the Zope 2 platform::
+
+    __allow_access_to_unprotected_subobjects__ = True
+
+  This is required for legacy compatibility and does not affect other
+  environments.
+
 - The template object now has a method ``write(body)`` which
   explicitly decodes and cooks a string input.
 
