@@ -249,22 +249,6 @@ class PythonExpr(TalesExpr):
         return [ast.Assign(targets=[target], value=value)]
 
 
-class ProxyExpr(TalesExpr):
-    def __init__(self, name, *args):
-        super(ProxyExpr, self).__init__(*args)
-        self.name = name
-
-    def translate(self, expression, target):
-        path = expression.strip()
-        return [ast.Assign(targets=[target], value=ast.Call(
-            func=load(self.name),
-            args=[ast.Str(s=path)],
-            keywords=[],
-            starargs=None,
-            kwargs=None
-            ))]
-
-
 class ImportExpr(object):
     re_dotted = re.compile(r'^[A-Za-z.]+$')
 
@@ -436,6 +420,24 @@ class StringExpr(object):
 
     def __call__(self, name, engine):
         return self.translator(name, engine)
+
+
+class ProxyExpr(StringExpr):
+    def __init__(self, name, *args):
+        super(ProxyExpr, self).__init__(*args)
+        self.name = name
+
+    def __call__(self, target, engine):
+        assignment = super(ProxyExpr, self).__call__(target, engine)
+        return assignment + [
+            ast.Assign(targets=[target], value=ast.Call(
+                func=load(self.name),
+                args=[target],
+                keywords=[],
+                starargs=None,
+                kwargs=None
+                ))
+            ]
 
 
 class ExistsExpr(object):

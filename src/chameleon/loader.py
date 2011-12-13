@@ -5,6 +5,7 @@ import py_compile
 import logging
 import functools
 import tempfile
+import pkg_resources
 
 log = logging.getLogger('chameleon.loader')
 
@@ -21,6 +22,11 @@ def cache(func):
             self.registry[args] = template = func(self, *args, **kwargs)
         return template
     return load
+
+
+def abspath_from_asset_spec(spec):
+    pname, filename = spec.split(':', 1)
+    return pkg_resources.resource_filename(pname, filename)
 
 
 class TemplateLoader(object):
@@ -51,22 +57,27 @@ class TemplateLoader(object):
         self.kwargs = kwargs
 
     @cache
-    def load(self, filename, cls=None):
+    def load(self, spec, cls=None):
         if cls is None:
             raise ValueError("Unbound template loader.")
 
-        if self.default_extension is not None and '.' not in filename:
-            filename += self.default_extension
+        spec = spec.strip()
 
-        if os.path.isabs(filename):
-            return cls(filename, **self.kwargs)
+        if self.default_extension is not None and '.' not in spec:
+            spec += self.default_extension
+
+        if ':' in spec:
+            spec = abspath_from_asset_spec(spec)
+
+        if os.path.isabs(spec):
+            return cls(spec, **self.kwargs)
 
         for path in self.search_path:
-            path = os.path.join(path, filename)
+            path = os.path.join(path, spec)
             if os.path.exists(path):
                 return cls(path, **self.kwargs)
 
-        raise ValueError("Template not found: %s." % filename)
+        raise ValueError("Template not found: %s." % spec)
 
     def bind(self, cls):
         return functools.partial(self.load, cls=cls)

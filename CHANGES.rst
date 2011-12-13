@@ -3,6 +3,17 @@ Changes
 
 In next releases ...
 
+Features:
+
+- The ``load:`` expression now accepts asset specs; these are resolved
+  by the ``pkg_resources.resource_filename`` function::
+
+    <package_name>:<path>
+
+  An example from the test suite::
+
+    chameleon:tests/inputs/hello_world.pt
+
 Bugfixes:
 
 - If an attribute name for translation was not a valid Python

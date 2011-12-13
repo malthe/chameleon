@@ -1,0 +1,1 @@
+<html metal:use-macro="load: chameleon:tests/inputs/hello_world.pt" />
