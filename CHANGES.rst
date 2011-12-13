@@ -1,9 +1,13 @@
 Changes
 =======
 
-In next releases ...
+In next release ...
 
 Features:
+
+- The ``load:`` expression now derives from the string expression such
+  that the ``${...}`` operator can be used for expression
+  interpolation.
 
 - The ``load:`` expression now accepts asset specs; these are resolved
   by the ``pkg_resources.resource_filename`` function::

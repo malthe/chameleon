@@ -1,0 +1,1 @@
+<html tal:define="name 'hello_world'" metal:use-macro="load: chameleon:tests/inputs/${name}.pt" />
