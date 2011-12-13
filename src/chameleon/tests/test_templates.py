@@ -168,7 +168,7 @@ class ZopePageTemplatesTest(RenderTestCase):
                     exc = sys.exc_info()[1]
                     return func(self, body, exc)
                 else:
-                    self.fail("Expected exception; got: %s." % result)
+                    self.fail("Expected exception.")
 
             return wrapper
         return decorator
@@ -200,6 +200,10 @@ class ZopePageTemplatesTest(RenderTestCase):
     @error("""<tal:dummy attributes=\"dummy 'dummy'\" />""")
     def test_attributes_on_tal_tag_fails(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
+
+    @error("""<tal:dummy i18n:attributes=\"foo, bar\" />""")
+    def test_i18n_attributes_with_non_identifiers(self, body, exc):
+        self.assertTrue(body[exc.offset:].startswith('foo,'))
 
     def test_encoded(self):
         filename = '074-encoded-template.pt'

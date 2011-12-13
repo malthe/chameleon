@@ -80,6 +80,11 @@ def parse_attributes(attrs, xml=True):
     attrs = [spec for spec in attrs.split(";") if spec]
 
     for spec in attrs:
+        if ',' in spec:
+            raise CompilationError(
+                "Attribute must not contain comma. Use semicolon to "
+                "list multiple attributes", spec
+                )
         parts = spec.split()
         if len(parts) == 2:
             attr, msgid = parts
@@ -91,6 +96,7 @@ def parse_attributes(attrs, xml=True):
                 "Illegal i18n:attributes specification.", spec)
         if not xml:
             attr = attr.lower()
+        attr = attr.strip()
         if attr in d:
             raise CompilationError(
                 "Attribute may only be specified once in i18n:attributes", attr)

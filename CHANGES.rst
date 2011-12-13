@@ -1,6 +1,18 @@
 Changes
 =======
 
+In next releases ...
+
+Bugfixes:
+
+- If an attribute name for translation was not a valid Python
+  identifier, the compiler would generate invalid code. This has been
+  fixed, and the compiler now also throws an exception if an attribute
+  specification contains a comma. (Note that the only valid separator
+  character is the semicolon, when specifying attributes for
+  translation via the ``i18n:translate`` statement). This addresses
+  issue #76.
+
 2.6.2 (2011-12-08)
 ------------------
 

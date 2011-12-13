@@ -73,7 +73,7 @@ COMPILER_INTERNALS_OR_DISALLOWED = set([
     ])
 
 
-RE_MANGLE = re.compile('[\-: ]')
+RE_MANGLE = re.compile('[^\w_]')
 RE_NAME = re.compile('^%s$' % NAME)
 
 if DEBUG_MODE:
