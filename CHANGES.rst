@@ -13,6 +13,10 @@ Features:
 
      template.macros[name]
 
+Bugfixes:
+
+- Fixed regression where ``${...}`` interpolation expressions could
+  not span multiple lines. This fixes issue #77.
 
 2.7.0 (2011-12-13)
 ------------------

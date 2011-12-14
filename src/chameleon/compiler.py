@@ -242,10 +242,12 @@ def emit_convert_and_escape(
 
 class Interpolator(object):
     braces_required_regex = re.compile(
-        r'(?<!\\)\$({(?P<expression>.*)})')
+        r'(?<!\\)\$({(?P<expression>.*)})',
+        re.DOTALL)
 
     braces_optional_regex = re.compile(
-        r'(?<!\\)\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))')
+        r'(?<!\\)\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))',
+        re.DOTALL)
 
     def __init__(self, expression, braces_required, translate=False):
         self.expression = expression

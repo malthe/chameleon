@@ -6,6 +6,8 @@
     ${"%stype 'str'%s" % (chr(60), chr(62))}
     &&
     ${None}
+    ${None or
+      'Hello world'}
     $leftalone
     <div>${None}</div>
     <div>${1 &lt; 2 and 'Hello world' or None}</div>
