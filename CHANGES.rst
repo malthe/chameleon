@@ -1,6 +1,19 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- The page template class now implements dictionary access to macros::
+
+     template[name]
+
+  This is a short-hand for::
+
+     template.macros[name]
+
+
 2.7.0 (2011-12-13)
 ------------------
 

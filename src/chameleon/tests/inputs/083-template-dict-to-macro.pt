@@ -1,0 +1,2 @@
+<html tal:define="template load: 032-master-template.pt"
+      metal:use-macro="template['main']" />

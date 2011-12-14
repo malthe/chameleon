@@ -155,6 +155,9 @@ class PageTemplate(BaseTemplate):
         self.macros = Macros(self)
         super(PageTemplate, self).__init__(body, **config)
 
+    def __getitem__(self, name):
+        return self.macros[name]
+
     @property
     def builtins(self):
         return self._builtins()
