@@ -15,6 +15,9 @@ Features:
 
 Bugfixes:
 
+- An invalid define clause would be silently ignored; we now raise a
+  language error exception. This fixes issue #79.
+
 - Fixed regression where ``${...}`` interpolation expressions could
   not span multiple lines. This fixes issue #77.
 

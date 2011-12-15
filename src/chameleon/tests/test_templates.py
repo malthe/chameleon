@@ -205,6 +205,10 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_i18n_attributes_with_non_identifiers(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('foo,'))
 
+    @error("""<tal:dummy repeat=\"key,value mydict.items()\">""")
+    def test_repeat_syntax_error_message(self, body, exc):
+        self.assertTrue(body[exc.offset:].startswith('key,value'))
+
     def test_encoded(self):
         filename = '074-encoded-template.pt'
         with open(os.path.join(self.root, 'inputs', filename), 'rb') as f:

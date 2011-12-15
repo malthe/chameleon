@@ -116,7 +116,7 @@ def parse_defines(clause):
     for part in split_parts(clause):
         m = DEFINE_RE.match(part)
         if m is None:
-            return
+            raise LanguageError("Invalid define syntax", part)
         context, name, expr = groups(m, part)
         context = context or "local"
 
