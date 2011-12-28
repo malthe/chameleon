@@ -5,6 +5,8 @@ In next release ...
 
 Features:
 
+- Enable expression interpolation in CDATA.
+
 - The page template class now implements dictionary access to macros::
 
      template[name]

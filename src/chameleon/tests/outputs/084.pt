@@ -1,0 +1,9 @@
+<html>
+  <head>
+    <script>
+      <![CDATA[
+      alert("Hello world!");
+      ]]>
+    </script>
+  </head>
+</html>

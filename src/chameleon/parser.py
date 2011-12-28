@@ -192,6 +192,9 @@ class ElementParser(object):
     def visit_comment(self, kind, token):
         return "comment", (token, )
 
+    def visit_cdata(self, kind, token):
+        return "cdata", (token, )
+
     def visit_default(self, kind, token):
         return "default", (token, )
 

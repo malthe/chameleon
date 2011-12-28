@@ -520,6 +520,13 @@ class MacroProgram(ElementProgram):
     def visit_start_tag(self, start):
         return self.visit_element(start, None, [])
 
+    def visit_cdata(self, node):
+        if not self._interpolation[-1] or not '${' in node:
+            return nodes.Text(node)
+
+        expr = nodes.Substitution(node, ())
+        return nodes.Interpolation(expr, True, False)
+
     def visit_comment(self, node):
         if node.startswith('<!--!'):
             return
