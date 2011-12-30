@@ -37,9 +37,10 @@ except ImportError:
 
 NAME = r"[a-zA-Z_][-a-zA-Z0-9_]*"
 DEFINE_RE = re.compile(r"(?s)\s*(?:(global|local)\s+)?" +
-                       r"(%s|\(%s(?:,\s*%s)*\))\s+(.*)\Z" % (NAME, NAME, NAME))
-SUBST_RE = re.compile(r"\s*(?:(text|structure)\s+)?(.*)\Z", re.S)
-ATTR_RE = re.compile(r"\s*([^\s]+)\s+([^\s].*)\Z", re.S)
+                       r"(%s|\(%s(?:,\s*%s)*\))\s+(.*)\Z" % (NAME, NAME, NAME),
+                       re.UNICODE)
+SUBST_RE = re.compile(r"\s*(?:(text|structure)\s+)?(.*)\Z", re.S | re.UNICODE)
+ATTR_RE = re.compile(r"\s*([^\s]+)\s+([^\s].*)\Z", re.S | re.UNICODE)
 
 ENTITY_RE = re.compile(r'(&(#?)(x?)(\d{1,5}|\w{1,8});)')
 
@@ -112,6 +113,33 @@ def parse_substitution(clause):
 
 
 def parse_defines(clause):
+    """
+    Parses a tal:define value.
+
+    # Basic syntax, implicit local
+    >>> parse_defines('hello lovely')
+    [('local', ('hello',), 'lovely')]
+
+    # Explicit local
+    >>> parse_defines('local hello lovely')
+    [('local', ('hello',), 'lovely')]
+
+    # With global
+    >>> parse_defines('global hello lovely')
+    [('global', ('hello',), 'lovely')]
+
+    # Multiple expressions
+    >>> parse_defines('hello lovely; tea time')
+    [('local', ('hello',), 'lovely'), ('local', ('tea',), 'time')]
+
+    # With multiple names
+    >>> parse_defines('(hello, howdy) lovely')
+    [('local', ['hello', 'howdy'], 'lovely')]
+
+    # With unicode whitespace
+    >>> parse_defines(u"\\xa0hello lovely")
+    [('local', (u'hello',), u'lovely')]
+    """
     defines = []
     for part in split_parts(clause):
         m = DEFINE_RE.match(part)

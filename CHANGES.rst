@@ -1,6 +1,14 @@
 Changes
 =======
 
+Unreleased
+----------
+
+Bugfixes:
+
+- In certain circumstances, a Unicode non-breaking space character would cause
+  a define clause to fail to parse.
+
 2.7.1 (2011-12-29)
 ------------------
 
