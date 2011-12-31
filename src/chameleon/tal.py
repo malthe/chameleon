@@ -137,8 +137,16 @@ def parse_defines(clause):
     [('local', ['hello', 'howdy'], 'lovely')]
 
     # With unicode whitespace
-    >>> parse_defines(u"\\xa0hello lovely")
-    [('local', (u'hello',), u'lovely')]
+    >>> try:
+    ...     s = '\xc2\xa0hello lovely'.decode('utf-8')
+    ... except AttributeError:
+    ...     s = '\xa0hello lovely'
+    >>> from chameleon.utils import unicode_string
+    >>> parse_defines(s) == [
+    ...     ('local', ('hello',), 'lovely')
+    ... ]
+    True
+
     """
     defines = []
     for part in split_parts(clause):
