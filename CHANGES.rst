@@ -6,6 +6,11 @@ Unreleased
 
 Bugfixes:
 
+- Fixed issue #80. The translation domain for a slot is defined by the
+  source document, i.e. the template providing the content for a slot
+  whether it be the default or provided through ``metal:fill-slot``.
+  [jcbrand]
+
 - In certain circumstances, a Unicode non-breaking space character would cause
   a define clause to fail to parse.
 

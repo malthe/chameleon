@@ -1,4 +1,4 @@
-<html metal:define-macro="main" tal:define="content nothing">
+<html i18n:domain="master" metal:define-macro="main" tal:define="content nothing">
   <head>
     <title metal:define-slot="title"
            metal:define-macro="title"

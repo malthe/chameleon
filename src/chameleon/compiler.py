@@ -1321,7 +1321,7 @@ class Compiler(object):
         self._slots.add(name)
 
         orelse = template(
-            "SLOT(__stream, econtext.copy(), rcontext, __i18n_domain)",
+            "SLOT(__stream, econtext.copy(), rcontext)",
             SLOT=name)
         test = ast.Compare(
             left=load(name),
