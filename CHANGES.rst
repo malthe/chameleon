@@ -6,6 +6,10 @@ Unreleased
 
 Bugfixes:
 
+- Apply translation mapping even when a translation function is not
+  available. This fixes issue #83.
+  [malthe]
+
 - Fixed issue #80. The translation domain for a slot is defined by the
   source document, i.e. the template providing the content for a slot
   whether it be the default or provided through ``metal:fill-slot``.

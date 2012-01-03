@@ -12,8 +12,12 @@
 #
 ##############################################################################
 
+import re
+
 from .exc import CompilationError
-from .namespaces import I18N_NS as ZOPE_I18N_NS
+from .utils import unicode_string
+
+NAME_RE = r"[a-zA-Z][-a-zA-Z0-9_]*"
 
 WHITELIST = frozenset([
     "translate",
@@ -27,6 +31,10 @@ WHITELIST = frozenset([
     "xmlns",
     "xml"
     ])
+
+_interp_regex = re.compile(r'(?<!\$)(\$(?:(%(n)s)|{(%(n)s)}))'
+    % ({'n': NAME_RE}))
+
 
 try:  # pragma: no cover
     str = unicode
@@ -44,6 +52,12 @@ except ImportError:   # pragma: no cover
                        target_language=None, default=None):
         if default is None:
             return msgid
+
+        if mapping:
+            def replace(match):
+                whole, param1, param2 = match.groups()
+                return unicode_string(mapping.get(param1 or param2, whole))
+            return _interp_regex.sub(replace, default)
 
         return default
 else:   # pragma: no cover
@@ -70,6 +84,7 @@ else:   # pragma: no cover
             return default
 
         return interpolate(default, mapping)
+
 
 def parse_attributes(attrs, xml=True):
     d = {}
