@@ -18,7 +18,7 @@ templates directory *once*, use the template loader class::
 
   import os
 
-  path = os.path.basedir(__file__)
+  path = os.path.dirname(__file__)
 
   from chameleon import PageTemplateLoader
   templates = PageTemplateLoader(os.path.join(path, "templates"))
