@@ -1,0 +1,9 @@
+<html>
+  <head>
+    <title>Welcome</title>
+  </head>
+  <body>
+    <h1>Welcome</h1>
+    <p><a href="http://host">Click here ('Click here' translation into 'en' with domain 'new')</a> to continue. ('${click_here} to continue.' translation into 'en' with domain 'new')</p>
+  </body>
+</html>

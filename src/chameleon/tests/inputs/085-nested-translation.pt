@@ -1,0 +1,11 @@
+<html tal:define="request dict(site_url='http://host')" i18n:domain="new">
+  <head>
+    <title>Welcome</title>
+  </head>
+  <body>
+    <h1>Welcome</h1>
+    <p i18n:translate="">
+      <a i18n:name="click_here" i18n:translate="" href="${request.site_url}">Click here</a> to continue.
+    </p>
+  </body>
+</html>
