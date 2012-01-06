@@ -13,9 +13,14 @@ try:
 except ImportError:
     import builtins
 
-reverse_builtin_map = dict(
-    (value, name) for (name, value) in builtins.__dict__.items()
-    )
+reverse_builtin_map = {}
+for name, value in builtins.__dict__.items():
+    try:
+        hash(value)
+    except TypeError:
+        continue
+
+    reverse_builtin_map[value] = name
 
 try:
     basestring

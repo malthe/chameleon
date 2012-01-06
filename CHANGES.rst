@@ -6,6 +6,10 @@ Unreleased
 
 Bugfixes:
 
+- Ignore unhashable builtins when generating a reverse builtin
+  map to quickly look up a builtin value.
+  [malthe]
+
 - Apply translation mapping even when a translation function is not
   available. This fixes issue #83.
   [malthe]
