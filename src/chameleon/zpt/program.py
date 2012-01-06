@@ -110,6 +110,9 @@ class MacroProgram(ElementProgram):
     # If set, text will be translated even without explicit markup.
     implicit_i18n_translate = False
 
+    # If set, additional attribute whitespace will be stripped.
+    trim_attribute_space = False
+
     def __init__(self, *args, **kwargs):
         # Internal array for switch statements
         self._switches = []
@@ -131,6 +134,7 @@ class MacroProgram(ElementProgram):
             'escape',
             'implicit_i18n_translate',
             'implicit_i18n_attributes',
+            'trim_attribute_space',
             )
 
         super(MacroProgram, self).__init__(*args, **kwargs)
@@ -265,16 +269,16 @@ class MacroProgram(ElementProgram):
             # Start- and end nodes
             start_tag = nodes.Start(
                 start['name'],
-                start['prefix'],
-                start['suffix'],
+                self._maybe_trim(start['prefix']),
+                self._maybe_trim(start['suffix']),
                 ATTRIBUTES
                 )
 
             end_tag = nodes.End(
                 end['name'],
                 end['space'],
-                end['prefix'],
-                end['suffix'],
+                self._maybe_trim(end['prefix']),
+                self._maybe_trim(end['suffix']),
                 ) if end is not None else None
 
             # tal:omit-tag
@@ -689,6 +693,7 @@ class MacroProgram(ElementProgram):
             if msgid is not missing:
                 value = nodes.Translate(msgid, value)
 
+            space = self._maybe_trim(space) or " "
             attribute = nodes.Attribute(name, value, quote, eq, space)
 
             # Always define a ``default`` alias
@@ -708,3 +713,9 @@ class MacroProgram(ElementProgram):
             static_attrs[name] = text if text is not None else expr
 
         return Static(parse(repr(static_attrs)).body)
+
+    def _maybe_trim(self, string):
+        if self.trim_attribute_space:
+            return string.strip()
+
+        return string

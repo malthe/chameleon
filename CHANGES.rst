@@ -4,6 +4,13 @@ Changes
 Unreleased
 ----------
 
+Features:
+
+- Added option ``trim_attribute_space`` that decides whether attribute
+  whitespace is stripped (at most down to a single space). This option
+  exists to provide compatibility with the reference
+  implementation. Fixes issue #85.
+
 Bugfixes:
 
 - Ignore unhashable builtins when generating a reverse builtin

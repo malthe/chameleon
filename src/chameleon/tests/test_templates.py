@@ -331,6 +331,22 @@ class ZopePageTemplatesTest(RenderTestCase):
             )
         self.assertTrue(template(), "<div>foo</div>")
 
+    def test_trim_attribute_space(self):
+        document = '''<div
+                  class="document"
+                  id="test"
+                  tal:attributes="class string:${default} test"
+            />'''
+
+        result1 = self.from_string(
+            document)()
+
+        result2 = self.from_string(
+            document, trim_attribute_space=True)()
+
+        self.assertEqual(result1.count(" "), 49)
+        self.assertEqual(result2.count(" "), 3)
+
     def test_exception(self):
         from traceback import format_exception_only
 

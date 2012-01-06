@@ -116,12 +116,17 @@ class PageTemplate(BaseTemplate):
           implicit_i18n_attributes = set(['alt', 'title'])
 
       ``strict``
+
         Enabled by default. If disabled, expressions are only required
         to be valid at evaluation time.
 
         This setting exists to provide compatibility with the
         reference implementation which compiles expressions at
         evaluation time.
+
+      ``trim_attribute_space``
+
+        If set, additional attribute whitespace will be stripped.
 
     Output is unicode on Python 2 and string on Python 3.
     """
@@ -150,6 +155,8 @@ class PageTemplate(BaseTemplate):
     implicit_i18n_translate = False
 
     implicit_i18n_attributes = set()
+
+    trim_attribute_space = False
 
     def __init__(self, body, **config):
         self.macros = Macros(self)
@@ -192,6 +199,7 @@ class PageTemplate(BaseTemplate):
             boolean_attributes=self.boolean_attributes,
             implicit_i18n_translate=self.implicit_i18n_translate,
             implicit_i18n_attributes=self.implicit_i18n_attributes,
+            trim_attribute_space=self.trim_attribute_space,
             )
 
     def render(self, encoding=None, translate=None, target_language=None, **vars):
