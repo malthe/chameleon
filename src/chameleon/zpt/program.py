@@ -44,6 +44,7 @@ except NameError:
 
 missing = object()
 
+re_trim = re.compile(r'($\s+|\s+^)', re.MULTILINE)
 
 def skip(node):
     return node
@@ -693,7 +694,7 @@ class MacroProgram(ElementProgram):
             if msgid is not missing:
                 value = nodes.Translate(msgid, value)
 
-            space = self._maybe_trim(space) or " "
+            space = self._maybe_trim(space)
             attribute = nodes.Attribute(name, value, quote, eq, space)
 
             # Always define a ``default`` alias
@@ -716,6 +717,6 @@ class MacroProgram(ElementProgram):
 
     def _maybe_trim(self, string):
         if self.trim_attribute_space:
-            return string.strip()
+            return re_trim.sub(" ", string)
 
         return string

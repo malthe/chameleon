@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- The trim whitespace option now correctly trims actual whitespace to
+  a single character, appearing either to the left or to the right of
+  an element prefix or suffix string.
+
 2.7.2 (2012-01-08)
 ------------------
 

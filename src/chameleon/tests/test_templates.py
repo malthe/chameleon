@@ -345,7 +345,9 @@ class ZopePageTemplatesTest(RenderTestCase):
             document, trim_attribute_space=True)()
 
         self.assertEqual(result1.count(" "), 49)
-        self.assertEqual(result2.count(" "), 3)
+        self.assertEqual(result2.count(" "), 4)
+        self.assertTrue(" />" in result1)
+        self.assertTrue(" />" in result2)
 
     def test_exception(self):
         from traceback import format_exception_only
