@@ -1,0 +1,10 @@
+<html metal:use-macro="load('032-master-template.pt').macros['main']">
+  <body>
+    <div metal:fill-slot="content">
+      <div tal:condition="True">
+        <a href="#">Chart</a>
+        <div id="chart-info"/>
+      </div>
+    </div>
+  </body>
+</html>

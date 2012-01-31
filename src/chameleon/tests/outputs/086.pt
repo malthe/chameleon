@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <title>Master template</title>
+  </head>
+  <body>
+    <div id="content">
+      <div>
+      <div>
+        <a href="#">Chart</a>
+        <div id="chart-info"/>
+      </div>
+    </div>
+    </div>
+    <div id="footer">
+
+    </div>
+  </body>
+</html>
