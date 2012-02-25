@@ -369,6 +369,32 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("expected error")
 
+    def test_uncopiable_exception(self):
+        
+        class UnCopiableException(Exception):
+            def __init__(self, arg1=None):
+                if arg1 is None:
+                    raise ValueError
+
+        def _render(stream, econtext, rcontext):
+            rcontext['__error__'] = 'some errors'
+            raise UnCopiableException(1)
+
+        from logging import getLogger
+        logger = getLogger('chameleon.template')
+        logger.disabled = True
+
+        template = self.from_string("")
+        template._render = _render
+        try:
+            template()
+        except UnCopiableException:
+            pass
+        else:
+            self.fail("unexpected error")
+        finally:
+            logger.disabled = False
+
     def test_double_underscore_variable(self):
         from chameleon.exc import TranslationError
         self.assertRaises(
