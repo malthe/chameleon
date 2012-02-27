@@ -237,9 +237,15 @@ class ExceptionFormatter(object):
             formatted[index + 1] = " " * 15 + string
 
         out = []
+        seen = set()
 
         for error in self._errors:
             expression, line, column, filename, exc = error
+
+            if exc in seen:
+                continue
+
+            seen.add(exc)
 
             if isinstance(exc, UnicodeDecodeError):
                 string = safe_native(exc.object)

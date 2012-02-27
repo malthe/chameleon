@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release ...
+
+- The exception formatter now keeps track of already formatted
+  exceptions, and ignores them from further output.
+
 2.7.4 (2012-02-27)
 ------------------
 
