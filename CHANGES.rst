@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release ...
+
+- The error handler now accepts any exception raised during copy;
+  previously, only `ValueError` would be caught.
+
 2.7.3 (2012-01-16)
 ------------------
 

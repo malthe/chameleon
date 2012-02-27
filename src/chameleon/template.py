@@ -179,7 +179,7 @@ class BaseTemplate(object):
             if errors:
                 try:
                     exc = copy.copy(exc)
-                except Exception:
+                except:
                     name = type(exc).__name__
                     log.warn("Unable to copy exception of type '%s'." % name)
                 else:
