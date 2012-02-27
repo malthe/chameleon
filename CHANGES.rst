@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.7.4 (2012-02-27)
+------------------
 
 - The error handler now invokes the ``__init__`` method of
   ``BaseException`` instead of the possibly overriden method (which
