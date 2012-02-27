@@ -38,7 +38,7 @@ from .utils import DebuggingOutputStream
 from .utils import Scope
 from .utils import join
 from .utils import mangle
-from .utils import derive_formatted_exception
+from .utils import create_formatted_exception
 from .utils import read_bytes
 from .utils import raise_with_traceback
 from .utils import byte_string
@@ -177,14 +177,13 @@ class BaseTemplate(object):
             cls, exc, tb = sys.exc_info()
             errors = rcontext.get('__error__')
             if errors:
+                formatter = ExceptionFormatter(errors, econtext, rcontext)
+
                 try:
-                    exc = copy.copy(exc)
-                except:
+                    exc = create_formatted_exception(exc, cls, formatter)
+                except ValueError:
                     name = type(exc).__name__
                     log.warn("Unable to copy exception of type '%s'." % name)
-                else:
-                    formatter = ExceptionFormatter(errors, econtext, rcontext)
-                    exc = derive_formatted_exception(exc, cls, formatter)
 
                 raise_with_traceback(exc, tb)
 

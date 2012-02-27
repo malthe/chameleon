@@ -3,6 +3,8 @@ import re
 import sys
 import codecs
 
+from copy import copy
+
 version = sys.version_info[:3]
 
 try:
@@ -197,18 +199,20 @@ def substitute_entity(match, n2cp=htmlentitydefs.name2codepoint):
             return match.group()
 
 
-def derive_formatted_exception(exc, cls, formatter):
+def create_formatted_exception(exc, cls, formatter):
     try:
         new = type(cls.__name__, (cls, Exception), {
             '__str__': formatter,
+            '__new__': BaseException.__new__,
             })
-        exc.__class__ = new
     except TypeError:
-        d = exc.__dict__
-        exc = cls.__new__(new)
-        exc.__dict__ = d
+        new = cls
 
-    return exc
+    inst = BaseException.__new__(new)
+    BaseException.__init__(inst, *exc.args)
+    inst.__dict__ = exc.__dict__
+
+    return inst
 
 
 def unescape(string):

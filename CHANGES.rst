@@ -3,8 +3,10 @@ Changes
 
 In next release ...
 
-- The error handler now accepts any exception raised during copy;
-  previously, only `ValueError` would be caught.
+- The error handler now invokes the ``__init__`` method of
+  ``BaseException`` instead of the possibly overriden method (which
+  may take required arguments). This fixes issue #97.
+  [j23d, malthe]
 
 2.7.3 (2012-01-16)
 ------------------

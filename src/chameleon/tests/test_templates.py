@@ -369,31 +369,46 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("expected error")
 
-    def test_uncopiable_exception(self):
-        
-        class UnCopiableException(Exception):
-            def __init__(self, arg1=None):
-                if arg1 is None:
-                    raise ValueError
+    def test_create_formatted_exception(self):
+        from chameleon.utils import create_formatted_exception
+
+        exc = create_formatted_exception(NameError('foo'), NameError, str)
+        self.assertEqual(exc.args, ('foo', ))
+
+        class MyNameError(NameError):
+            def __init__(self, boo):
+                NameError.__init__(self, boo)
+                self.bar = boo
+
+        exc = create_formatted_exception(MyNameError('foo'), MyNameError, str)
+        self.assertEqual(exc.args, ('foo', ))
+        self.assertEqual(exc.bar, 'foo')
+
+    def test_error_handler_makes_safe_copy(self):
+        calls = []
+
+        class TestException(Exception):
+            def __init__(self, *args, **kwargs):
+                calls.append((args, kwargs))
 
         def _render(stream, econtext, rcontext):
-            rcontext['__error__'] = 'some errors'
-            raise UnCopiableException(1)
-
-        from logging import getLogger
-        logger = getLogger('chameleon.template')
-        logger.disabled = True
+            exc = TestException('foo', bar='baz')
+            rcontext['__error__'] = ('expression', 1, 42, 'test.pt', exc),
+            raise exc
 
         template = self.from_string("")
         template._render = _render
         try:
             template()
-        except UnCopiableException:
-            pass
+        except TestException:
+            self.assertEqual(calls, [(('foo', ), {'bar': 'baz'})])
+            exc = sys.exc_info()[1]
+            formatted = str(exc)
+            self.assertTrue('TestException' in formatted)
+            self.assertTrue('"expression"' in formatted)
+            self.assertTrue('(1:42)' in formatted)
         else:
             self.fail("unexpected error")
-        finally:
-            logger.disabled = False
 
     def test_double_underscore_variable(self):
         from chameleon.exc import TranslationError
