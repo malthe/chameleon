@@ -25,6 +25,10 @@ class Default(Node):
     _fields = "marker",
 
 
+class CodeBlock(Node):
+    _fields = "source",
+
+
 class Value(Node):
     """Expression object value."""
 

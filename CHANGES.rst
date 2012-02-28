@@ -3,6 +3,16 @@ Changes
 
 In next release ...
 
+Features:
+
+- Added support for code blocks using the `<?python ... ?>` processing
+  instruction syntax.
+
+  The scope is name assignments is up until the nearest macro
+  definition, or the template itself if macros are not used.
+
+Bugfixes:
+
 - Fall back to the exception class' ``__new__`` method to safely
   create an exception object that is not implemented in Python.
 

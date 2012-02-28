@@ -1465,6 +1465,32 @@ character: ``\${...}``.
 Note that if an object implements the ``__html__`` method, the result
 of this method will be inserted as-is (without XML escaping).
 
+Code blocks
+###########
+
+The ``<?python ... ?>`` notation allows you to embed Python code in
+templates:
+
+.. code-block:: html
+
+  <div>
+    <?python numbers = map(str, range(1, 10)) ?>
+    Please input a number from the range ${", ".join(numbers)}.
+  </div>
+
+The scope of name assignments is up to the nearest macro definition,
+or the template, if macros are not used.
+
+Note that code blocks can span multiple line and start on the next
+line of where the processing instruction begins:
+
+.. code-block:: html
+
+  <?python
+    foo = [1, 2, 3]
+  ?>
+
+
 Markup comments
 ###############
 

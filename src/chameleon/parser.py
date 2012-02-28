@@ -29,7 +29,7 @@ match_cdata = re.compile(
 match_declaration = re.compile(
     r'^<!(?P<text>[^>]+)>$', re.DOTALL)
 match_processing_instruction = re.compile(
-    r'^<\?(?P<text>.*?)\?>', re.DOTALL)
+    r'^<\?(?P<name>\w+)(?P<text>.*?)\?>', re.DOTALL)
 match_xml_declaration = re.compile(r'^<\?xml(?=[ /])', re.DOTALL)
 
 log = logging.getLogger('chameleon.parser')
@@ -197,6 +197,10 @@ class ElementParser(object):
 
     def visit_default(self, kind, token):
         return "default", (token, )
+
+    def visit_processing_instruction(self, kind, token):
+        m = match_processing_instruction.match(token)
+        return "processing_instruction", (groupdict(m, token), )
 
     def visit_text(self, kind, token):
         return kind, (token, )

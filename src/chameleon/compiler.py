@@ -6,6 +6,7 @@ import threading
 import functools
 import collections
 import pickle
+import textwrap
 
 from .astutil import load
 from .astutil import store
@@ -859,7 +860,7 @@ class Compiler(object):
         internals = COMPILER_INTERNALS_OR_DISALLOWED | \
                     set(self.defaults)
 
-        transform = NameTransform(
+        self._transform = transform = NameTransform(
             self.global_builtins | set(builtins),
             ListDictProxy(self._aliases),
             internals,
@@ -1365,6 +1366,15 @@ class Compiler(object):
         body += template("stream = ''.join(stream)", stream=stream)
 
         return body
+
+    def visit_CodeBlock(self, node):
+        stmts = template(textwrap.dedent(node.source.strip('\n')))
+        visitor = NameLookupRewriteVisitor(self._transform)
+
+        for stmt in stmts:
+            visitor(stmt)
+
+        return stmts
 
     def visit_UseExternalMacro(self, node):
         self._macros.append(node.extend)

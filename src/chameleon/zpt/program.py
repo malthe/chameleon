@@ -551,6 +551,13 @@ class MacroProgram(ElementProgram):
              nodes.Text(node[-3:])
              ])
 
+    def visit_processing_instruction(self, node):
+        if node['name'] != 'python':
+            text = '<?' + node['name'] + node['text'] + '?>'
+            return self.visit_text(text)
+
+        return nodes.CodeBlock(node['text'])
+
     def visit_text(self, node):
         self._last = node
 
