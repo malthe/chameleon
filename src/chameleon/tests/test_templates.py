@@ -384,6 +384,19 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertEqual(exc.args, ('foo', ))
         self.assertEqual(exc.bar, 'foo')
 
+    def test_create_formatted_exception_no_subclass(self):
+        from chameleon.utils import create_formatted_exception
+
+        class DifficultMetaClass(type):
+            def __init__(self, class_name, bases, namespace):
+                if not bases == (BaseException, ):
+                    raise TypeError(bases)
+
+        Difficult = DifficultMetaClass('Difficult', (BaseException, ), {'args': ()})
+
+        exc = create_formatted_exception(Difficult(), Difficult, str)
+        self.assertEqual(exc.args, ())
+
     def test_error_handler_makes_safe_copy(self):
         calls = []
 
