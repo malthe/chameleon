@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Fall back to the exception class' ``__new__`` method to safely
+  create an exception object that is not implemented in Python.
+
 - The exception formatter now keeps track of already formatted
   exceptions, and ignores them from further output.
 

@@ -208,7 +208,11 @@ def create_formatted_exception(exc, cls, formatter):
     except TypeError:
         new = cls
 
-    inst = BaseException.__new__(new)
+    try:
+        inst = BaseException.__new__(new)
+    except TypeError:
+        inst = cls.__new__(new)
+
     BaseException.__init__(inst, *exc.args)
     inst.__dict__ = exc.__dict__
 
