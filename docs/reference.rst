@@ -1522,9 +1522,9 @@ Verbatim
 Language extensions
 ###################
 
-The page template language as implemented in the Chameleon library
-comes with a number of new features. Some take inspiration from
-`Genshi <http://genshi.edgewall.org/>`_.
+Chameleon extends the *page template* language with a new expression
+types and language features. Some take inspiration from `Genshi
+<http://genshi.edgewall.org/>`_.
 
     *New expression types*
 
@@ -1539,7 +1539,7 @@ comes with a number of new features. Some take inspiration from
            ...
          </div>
 
-       This :ref:`load <load-expression>` expression loads templates
+       The :ref:`load <load-expression>` expression loads templates
        relative to the current template::
 
          <div tal:define="compile load: main.pt">
@@ -1548,7 +1548,7 @@ comes with a number of new features. Some take inspiration from
 
     *Tuple unpacking*
 
-       The ``tal:define`` and ``tal:repeat`` statements supports tuple
+       The ``tal:define`` and ``tal:repeat`` statements support tuple
        unpacking::
 
           tal:define="(a, b, c) [1, 2, 3]"
@@ -1617,7 +1617,7 @@ comes with a number of new features. Some take inspiration from
        using the expression operator: ``"${...}"`` since the
        ``structure`` keyword is not allowed here.
 
-    *Switches*
+    *Switch statement*
 
        Two new attributes have been added: ``tal:switch`` and
        ``tal:case``. A case attribute works like a condition and only
