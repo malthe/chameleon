@@ -204,6 +204,7 @@ def create_formatted_exception(exc, cls, formatter):
         new = type(cls.__name__, (cls, Exception), {
             '__str__': formatter,
             '__new__': BaseException.__new__,
+            '__module__': cls.__module__,
             })
     except TypeError:
         new = cls

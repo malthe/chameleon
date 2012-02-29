@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- The exception formatter now correctly sets the ``__module__``
+  attribute to that of the original exception class.
+
 2.8.0 (2012-02-29)
 ------------------
 
