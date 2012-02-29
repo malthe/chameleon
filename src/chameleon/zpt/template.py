@@ -282,7 +282,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
     Below are listed the configuration arguments specific to
     file-based templates; see the string-based template class for
-    general options and documentation::
+    general options and documentation:
 
     Configuration (keyword arguments):
 
