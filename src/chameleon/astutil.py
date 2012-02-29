@@ -898,6 +898,10 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
             self.transformed.add(node.id)
             self.apply_transform(node)
 
+    def visit_alias(self, node):
+        name = node.asname if node.asname is not None else node.name
+        self.scopes[-1].add(name)
+
     def visit_Lambda(self, node):
         self.scopes.append(set())
         try:
