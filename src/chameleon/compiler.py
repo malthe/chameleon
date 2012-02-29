@@ -686,11 +686,11 @@ class ExpressionTransform(object):
 
     loads_symbol = Symbol(pickle.loads)
 
-    def __init__(self, engine_factory, cache, transform, strict=True):
+    def __init__(self, engine_factory, cache, visitor, strict=True):
         self.engine_factory = engine_factory
         self.cache = cache
-        self.transform = transform
         self.strict = strict
+        self.visitor = visitor
 
     def __call__(self, expression, target):
         if isinstance(target, string_type):
@@ -714,11 +714,9 @@ class ExpressionTransform(object):
             stmts += set_error(token, load("__exc"))
             stmts += [ast.Raise(exc=load("__exc"))]
 
-        # Apply dynamic name rewrite transform to each statement
-        visitor = NameLookupRewriteVisitor(self.transform)
-
+        # Apply visitor to each statement
         for stmt in stmts:
-            visitor(stmt)
+            self.visitor(stmt)
 
         return stmts
 
@@ -860,16 +858,18 @@ class Compiler(object):
         internals = COMPILER_INTERNALS_OR_DISALLOWED | \
                     set(self.defaults)
 
-        self._transform = transform = NameTransform(
+        transform = NameTransform(
             self.global_builtins | set(builtins),
             ListDictProxy(self._aliases),
             internals,
             )
 
+        self._visitor = visitor = NameLookupRewriteVisitor(transform)
+
         self._engine = ExpressionTransform(
             engine_factory,
             self._expression_cache,
-            transform,
+            visitor,
             strict=strict,
             )
 
@@ -1369,10 +1369,9 @@ class Compiler(object):
 
     def visit_CodeBlock(self, node):
         stmts = template(textwrap.dedent(node.source.strip('\n')))
-        visitor = NameLookupRewriteVisitor(self._transform)
 
         for stmt in stmts:
-            visitor(stmt)
+            self._visitor(stmt)
 
         return stmts
 
