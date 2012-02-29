@@ -270,6 +270,9 @@ class ASTCodeGenerator(object):
                 first = False
             self._write('**' + node.kwarg)
 
+    def visit_arg(self, node):
+        self._write(node.arg)
+
     # FunctionDef(identifier name, arguments args,
     #                           stmt* body, expr* decorators)
     def visit_FunctionDef(self, node):
@@ -897,6 +900,9 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
         elif node.id not in scope:
             self.transformed.add(node.id)
             self.apply_transform(node)
+
+    def visit_FunctionDef(self, node):
+        self.scopes[-1].add(node.name)
 
     def visit_alias(self, node):
         name = node.asname if node.asname is not None else node.name

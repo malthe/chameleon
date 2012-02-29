@@ -18,3 +18,11 @@
   <?python numbers = map(str, range(1, 10)) ?>
   Please input a number from the range ${", ".join(numbers)}.
 </div>
+
+<div>
+  <?python
+     def function(i):
+         return i + 1
+     ?>
+  41 + 1 = ${function(41)}.
+</div>

@@ -1490,6 +1490,14 @@ line of where the processing instruction begins:
     foo = [1, 2, 3]
   ?>
 
+You can use this to debug templates:
+
+.. code-block:: html
+
+  <div>
+    <?python import pdb; pdb.set_trace() ?>
+  </div>
+
 
 Markup comments
 ###############
