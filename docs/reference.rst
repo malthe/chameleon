@@ -1592,6 +1592,18 @@ comes with a number of new features. Some take inspiration from
              ${title or item_id}
           </span>
 
+    *Code blocks*
+
+        Using ``<?python ... ?>`` notation, you can embed Python
+        statements in your templates:
+
+        .. code-block:: html
+
+          <div>
+            <?python numbers = map(str, range(1, 10)) ?>
+            Please input a number from the range ${", ".join(numbers)}.
+          </div>
+
     *Literal content*
 
        While the ``tal:content`` and ``tal:repeat`` attributes both
