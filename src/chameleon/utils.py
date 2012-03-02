@@ -127,7 +127,7 @@ def read_bytes(body, default_encoding):
             return document, encoding, \
                    "text/xml" if document.startswith("<?xml") else None
 
-        if byte_string(prefix) != '<?xml' and body.startswith(prefix):
+        if prefix != encode_string('<?xml') and body.startswith(prefix):
             return body.decode(encoding), encoding, "text/xml"
 
     if body.startswith(_xml_decl):
