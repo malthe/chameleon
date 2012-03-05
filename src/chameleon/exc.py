@@ -92,16 +92,6 @@ def compute_source_marker(line, column, expression, size):
     return s, column * " " + marker
 
 
-def format_exception(exc):
-    formatted = traceback.format_exception_only(type(exc), exc)[-1]
-    formatted_class = "%s:" % type(exc).__name__
-
-    if formatted.startswith(formatted_class):
-        formatted = formatted[len(formatted_class):].lstrip()
-
-    return formatted
-
-
 def reconstruct_exc(cls, state):
     exc = Exception.__new__(cls)
     exc.__dict__ = state
@@ -147,22 +137,7 @@ class TemplateError(Exception):
         return reconstruct_exc, (type(self), self.__dict__)
 
     def __str__(self):
-        text = "%s\n\n" % self.msg
-        text += " - String:     \"%s\"" % self.token
-
-        if self.filename:
-            text += "\n"
-            text += " - Filename:   %s" % self.filename
-
-        try:
-            line, column = self.token.location
-        except AttributeError:
-            pass
-        else:
-            text += "\n"
-            text += " - Location:   (%d:%d)" % (line, column)
-
-        return text
+        return '%s ("%s").' % (self.msg, self.token)
 
     def __repr__(self):
         try:
@@ -239,7 +214,7 @@ class ExceptionFormatter(object):
         out = []
         seen = set()
 
-        for error in self._errors:
+        for error in reversed(self._errors):
             expression, line, column, filename, exc = error
 
             if exc in seen:
@@ -260,6 +235,7 @@ class ExceptionFormatter(object):
             out.append(" - Expression: \"%s\"" % expression)
             out.append(" - Filename:   %s" % (filename or "<string>"))
             out.append(" - Location:   (%d:%d)" % (line, column))
+            out.append("")
 
             if filename and line and column:
                 try:
@@ -275,7 +251,6 @@ class ExceptionFormatter(object):
                                     l, column, expression, LENGTH
                                     )
 
-                                out.append("")
                                 out.append(" - Source:     %s" % s)
                                 out.append("               %s" % marker)
                                 break
@@ -283,6 +258,11 @@ class ExceptionFormatter(object):
                         f.close()
 
         out.append(" - Arguments:  %s" % "\n".join(formatted))
-        formatted_exc = format_exception(exc)
 
-        return "\n".join(map(safe_native, [formatted_exc] + out))
+        formatted = traceback.format_exception_only(type(exc), exc)[-1]
+        formatted_class = "%s:" % type(exc).__name__
+
+        if formatted.startswith(formatted_class):
+            formatted = formatted[len(formatted_class):].lstrip()
+
+        return "\n".join(map(safe_native, [formatted] + out))

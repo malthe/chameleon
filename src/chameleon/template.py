@@ -177,6 +177,12 @@ class BaseTemplate(object):
             cls, exc, tb = sys.exc_info()
             errors = rcontext.get('__error__')
             if errors:
+                formatter = exc.__str__
+                if isinstance(formatter, ExceptionFormatter):
+                    if errors is not formatter._errors:
+                        formatter._errors.extend(errors)
+                    raise
+
                 formatter = ExceptionFormatter(errors, econtext, rcontext)
 
                 try:

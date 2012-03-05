@@ -3,7 +3,16 @@ Changes
 
 In next release ...
 
+Features:
+
+- The exception formatter now lists errors in 'wrapping order'. This
+  means that the innermost, and presumably most relevant exception is
+  shown last.
+
 Bugfixes:
+
+- The exception formatter now correctly recognizes nested errors and
+  does not rewrap the dynamically generated exception class.
 
 - The exception formatter now correctly sets the ``__module__``
   attribute to that of the original exception class.
