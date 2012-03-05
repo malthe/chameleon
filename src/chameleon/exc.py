@@ -148,11 +148,11 @@ class TemplateError(Exception):
 
     def __str__(self):
         text = "%s\n\n" % self.msg
-        text += " - String:   \"%s\"" % self.token
+        text += " - String:     \"%s\"" % self.token
 
         if self.filename:
             text += "\n"
-            text += " - Filename: %s" % self.filename
+            text += " - Filename:   %s" % self.filename
 
         try:
             line, column = self.token.location
@@ -160,7 +160,7 @@ class TemplateError(Exception):
             pass
         else:
             text += "\n"
-            text += " - Location: (%d:%d)" % (line, column)
+            text += " - Location:   (%d:%d)" % (line, column)
 
         return text
 
