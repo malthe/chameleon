@@ -1,0 +1,2 @@
+<span tal:replace="python: ', '.join((
+    'a', 'b', 'c'))" />
