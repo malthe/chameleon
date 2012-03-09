@@ -5,6 +5,7 @@ import py_compile
 import logging
 import functools
 import tempfile
+import warnings
 import pkg_resources
 
 log = logging.getLogger('chameleon.loader')
@@ -95,8 +96,17 @@ class MemoryLoader(object):
 
 
 class ModuleLoader(object):
-    def __init__(self, path):
+    def __init__(self, path, remove=False):
         self.path = path
+        self.remove = remove
+
+    def __del__(self):
+        if not self.remove:
+            return
+        try:
+            os.unlink(self.path)
+        except:
+            warnings.warn("Could not clean up temporary file path: %s" % (self.path,))
 
     def get(self, filename):
         path = os.path.join(self.path, filename)
