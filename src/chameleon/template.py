@@ -3,7 +3,6 @@ from __future__ import with_statement
 import os
 import sys
 import copy
-import atexit
 import hashlib
 import shutil
 import logging
@@ -48,14 +47,12 @@ log = logging.getLogger('chameleon.template')
 
 
 def _make_module_loader():
+    remove = False
     if CACHE_DIRECTORY:
         path = CACHE_DIRECTORY
     else:
         path = tempfile.mkdtemp()
-
-        @atexit.register
-        def cleanup(path=path, shutil=shutil):
-            shutil.rmtree(path)
+        remove = True
 
     return ModuleLoader(path)
 
