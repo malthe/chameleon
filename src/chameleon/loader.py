@@ -1,10 +1,13 @@
-import os
-import imp
-import sys
-import py_compile
-import logging
 import functools
+import imp
+import logging
+import os
+import py_compile
+import shutil
+import sys
 import tempfile
+import warnings
+
 import pkg_resources
 
 log = logging.getLogger('chameleon.loader')
@@ -95,8 +98,17 @@ class MemoryLoader(object):
 
 
 class ModuleLoader(object):
-    def __init__(self, path):
+    def __init__(self, path, remove=False):
         self.path = path
+        self.remove = remove
+
+    def __del__(self, shutil=shutil):
+        if not self.remove:
+            return
+        try:
+            shutil.rmtree(self.path)
+        except:
+            warnings.warn("Could not clean up temporary file path: %s" % (self.path,))
 
     def get(self, filename):
         path = os.path.join(self.path, filename)
