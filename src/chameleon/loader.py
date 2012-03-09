@@ -102,7 +102,7 @@ class ModuleLoader(object):
         self.path = path
         self.remove = remove
 
-    def __del__(self):
+    def __del__(self, shutil=shutil):
         if not self.remove:
             return
         try:
