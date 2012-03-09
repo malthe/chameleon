@@ -3,7 +3,6 @@ from __future__ import with_statement
 import os
 import sys
 import copy
-import atexit
 import hashlib
 import shutil
 import logging
