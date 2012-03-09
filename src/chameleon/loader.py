@@ -1,11 +1,13 @@
-import os
-import imp
-import sys
-import py_compile
-import logging
 import functools
+import imp
+import logging
+import os
+import py_compile
+import shutil
+import sys
 import tempfile
 import warnings
+
 import pkg_resources
 
 log = logging.getLogger('chameleon.loader')
@@ -104,7 +106,7 @@ class ModuleLoader(object):
         if not self.remove:
             return
         try:
-            os.unlink(self.path)
+            shutil.rmtree(self.path)
         except:
             warnings.warn("Could not clean up temporary file path: %s" % (self.path,))
 
