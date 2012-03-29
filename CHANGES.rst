@@ -18,6 +18,9 @@ Bugfixes:
 - The exception formatter now correctly sets the ``__module__``
   attribute to that of the original exception class.
 
+- Temporary caches used in debug mode are cleaned up eagerly, rather
+  than waiting for process termination. [mitchellrj]
+
 2.8.0 (2012-02-29)
 ------------------
 
