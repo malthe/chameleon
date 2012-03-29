@@ -31,6 +31,12 @@ def abspath_from_asset_spec(spec):
     pname, filename = spec.split(':', 1)
     return pkg_resources.resource_filename(pname, filename)
 
+if os.name == "nt":
+    def abspath_from_asset_spec(spec, f=abspath_from_asset_spec):
+        if spec[1] == ":":
+            return spec
+        return f(spec)
+
 
 class TemplateLoader(object):
     """Template loader class.

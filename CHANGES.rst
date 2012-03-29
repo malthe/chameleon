@@ -1,6 +1,19 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- Temporary caches used in debug mode are cleaned up eagerly, rather
+  than waiting for process termination.
+  [mitchellrj]
+
+Bugfixes:
+
+- The loader now correctly handles absolute paths on Windows.
+  [rdale]
+
 2.8.1 (2012-03-29)
 ------------------
 
@@ -17,9 +30,6 @@ Bugfixes:
 
 - The exception formatter now correctly sets the ``__module__``
   attribute to that of the original exception class.
-
-- Temporary caches used in debug mode are cleaned up eagerly, rather
-  than waiting for process termination. [mitchellrj]
 
 2.8.0 (2012-02-29)
 ------------------
