@@ -11,6 +11,10 @@ Features:
 
 Bugfixes:
 
+- The `index`, `start` and `end` methods on the TAL repeat object are
+  now callable. This fixes an incompatibility with ZPT.
+  [malthe]
+
 - The loader now correctly handles absolute paths on Windows.
   [rdale]
 

@@ -240,7 +240,7 @@ class RepeatItem(object):
     try:
         iter(()).__len__
     except AttributeError:
-        @property
+        @descriptorint
         def index(self):
             try:
                 remaining = self._iterator.__length_hint__()
@@ -248,16 +248,16 @@ class RepeatItem(object):
                 remaining = len(tuple(copy.copy(self._iterator)))
             return self.length - remaining - 1
     else:
-        @property
+        @descriptorint
         def index(self):
             remaining = self._iterator.__len__()
             return self.length - remaining - 1
 
-    @property
+    @descriptorint
     def start(self):
         return self.index == 0
 
-    @property
+    @descriptorint
     def end(self):
         return self.index == self.length - 1
 
