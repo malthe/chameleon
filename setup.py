@@ -1,4 +1,4 @@
-__version__ = '2.8.1'
+__version__ = '2.8.2'
 
 import os
 import sys
@@ -62,7 +62,7 @@ setup(
     description="Fast HTML/XML Template Compiler.",
     long_description="\n\n".join((README, CHANGES)),
     classifiers=[
-       "Development Status :: 4 - Beta",
+       "Development Status :: 5 - Production/Stable",
        "Intended Audience :: Developers",
        "Programming Language :: Python",
        "Programming Language :: Python :: 2",
