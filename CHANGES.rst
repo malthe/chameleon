@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- The `target_language` argument, if given, is now available as a
+  variable in templates.
+
 2.8.2 (2012-03-30)
 ------------------
 
@@ -14,7 +21,6 @@ Bugfixes:
 
 - The `index`, `start` and `end` methods on the TAL repeat object are
   now callable. This fixes an incompatibility with ZPT.
-  [malthe]
 
 - The loader now correctly handles absolute paths on Windows.
   [rdale]

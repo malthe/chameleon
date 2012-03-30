@@ -202,7 +202,7 @@ class PageTemplate(BaseTemplate):
             trim_attribute_space=self.trim_attribute_space,
             )
 
-    def render(self, encoding=None, translate=None, target_language=None, **vars):
+    def render(self, encoding=None, translate=None, **vars):
         """Render template to string.
 
         The ``encoding`` and ``translate`` arguments are documented in
@@ -227,6 +227,7 @@ class PageTemplate(BaseTemplate):
                     type(self).translate
 
         # Curry language parameter if non-trivial
+        target_language = vars.get('target_language')
         if target_language is not None:
             translate = partial(translate, target_language=target_language)
 
