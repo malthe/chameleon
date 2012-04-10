@@ -5,6 +5,8 @@ In next release ...
 
 Features:
 
+- Log template source on debug-level before cooking.
+
 - The `target_language` argument, if given, is now available as a
   variable in templates.
 

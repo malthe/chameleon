@@ -290,6 +290,7 @@ class BaseTemplateFile(BaseTemplate):
 
         if self._cooked is False:
             body = self.read()
+            log.debug("cooking %r (%d bytes)..." % (self.filename, len(body)))
             self.cook(body)
 
     def mtime(self):
