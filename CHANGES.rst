@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- If a trivial translation substitution variable is given (i.e. an
+  empty string), simply ignore it. This fixes issue #106.
+
 2.8.3 (2012-04-16)
 ------------------
 

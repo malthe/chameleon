@@ -427,7 +427,10 @@ class MacroProgram(ElementProgram):
         except KeyError:
             NAME = skip
         else:
-            NAME = partial(nodes.Name, clause)
+            if not clause.strip():
+                NAME = skip
+            else:
+                NAME = partial(nodes.Name, clause)
 
         # The "slot" node next is the first node level that can serve
         # as a macro slot
