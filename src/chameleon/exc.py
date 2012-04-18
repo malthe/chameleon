@@ -137,7 +137,22 @@ class TemplateError(Exception):
         return reconstruct_exc, (type(self), self.__dict__)
 
     def __str__(self):
-        return '%s ("%s").' % (self.msg, self.token)
+        text = "%s\n\n" % self.msg
+        text += " - String:     \"%s\"" % self.token
+
+        if self.filename:
+            text += "\n"
+            text += " - Filename:   %s" % self.filename
+
+        try:
+            line, column = self.token.location
+        except AttributeError:
+            pass
+        else:
+            text += "\n"
+            text += " - Location:   (%d:%d)" % (line, column)
+
+        return text
 
     def __repr__(self):
         try:
@@ -232,10 +247,15 @@ class ExceptionFormatter(object):
                 out.append(" - Stream:     %s" % s)
                 out.append("               %s" % marker)
 
+            if filename:
+                if len(filename) > 60:
+                    filename = "... " + filename[-56:]
+            else:
+                filename = "<string>"
+
             out.append(" - Expression: \"%s\"" % expression)
-            out.append(" - Filename:   %s" % (filename or "<string>"))
+            out.append(" - Filename:   %s" % filename)
             out.append(" - Location:   (%d:%d)" % (line, column))
-            out.append("")
 
             if filename and line and column:
                 try:
@@ -252,7 +272,7 @@ class ExceptionFormatter(object):
                                     )
 
                                 out.append(" - Source:     %s" % s)
-                                out.append("               %s" % marker)
+                                out.append("")
                                 break
                     finally:
                         f.close()

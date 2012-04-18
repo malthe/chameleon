@@ -3,7 +3,16 @@ Changes
 
 In next release ...
 
+Features:
+
+- In exception output, long filenames are now truncated to 60
+  characters of output, preventing line wrap which makes it difficult
+  to scan the exception output.
+
 Bugfixes:
+
+- Include filename and location in exception output for exceptions
+  raised during compilation.
 
 - If a trivial translation substitution variable is given (i.e. an
   empty string), simply ignore it. This fixes issue #106.
