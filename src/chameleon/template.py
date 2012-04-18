@@ -184,9 +184,8 @@ class BaseTemplate(object):
 
                 try:
                     exc = create_formatted_exception(exc, cls, formatter)
-                except ValueError:
-                    name = type(exc).__name__
-                    log.warn("Unable to copy exception of type '%s'." % name)
+                except TypeError:
+                    pass
 
                 raise_with_traceback(exc, tb)
 

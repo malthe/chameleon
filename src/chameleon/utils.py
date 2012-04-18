@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import codecs
+import logging
 
 from copy import copy
 
@@ -26,6 +27,7 @@ class ASTProxy(object):
 
 ast = ASTProxy()
 
+log = logging.getLogger('chameleon.utils')
 
 # Python 2
 if version < (3, 0, 0):
@@ -201,23 +203,28 @@ def substitute_entity(match, n2cp=htmlentitydefs.name2codepoint):
 
 def create_formatted_exception(exc, cls, formatter):
     try:
-        new = type(cls.__name__, (cls, Exception), {
-            '__str__': formatter,
-            '__new__': BaseException.__new__,
-            '__module__': cls.__module__,
-            })
-    except TypeError:
-        new = cls
+        try:
+            new = type(cls.__name__, (cls, Exception), {
+                '__str__': formatter,
+                '__new__': BaseException.__new__,
+                '__module__': cls.__module__,
+                })
+        except TypeError:
+            new = cls
 
-    try:
-        inst = BaseException.__new__(new)
-    except TypeError:
-        inst = cls.__new__(new)
+        try:
+            inst = BaseException.__new__(new)
+        except TypeError:
+            inst = cls.__new__(new)
 
-    BaseException.__init__(inst, *exc.args)
-    inst.__dict__ = exc.__dict__
+        BaseException.__init__(inst, *exc.args)
+        inst.__dict__ = exc.__dict__
 
-    return inst
+        return inst
+    except ValueError:
+        name = type(exc).__name__
+        log.warn("Unable to copy exception of type '%s'." % name)
+        raise TypeError(exc)
 
 
 def unescape(string):
