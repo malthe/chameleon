@@ -272,7 +272,7 @@ class ExceptionFormatter(object):
                                     )
 
                                 out.append(" - Source:     %s" % s)
-                                out.append("")
+                                out.append("               %s" % marker)
                                 break
                     finally:
                         f.close()
