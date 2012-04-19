@@ -198,7 +198,7 @@ Notes
        <http://pypi.python.org/pypi/zope.pagetemplate>`_). However,
        the Chameleon compiler and Page Templates engine is an entirely
        new codebase, packaged as a standalone distribution. It does
-       require a Zope software environment.
+       not require a Zope software environment.
 
 .. [2] The translation system in Chameleon is pluggable and based on
        `gettext <http://www.gnu.org/s/gettext/>`_.
