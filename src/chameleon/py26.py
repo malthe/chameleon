@@ -1,7 +1,10 @@
+import sys
+
 def lookup_attr(obj, key):
     try:
         return getattr(obj, key)
-    except AttributeError as exc:
+    except AttributeError:
+        exc = sys.exc_info()[1]
         try:
             get = obj.__getitem__
         except AttributeError:
