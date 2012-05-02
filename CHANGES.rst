@@ -1,6 +1,12 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Ensure output is unicode even when trivial (an empty string).
+
 2.8.4 (2012-04-18)
 ------------------
 
