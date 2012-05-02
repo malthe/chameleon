@@ -2,6 +2,7 @@ import unittest
 import time
 import os
 import re
+from .utils import text_
 
 re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')
 
@@ -367,7 +368,7 @@ class Benchmarks(unittest.TestCase):
         template.pt_edit(body, 'text/xhtml')
         return template
 
-    @benchmark(u"BIGTABLE [python]")
+    @benchmark(text_("BIGTABLE [python]"))
     def test_bigtable(self):
         options = {'table': self.table}
 
@@ -401,7 +402,7 @@ class Benchmarks(unittest.TestCase):
             len(self._zope(BIGTABLE_ZPT)(table=self.table))))
         print("--------------------------")
 
-    @benchmark(u"MANY STRINGS [python]")
+    @benchmark(text_("MANY STRINGS [python]"))
     def test_many_strings(self):
         t_chameleon = timing(self._chameleon(MANY_STRINGS_ZPT))
         print("chameleon:         %7.2f" % t_chameleon)
@@ -415,7 +416,7 @@ class Benchmarks(unittest.TestCase):
             len(self._zope(MANY_STRINGS_ZPT)())))
         print("--------------------------")
 
-    @benchmark(u"HELLO WORLD")
+    @benchmark(text_("HELLO WORLD"))
     def test_hello_world(self):
         t_chameleon = timing(self._chameleon(HELLO_WORLD_ZPT)) * 1000
         print("chameleon:         %7.2f" % t_chameleon)
@@ -429,7 +430,7 @@ class Benchmarks(unittest.TestCase):
             len(self._zope(HELLO_WORLD_ZPT)())))
         print("--------------------------")
 
-    @benchmark(u"I18N")
+    @benchmark(text_("I18N"))
     def test_i18n(self):
         from zope.i18n import translate
         t_chameleon = timing(
@@ -441,7 +442,7 @@ class Benchmarks(unittest.TestCase):
         print("zope.pagetemplate: %7.2f" % t_zope)
         print("                  %7.1fX" % (t_zope / t_chameleon))
 
-    @benchmark(u"COMPILATION")
+    @benchmark(text_("COMPILATION"))
     def test_compilation(self):
         template = self._chameleon(HELLO_WORLD_ZPT)
 
