@@ -235,14 +235,14 @@ def unescape(string):
     return string
 
 
-_concat = "".join
+_concat = unicode_string("").join
 
 
 def join(stream):
     """Concatenate stream.
 
-    >>> join(('Hello', ' ', 'world'))
-    'Hello world'
+    >>> print(join(('Hello', ' ', 'world')))
+    Hello world
 
     >>> join(('Hello', 0))
     Traceback (most recent call last):
