@@ -5,6 +5,9 @@ In next release ...
 
 Bugfixes:
 
+- Fixed minor installation issues on Python 2.5 and 3.
+  [ppaez]
+
 - Ensure output is unicode even when trivial (an empty string).
 
 2.8.4 (2012-04-18)
