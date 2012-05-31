@@ -3,6 +3,14 @@ Changes
 
 In next release ...
 
+Features:
+
+- The translation function now gets the ``econtext`` argument as the
+  value for ``context``. Note that historically, this was usually an
+  HTTP request which might provide language negotiation data through a
+  dictionary interface.
+  [alvinyue]
+
 Bugfixes:
 
 - Fixed import alias issue which would lead to a syntax error in
