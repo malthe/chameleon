@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed import alias issue which would lead to a syntax error in
+  generated Python code. Fixes issue #114.
+
 2.8.5 (2012-05-02)
 ------------------
 

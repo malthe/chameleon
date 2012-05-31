@@ -179,7 +179,8 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         node = self.imports.get(value)
         if node is None:
             # we come up with a unique symbol based on the class name
-            name = "_%s" % getattr(value, '__name__', str(value))
+            name = "_%s" % getattr(value, '__name__', str(value)).\
+                   rsplit('.', 1)[-1]
             node = load(name)
             self.imports[value] = store(node.id)
 
