@@ -89,7 +89,7 @@ class PageTemplate(BaseTemplate):
 
         Example::
 
-          def translate(msgid, domain=None, mapping=None, default=None):
+          def translate(msgid, domain=None, mapping=None, default=None, context=None):
               ...
               return translation
 
