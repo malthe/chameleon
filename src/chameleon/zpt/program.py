@@ -11,6 +11,7 @@ except NameError:
     long = int
 
 from functools import partial
+from copy import deepcopy
 
 from ..program import ElementProgram
 
@@ -490,10 +491,17 @@ class MacroProgram(ElementProgram):
             fallback = self._make_content_node(value, None, key, translate)
 
             if omit is False and start['namespace'] not in self.DROP_NS:
+                start_tag = deepcopy(start_tag)
+                start_tag.attributes = filter(
+                    lambda attribute: isinstance(attribute, nodes.Attribute) and \
+                                      isinstance(attribute.expression, ast.Str),
+                    start_tag.attributes
+                    )
+
                 fallback = nodes.Element(
-                start_tag,
-                end_tag,
-                fallback,
+                    start_tag,
+                    end_tag,
+                    fallback,
                 )
 
             ON_ERROR = partial(nodes.OnError, fallback, 'error')
@@ -707,11 +715,13 @@ class MacroProgram(ElementProgram):
             space = self._maybe_trim(space)
             attribute = nodes.Attribute(name, value, quote, eq, space)
 
-            # Always define a ``default`` alias
-            attribute = nodes.Define(
-                [nodes.Alias(["default"], default_marker)],
-                attribute,
-                )
+            if not isinstance(value, ast.Str):
+                # Always define a ``default`` alias for non-static
+                # expressions.
+                attribute = nodes.Define(
+                    [nodes.Alias(["default"], default_marker)],
+                    attribute,
+                    )
 
             attributes.append(attribute)
 

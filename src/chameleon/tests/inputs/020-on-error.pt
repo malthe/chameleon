@@ -1,4 +1,7 @@
 <html>
+  <head>
+    <meta name="test" tal:attributes="value python: 'abc' + 2" tal:on-error="nothing" />
+  </head>
   <body tal:on-error="string:${type(error.value).__name__} thrown at ${error.lineno}:${error.offset}.">
     <div tal:content="undefined" />
   </body>

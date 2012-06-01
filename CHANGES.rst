@@ -5,6 +5,10 @@ In next release ...
 
 Bugfixes:
 
+- Fixed issue #113. The ``tal:on-error`` statement now works correctly
+  also for dynamic attributes. That is, the fallback tag now includes
+  only static attributes.
+
 - Fixed name error which prevented the benchmark from running
   correctly.
 
