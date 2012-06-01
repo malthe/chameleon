@@ -73,9 +73,9 @@ else:
         raise exc
 
 def text_(s, encoding='latin-1', errors='strict'):
-    """ If ``s`` is an instance of ``binary_type``, return
+    """ If ``s`` is an instance of ``byte_string``, return
     ``s.decode(encoding, errors)``, otherwise return ``s``"""
-    if isinstance(s, binary_type):
+    if isinstance(s, byte_string):
         return s.decode(encoding, errors)
     return s
 

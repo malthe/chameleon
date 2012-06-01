@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+Bugfixes:
+
+- Fixed name error which prevented the benchmark from running
+  correctly.
+
 Compatibility:
 
 - Fixed deprecation warning on Python 3 for zope interface implements
