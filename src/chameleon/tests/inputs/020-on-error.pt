@@ -1,8 +1,10 @@
 <html>
-  <head>
-    <meta name="test" tal:attributes="value python: 'abc' + 2" tal:on-error="nothing" />
-  </head>
-  <body tal:on-error="string:${type(error.value).__name__} thrown at ${error.lineno}:${error.offset}.">
-    <div tal:content="undefined" />
+  <body>
+    <div id="test" tal:attributes="class python: 'abc' + 2" tal:on-error="nothing" />
+    <div tal:on-error="string:${type(error.value).__name__} thrown at ${error.lineno}:${error.offset}.">
+      <div tal:content="undefined" />
+    </div>
+    <div tal:replace="undefined" tal:on-error="nothing" />
+    <div tal:content="undefined" tal:on-error="nothing" />
   </body>
 </html>

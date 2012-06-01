@@ -5,6 +5,10 @@ In next release ...
 
 Bugfixes:
 
+- Fixed issue #103. The ``tal:on-error`` statement now always adds an
+  explicit end-tag to the element, even with a substitution content of
+  nothing.
+
 - Fixed issue #113. The ``tal:on-error`` statement now works correctly
   also for dynamic attributes. That is, the fallback tag now includes
   only static attributes.

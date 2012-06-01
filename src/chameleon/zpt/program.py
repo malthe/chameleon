@@ -498,6 +498,14 @@ class MacroProgram(ElementProgram):
                     start_tag.attributes
                     )
 
+                if end_tag is None:
+                    # Make sure start-tag has opening suffix. We don't
+                    # allow self-closing element here.
+                    start_tag.suffix  = ">"
+
+                    # Explicitly set end-tag.
+                    end_tag = nodes.End(start_tag.name, '', '</', '>',)
+
                 fallback = nodes.Element(
                     start_tag,
                     end_tag,

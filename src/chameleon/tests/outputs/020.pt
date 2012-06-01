@@ -1,6 +1,8 @@
 <html>
-  <head>
-    <meta name="test" />
-  </head>
-  <body>NameError thrown at 6:22.</body>
+  <body>
+    <div id="test"></div>
+    <div>NameError thrown at 5:24.</div>
+    <div></div>
+    <div></div>
+  </body>
 </html>
