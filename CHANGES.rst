@@ -1,6 +1,13 @@
 Changes
 =======
 
+In next release ...
+
+Compatibility:
+
+- Fixed deprecation warning on Python 3 for zope interface implements
+  declaration. This fixes issue #116.
+
 2.9.0 (2012-05-31)
 ------------------
 

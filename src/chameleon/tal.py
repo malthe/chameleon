@@ -223,9 +223,6 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
 
 
 class RepeatItem(object):
-    if interfaces is not None:
-        zope.interface.implements(interfaces.ITALESIterator)
-
     __slots__ = "length", "_iterator"
 
     __allow_access_to_unprotected_subobjects__ = True
@@ -409,6 +406,10 @@ class RepeatItem(object):
         return self.Roman().lower()
 
 
+if interfaces is not None:
+    zope.interface.classImplements(RepeatItem, interfaces.ITALESIterator)
+
+
 class RepeatDict(dict):
     """Repeat dictionary implementation.
 
@@ -463,9 +464,6 @@ class RepeatDict(dict):
 class ErrorInfo(object):
     """Information about an exception passed to an on-error handler."""
 
-    if interfaces is not None:
-        zope.interface.implements(interfaces.ITALExpressionErrorInfo)
-
     def __init__(self, err, position=(None, None)):
         if isinstance(err, Exception):
             self.type = err.__class__
@@ -475,3 +473,7 @@ class ErrorInfo(object):
             self.value = None
         self.lineno = position[0]
         self.offset = position[1]
+
+
+if interfaces is not None:
+    zope.interface.classImplements(ErrorInfo, interfaces.ITALExpressionErrorInfo)
