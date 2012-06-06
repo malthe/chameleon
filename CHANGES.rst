@@ -1,6 +1,12 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Fixed issue #109 which caused testing failures on some platforms.
+
 2.9.1 (2012-06-01)
 ------------------
 

@@ -92,6 +92,11 @@ def compute_source_marker(line, column, expression, size):
     return s, column * " " + marker
 
 
+def ellipsify(string, limit):
+    if len(string) > limit:
+        return "... " + string[-(limit - 4):]
+
+
 def reconstruct_exc(cls, state):
     exc = Exception.__new__(cls)
     exc.__dict__ = state
@@ -247,14 +252,10 @@ class ExceptionFormatter(object):
                 out.append(" - Stream:     %s" % s)
                 out.append("               %s" % marker)
 
-            if filename:
-                if len(filename) > 60:
-                    filename = "... " + filename[-56:]
-            else:
-                filename = "<string>"
+            _filename = ellipsify(filename, 60) if filename else "<string>"
 
             out.append(" - Expression: \"%s\"" % expression)
-            out.append(" - Filename:   %s" % filename)
+            out.append(" - Filename:   %s" % _filename)
             out.append(" - Location:   (%d:%d)" % (line, column))
 
             if filename and line and column:
