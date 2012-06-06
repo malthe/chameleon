@@ -11,7 +11,7 @@ except NameError:
     long = int
 
 from functools import partial
-from copy import deepcopy
+from copy import copy
 
 from ..program import ElementProgram
 
@@ -491,7 +491,8 @@ class MacroProgram(ElementProgram):
             fallback = self._make_content_node(value, None, key, translate)
 
             if omit is False and start['namespace'] not in self.DROP_NS:
-                start_tag = deepcopy(start_tag)
+                start_tag = copy(start_tag)
+
                 start_tag.attributes = filter(
                     lambda attribute: isinstance(attribute, nodes.Attribute) and \
                                       isinstance(attribute.expression, ast.Str),
