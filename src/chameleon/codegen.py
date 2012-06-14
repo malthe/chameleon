@@ -213,7 +213,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
     def visit_Static(self, node):
         if node.name is None:
-            name = "_static_%d" % id(node.value)
+            name = "_static_%s" % str(id(node.value)).replace('-', '_')
         else:
             name = node.name
 
