@@ -88,7 +88,7 @@ def identifier(prefix, suffix=None):
 
 
 def mangle(string):
-    return RE_MANGLE.sub('_', str(string)).replace('\n', '')
+    return RE_MANGLE.sub('_', str(string)).replace('\n', '').replace('-', '_')
 
 
 def load_econtext(name):
@@ -1028,7 +1028,7 @@ class Compiler(object):
         return emit_node(ast.Str(s=node.value))
 
     def visit_Domain(self, node):
-        backup = "__previous_i18n_domain_%d" % id(node)
+        backup = "__previous_i18n_domain_%s" % mangle(id(node))
         return template("BACKUP = __i18n_domain", BACKUP=backup) + \
                template("__i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
                self.visit(node.node) + \
@@ -1528,9 +1528,9 @@ class Compiler(object):
 
     def _get_translation_identifiers(self, name):
         assert self._translations
-        prefix = id(self._translations[-1])
-        stream = identifier("stream_%d" % prefix, name)
-        append = identifier("append_%d" % prefix, name)
+        prefix = str(id(self._translations[-1])).replace('-', '_')
+        stream = identifier("stream_%s" % prefix, name)
+        append = identifier("append_%s" % prefix, name)
         return stream, append
 
     def _enter_assignment(self, names):
