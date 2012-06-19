@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- Added missing return statement to fix printing the non-abbreviated
+  filename in case of an exception.
+  [tomo]
+
 2.9.2 (2012-06-06)
 ------------------
 

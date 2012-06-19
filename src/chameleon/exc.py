@@ -96,6 +96,8 @@ def ellipsify(string, limit):
     if len(string) > limit:
         return "... " + string[-(limit - 4):]
 
+    return string
+
 
 def reconstruct_exc(cls, state):
     exc = Exception.__new__(cls)
