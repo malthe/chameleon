@@ -5,6 +5,8 @@ In next release ...
 
 Bugfixes:
 
+- Fixed markup class ``__repr__`` method. This fixes issue #124.
+
 - Added missing return statement to fix printing the non-abbreviated
   filename in case of an exception.
   [tomo]

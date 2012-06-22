@@ -422,8 +422,14 @@ class ListDictProxy(object):
 
 
 class Markup(unicode_string):
+    """Wraps a string to always render as structure.
+
+    >>> Markup('<br />')
+    s'<br />'
+    """
+
     def __html__(self):
         return unicode_string(self)
 
     def __repr__(self):
-        return "s'%s'" % self.s
+        return "s'%s'" % self
