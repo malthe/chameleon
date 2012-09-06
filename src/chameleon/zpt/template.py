@@ -233,14 +233,12 @@ class PageTemplate(BaseTemplate):
 
         encoding = encoding if encoding is not None else self.encoding
         if encoding is not None:
-            txl = translate
-
-            def translate(msgid, **kwargs):
+            def translate(msgid, txl=translate, encoding=encoding, **kwargs):
                 if isinstance(msgid, bytes):
                     msgid = decode_string(msgid, encoding)
                 return txl(msgid, **kwargs)
 
-            def decode(inst):
+            def decode(inst, encoding=encoding):
                 return decode_string(inst, encoding, 'ignore')
         else:
             decode = decode_string
