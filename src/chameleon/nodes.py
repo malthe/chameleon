@@ -69,6 +69,12 @@ class Element(Node):
     _fields = "start", "end", "content"
 
 
+class DictAttributes(Node):
+    """Element attributes from one or more Python dicts."""
+
+    _fields = "expressions", "char_escape", "quote"
+
+
 class Attribute(Node):
     """Element attribute."""
 

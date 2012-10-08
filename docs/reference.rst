@@ -137,7 +137,7 @@ or ``tal:replace``. Finally, before ``tal:attributes``, we have
 ``tal:attributes``
 ^^^^^^^^^^^^^^^^^^
 
-Updates or inserts element attributes.
+Removes, updates or inserts element attributes.
 
 ::
 
@@ -149,7 +149,7 @@ Syntax
 ``tal:attributes`` syntax::
 
     argument             ::= attribute_statement [';' attribute_statement]*
-    attribute_statement  ::= attribute_name expression
+    attribute_statement  ::= (attribute_name expression | expression)
     attribute_name       ::= [namespace-prefix ':'] Name
     namespace-prefix     ::= Name
 
@@ -158,8 +158,8 @@ Description
 ~~~~~~~~~~~
 
 The ``tal:attributes`` statement replaces the value of an attribute
-(or creates an attribute) with a dynamic value.  The
-value of each expression is converted to a string, if necessary.
+(or drops, or creates an attribute) with a dynamic value.  The value
+of each expression is converted to a string, if necessary.
 
 .. note:: You can qualify an attribute name with a namespace prefix,
    for example ``html:table``, if you are generating an XML document
@@ -167,6 +167,10 @@ value of each expression is converted to a string, if necessary.
 
 If an attribute expression evaluates to ``None``, the attribute is
 deleted from the statement element (or simply not inserted).
+
+If an attribute statement is just an expression, it must evaluate to a
+Python dict (or implement the methods ``update()`` and ``items()``
+from the dictionary specification).
 
 If the expression evaluates to the symbol ``default`` (a symbol which
 is always available when evaluating attributes), its value is defined

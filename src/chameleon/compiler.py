@@ -1,4 +1,5 @@
 import re
+import cgi
 import sys
 import itertools
 import logging
@@ -239,6 +240,57 @@ def emit_convert_and_escape(
                                 target = target.replace('>', '&gt;')
                             if quote is not None and quote in target:
                                 target = target.replace(quote, quote_entity)
+
+
+@template
+def emit_func_convert_and_escape(
+    func, quote=None, quote_entity=None,
+    str=unicode_string, long=long,
+    type=type, encoded=byte_string,
+    default_marker=None, default=None):  # pragma: no cover
+
+    def func(target):
+        if target is None:
+            return
+
+        if target is default_marker:
+            return default
+
+        __tt = type(target)
+
+        if __tt is int or __tt is float or __tt is long:
+            target = str(target)
+        else:
+            if __tt is encoded:
+                target = decode(target)
+            elif __tt is not str:
+                try:
+                    target = target.__html__
+                except:
+                    __converted = convert(target)
+                    target = str(target) if target is __converted \
+                             else __converted
+                else:
+                    return target()
+
+            if target is not None:
+                try:
+                    escape = __re_needs_escape(target) is not None
+                except TypeError:
+                    pass
+                else:
+                    if escape:
+                        # Character escape
+                        if '&' in target:
+                            target = target.replace('&', '&amp;')
+                        if '<' in target:
+                            target = target.replace('<', '&lt;')
+                        if '>' in target:
+                            target = target.replace('>', '&gt;')
+                        if quote is not None and quote in target:
+                            target = target.replace(quote, quote_entity)
+
+        return target
 
 
 class Interpolator(object):
@@ -983,6 +1035,12 @@ class Compiler(object):
         body += template("__re_amp = g_re_amp")
         body += template("__re_needs_escape = g_re_needs_escape")
 
+        body += emit_func_convert_and_escape(
+            "__quote",
+            quote=ast.Str(s='"'),
+            quote_entity=ast.Str(s='&quot;'),
+            )
+
         # Resolve defaults
         for name in self.defaults:
             body += template(
@@ -1285,6 +1343,41 @@ class Compiler(object):
             FORMAT=ast.Str(s=f),
             TARGET=target,
             )
+
+    def visit_DictAttributes(self, node):
+        count = len(node.expressions)
+        assert count > 0
+
+        target = identifier("attr", id(node))
+        body = [ast.Assign(
+            targets=[store(target)], value=ast.Dict(keys=[], values=[])
+            )]
+
+        for i, expression in enumerate(node.expressions):
+            expr_target = identifier("attr", id(expression))
+            body += self._engine(expression, store(expr_target))
+            body += template(
+                "TARGET.update(EXPR_TARGET)",
+                TARGET=target,
+                EXPR_TARGET=expr_target,
+                )
+
+        # Optimization
+        if count == 1:
+            target = expr_target
+
+        assert node.quote == '"'
+
+        body += template(
+            "__append(''.join("
+            "(' ' + NAME + '=' + QUOTE + QUOTE_FUNC(VALUE) + QUOTE)"
+            "for (NAME, VALUE) in TARGET.items()))",
+            TARGET=target,
+            QUOTE_FUNC="__quote",
+            QUOTE=ast.Str(s=node.quote),
+            )
+
+        return body
 
     def visit_Cache(self, node):
         body = []

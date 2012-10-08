@@ -47,6 +47,9 @@ missing = object()
 
 re_trim = re.compile(r'($\s+|\s+^)', re.MULTILINE)
 
+EMPTY_DICT = Static(ast.Dict(keys=[], values=[]))
+
+
 def skip(node):
     return node
 
@@ -257,7 +260,7 @@ class MacroProgram(ElementProgram):
                 I18N_ATTRIBUTES = i18n.parse_attributes(clause)
 
             # Prepare attributes from TAL language
-            prepared = tal.prepare_attributes(
+            prepared, computed = tal.prepare_attributes(
                 start['attrs'], TAL_ATTRIBUTES,
                 I18N_ATTRIBUTES, ns, self.DROP_NS
                 )
@@ -265,7 +268,7 @@ class MacroProgram(ElementProgram):
             # Create attribute nodes
             STATIC_ATTRIBUTES = self._create_static_attributes(prepared)
             ATTRIBUTES = self._create_attributes_nodes(
-                prepared, I18N_ATTRIBUTES
+                prepared, computed, I18N_ATTRIBUTES, STATIC_ATTRIBUTES
                 )
 
             # Start- and end nodes
@@ -314,7 +317,7 @@ class MacroProgram(ElementProgram):
 
                 # Assign static attributes dictionary to "attrs" value
                 inner = nodes.Define(
-                    [nodes.Alias(["attrs"], STATIC_ATTRIBUTES)],
+                    [nodes.Alias(["attrs"], STATIC_ATTRIBUTES or EMPTY_DICT)],
                     inner,
                     )
 
@@ -670,7 +673,7 @@ class MacroProgram(ElementProgram):
 
         return content
 
-    def _create_attributes_nodes(self, prepared, I18N_ATTRIBUTES):
+    def _create_attributes_nodes(self, prepared, computed, I18N, STATIC):
         attributes = []
 
         for name, text, quote, space, eq, expr in prepared:
@@ -686,7 +689,7 @@ class MacroProgram(ElementProgram):
             else:
                 default_marker = self.default_marker
 
-            msgid = I18N_ATTRIBUTES.get(name, missing)
+            msgid = I18N.get(name, missing)
 
             # If (by heuristic) ``text`` contains one or more
             # interpolation expressions, apply interpolation
@@ -710,7 +713,11 @@ class MacroProgram(ElementProgram):
 
                     value = nodes.Substitution(expr, char_escape, default)
 
-            # Otherwise, it's a static attribute.
+            # Otherwise, it's a static attribute. We don't include it
+            # here if there's one or more "computed" attributes
+            # (dynamic, from one or more dict values).
+            elif computed:
+                continue
             else:
                 value = ast.Str(s=text)
                 if msgid is missing and implicit_i18n:
@@ -734,6 +741,16 @@ class MacroProgram(ElementProgram):
 
             attributes.append(attribute)
 
+        if computed:
+            expressions = [nodes.Value(expr) for expr in computed]
+            if STATIC:
+                expressions.insert(0, STATIC)
+
+            attributes.append(
+                nodes.DictAttributes(
+                    expressions, ('&', '<', '>', '"'), '"',
+                ))
+
         return attributes
 
     def _create_static_attributes(self, prepared):
@@ -741,6 +758,9 @@ class MacroProgram(ElementProgram):
 
         for name, text, quote, space, eq, expr in prepared:
             static_attrs[name] = text if text is not None else expr
+
+        if not static_attrs:
+            return
 
         return Static(parse(repr(static_attrs)).body)
 

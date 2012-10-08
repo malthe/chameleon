@@ -50,6 +50,18 @@ def template(function, mode='exec', **kw):
         symbols.update(kwargs)
 
         class Visitor(ast.NodeVisitor):
+            def visit_FunctionDef(self, node):
+                self.generic_visit(node)
+
+                name = symbols.get(node.name, self)
+                if name is not self:
+                    node_annotations[node] = ast.FunctionDef(
+                        name=name,
+                        args=node.args,
+                        body=node.body,
+                        decorator_list=node.decorator_list
+                        )
+
             def visit_Name(self, node):
                 value = symbols.get(node.id, self)
                 if value is not self:

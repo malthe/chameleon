@@ -40,7 +40,7 @@ DEFINE_RE = re.compile(r"(?s)\s*(?:(global|local)\s+)?" +
                        r"(%s|\(%s(?:,\s*%s)*\))\s+(.*)\Z" % (NAME, NAME, NAME),
                        re.UNICODE)
 SUBST_RE = re.compile(r"\s*(?:(text|structure)\s+)?(.*)\Z", re.S | re.UNICODE)
-ATTR_RE = re.compile(r"\s*([^\s]+)\s+([^\s].*)\Z", re.S | re.UNICODE)
+ATTR_RE = re.compile(r"\s*([^\s{}'\"]+)\s+([^\s].*)\Z", re.S | re.UNICODE)
 
 ENTITY_RE = re.compile(r'(&(#?)(x?)(\d{1,5}|\w{1,8});)')
 
@@ -87,9 +87,10 @@ def parse_attributes(clause):
     for part in split_parts(clause):
         m = ATTR_RE.match(part)
         if not m:
-            raise LanguageError(
-                "Bad syntax in attributes.", clause)
-        name, expr = groups(m, part)
+            name, expr = None, part
+        else:
+            name, expr = groups(m, part)
+
         if name in attrs:
             raise LanguageError(
                 "Duplicate attribute name in attributes.", part)
@@ -178,6 +179,7 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
 
     attributes = []
     normalized = {}
+    computed = []
 
     for attribute in attrs:
         name = attribute['name']
@@ -197,6 +199,10 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
         normalized[name.lower()] = len(attributes) - 1
 
     for name, expr in dyn_attributes.items():
+        if name is None:
+            computed.append(expr)
+            continue
+
         index = normalized.get(name.lower())
         if index is not None:
             _, text, quote, space, eq, _ = attributes[index]
@@ -219,7 +225,7 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
             attributes.append((name, name, '"', " ", "=", None))
             normalized[attr] = len(attributes) - 1
 
-    return attributes
+    return attributes, computed
 
 
 class RepeatItem(object):

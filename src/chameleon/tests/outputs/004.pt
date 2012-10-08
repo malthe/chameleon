@@ -14,5 +14,9 @@
     <span class="&quot;goodbye&quot;" />
     <span class="'goodbye'" />
     <span class='&#39;goodbye&#39;' />
+    <span class="goodbye" />
+    <span class="goodbye" />
+    <span a="1" class="goodbye" />
+    <span class="&quot;goodbye&quot;" />
   </body>
 </html>

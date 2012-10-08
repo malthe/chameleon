@@ -3,6 +3,19 @@ Changes
 
 In next release ...
 
+Features:
+
+- Added support for adding, modifying, and removing attributes using a
+  dictionary expression in ``tal:attributes`` (analogous to Genshi's
+  ``py:attrs`` directive)::
+
+    <div tal:attributes="name value; attrs" />
+
+  In the example above, ``name`` is an identifier, while ``value`` and
+  ``attrs`` are Python expressions. However, ``attrs`` must evaluate
+  to a Python dictionary object (more concisely, the value must
+  implement the dictionary API-methods ``update()`` and ``items()``).
+
 Bugfixes:
 
 - Fixed issue where a closure might be reused unsafely in nested
