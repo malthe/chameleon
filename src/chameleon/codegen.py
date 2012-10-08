@@ -59,7 +59,7 @@ def template(function, mode='exec', **kw):
                         name=name,
                         args=node.args,
                         body=node.body,
-                        decorator_list=node.decorator_list
+                        decorator_list=getattr(node, "decorator_list", []),
                         )
 
             def visit_Name(self, node):
