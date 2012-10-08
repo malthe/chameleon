@@ -10,5 +10,6 @@
     $leftalone
     <div></div>
     <div>Hello world</div>
+    <div>${} is ignored.</div>
   </body>
 </html>

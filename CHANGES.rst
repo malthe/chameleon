@@ -5,6 +5,10 @@ In next release ...
 
 Features:
 
+- An attempt to interpolate using the empty string as the expression
+  (i.e. ``${}``) now does nothing: the string ``${}`` is simply output
+  as is.
+
 - Added support for adding, modifying, and removing attributes using a
   dictionary expression in ``tal:attributes`` (analogous to Genshi's
   ``py:attrs`` directive)::

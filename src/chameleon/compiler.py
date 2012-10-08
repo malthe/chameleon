@@ -339,20 +339,26 @@ class Interpolator(object):
 
             while True:
                 d = groupdict(m, matched)
-                string = d["expression"] or d["variable"] or ""
-
+                string = d["expression"] or d.get("variable") or ""
                 string = decode_htmlentities(string)
 
-                try:
-                    compiler = engine.parse(string)
-                    body += compiler.assign_text(target)
-                except ExpressionError:
-                    matched = matched[m.start():m.end() - 1]
-                    m = self.regex.search(matched)
-                    if m is None:
-                        raise
+                if string:
+                    try:
+                        compiler = engine.parse(string)
+                        body += compiler.assign_text(target)
+                    except ExpressionError:
+                        matched = matched[m.start():m.end() - 1]
+                        m = self.regex.search(matched)
+                        if m is None:
+                            raise
+
+                        continue
                 else:
-                    break
+                    s = m.group()
+                    assign = ast.Assign(targets=[target], value=ast.Str(s=s))
+                    body += [assign]
+
+                break
 
             # If one or more expressions are not simple names, we
             # disable translation.
