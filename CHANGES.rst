@@ -16,6 +16,14 @@ Features:
   to a Python dictionary object (more concisely, the value must
   implement the dictionary API-methods ``update()`` and ``items()``).
 
+Optimizations:
+
+- In order to cut down on the size of the compiled function objects,
+  some conversion and quoting statements have been put into
+  functions. In one measurement, the reduction was 35%. The benchmark
+  suite does *not* report of an increased render time (actually
+  slightly decreased).
+
 Bugfixes:
 
 - Fixed issue where a closure might be reused unsafely in nested

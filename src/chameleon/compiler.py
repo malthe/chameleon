@@ -190,66 +190,44 @@ def emit_convert(
 
 
 @template
+def emit_func_convert(
+    func, encoded=byte_string, str=unicode_string,
+    long=long, type=type):  # pragma: no cover
+    def func(target):
+        if target is None:
+            return
+
+        __tt = type(target)
+
+        if __tt is int or __tt is float or __tt is long:
+            target = str(target)
+
+        elif __tt is encoded:
+            target = decode(target)
+
+        elif __tt is not str:
+            try:
+                target = target.__html__
+            except AttributeError:
+                __converted = convert(target)
+                target = str(target) if target is __converted else __converted
+            else:
+                target = target()
+
+        return target
+
+
+@template
 def emit_translate(target, msgid, default=None):  # pragma: no cover
     target = translate(msgid, default=default, domain=__i18n_domain)
 
 
 @template
-def emit_convert_and_escape(
-    target, quote=None, quote_entity=None, str=unicode_string, long=long,
-    type=type, encoded=byte_string,
-    default_marker=None, default=None):  # pragma: no cover
-    if target is None:
-        pass
-    elif target is default_marker:
-        target = default
-    else:
-        __tt = type(target)
-
-        if __tt is int or __tt is float or __tt is long:
-            target = str(target)
-        else:
-            try:
-                if __tt is encoded:
-                    target = decode(target)
-                elif __tt is not str:
-                    try:
-                        target = target.__html__
-                    except:
-                        __converted = convert(target)
-                        target = str(target) if target is __converted \
-                                 else __converted
-                    else:
-                        raise RuntimeError
-            except RuntimeError:
-                target = target()
-            else:
-                if target is not None:
-                    try:
-                        escape = __re_needs_escape(target) is not None
-                    except TypeError:
-                        pass
-                    else:
-                        if escape:
-                            # Character escape
-                            if '&' in target:
-                                target = target.replace('&', '&amp;')
-                            if '<' in target:
-                                target = target.replace('<', '&lt;')
-                            if '>' in target:
-                                target = target.replace('>', '&gt;')
-                            if quote is not None and quote in target:
-                                target = target.replace(quote, quote_entity)
-
-
-@template
 def emit_func_convert_and_escape(
-    func, quote=None, quote_entity=None,
-    str=unicode_string, long=long,
-    type=type, encoded=byte_string,
-    default_marker=None, default=None):  # pragma: no cover
+    func, str=unicode_string, long=long,
+    type=type, encoded=byte_string):  # pragma: no cover
 
-    def func(target):
+    def func(target, quote, quote_entity, default, default_marker):
         if target is None:
             return
 
@@ -551,12 +529,13 @@ class ExpressionEngine(object):
 
             entity = char2entity(quote or '\0')
 
-            return emit_convert_and_escape(
-                target,
-                quote=ast.Str(s=quote),
-                quote_entity=ast.Str(s=entity),
-                default=self._default,
-                default_marker=self._default_marker,
+            return template(
+                "TARGET = __quote(TARGET, QUOTE, Q_ENTITY, DEFAULT, MARKER)",
+                TARGET=target,
+                QUOTE=ast.Str(s=quote),
+                Q_ENTITY=ast.Str(s=entity),
+                DEFAULT=self._default,
+                MARKER=self._default_marker,
                 )
 
         return emit_convert(
@@ -1035,11 +1014,8 @@ class Compiler(object):
         body += template("__re_amp = g_re_amp")
         body += template("__re_needs_escape = g_re_needs_escape")
 
-        body += emit_func_convert_and_escape(
-            "__quote",
-            quote=ast.Str(s='"'),
-            quote_entity=ast.Str(s='&quot;'),
-            )
+        body += emit_func_convert("__convert")
+        body += emit_func_convert_and_escape("__quote")
 
         # Resolve defaults
         for name in self.defaults:
@@ -1130,9 +1106,12 @@ class Compiler(object):
             body += emit_translate(name, name)
 
         if node.char_escape:
-            body += emit_convert_and_escape(name)
+            body += template(
+                "NAME=__quote(NAME, None, '\255', None, None)",
+                NAME=name,
+                )
         else:
-            body += emit_convert(name)
+            body += template("NAME = __convert(NAME)", NAME=name)
 
         body += template("if NAME is not None: __append(NAME)", NAME=name)
 
@@ -1366,15 +1345,15 @@ class Compiler(object):
         if count == 1:
             target = expr_target
 
-        assert node.quote == '"'
-
         body += template(
             "__append(''.join("
-            "(' ' + NAME + '=' + QUOTE + QUOTE_FUNC(VALUE) + QUOTE)"
+            "(' ' + NAME + '=' + QUOTE + "
+            "QUOTE_FUNC(VALUE, QUOTE, QUOTE_ENTITY, None, None) + QUOTE)"
             "for (NAME, VALUE) in TARGET.items()))",
             TARGET=target,
             QUOTE_FUNC="__quote",
             QUOTE=ast.Str(s=node.quote),
+            QUOTE_ENTITY=ast.Str(s=char2entity(node.quote or '\0')),
             )
 
         return body
