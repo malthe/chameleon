@@ -140,7 +140,6 @@ class TalesExpr(object):
 
         if not assignments:
             if not remaining:
-                import pdb; pdb.set_trace()
                 raise ExpressionError("No input:", remaining)
 
             assignments.append(
@@ -229,8 +228,6 @@ class PythonExpr(TalesExpr):
     transform = ItemLookupOnAttributeErrorVisitor(transform_attribute)
 
     def parse(self, string):
-        if not string:
-            import pdb; pdb.set_trace()
         return parse(string, 'eval').body
 
     def translate(self, expression, target):
