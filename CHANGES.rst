@@ -3,6 +3,18 @@ Changes
 
 In next release ...
 
+Deprecations:
+
+- The ``fast_translate`` function has been deprecated. Instead, the
+  default translation function is now always a function that simply
+  interpolates the mapping onto the message default or id.
+
+  The motivation is that since version 2.9, the ``context`` argument
+  is non-trivial: the ``econtext`` mapping is passed. This breaks an
+  expectation on the Zope platform that the ``context`` parameter is
+  the HTTP request. Previously, with Chameleon this parameter was
+  simply not provided and so that did not cause issues as such.
+
 Features:
 
 - An attempt to interpolate using the empty string as the expression

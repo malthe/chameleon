@@ -41,25 +41,15 @@ try:  # pragma: no cover
 except NameError:
     pass
 
+# BBB: The ``fast_translate`` function here is kept for backwards
+# compatibility reasons. Do not use!
+
 try:  # pragma: no cover
-    # optional: `zope.i18n`, `zope.i18nmessageid`
     from zope.i18n import interpolate
     from zope.i18n import translate
     from zope.i18nmessageid import Message
 except ImportError:   # pragma: no cover
-
-    def fast_translate(msgid, domain=None, mapping=None, context=None,
-                       target_language=None, default=None):
-        if default is None:
-            return msgid
-
-        if mapping:
-            def replace(match):
-                whole, param1, param2 = match.groups()
-                return unicode_string(mapping.get(param1 or param2, whole))
-            return _interp_regex.sub(replace, default)
-
-        return default
+    pass
 else:   # pragma: no cover
     def fast_translate(msgid, domain=None, mapping=None, context=None,
                        target_language=None, default=None):
@@ -84,6 +74,20 @@ else:   # pragma: no cover
             return default
 
         return interpolate(default, mapping)
+
+
+def simple_translate(msgid, domain=None, mapping=None, context=None,
+                   target_language=None, default=None):
+    if default is None:
+        return msgid
+
+    if mapping:
+        def replace(match):
+            whole, param1, param2 = match.groups()
+            return unicode_string(mapping.get(param1 or param2, whole))
+        return _interp_regex.sub(replace, default)
+
+    return default
 
 
 def parse_attributes(attrs, xml=True):

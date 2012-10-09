@@ -26,7 +26,7 @@ from .codegen import template
 
 from .tal import ErrorInfo
 from .tal import NAME
-from .i18n import fast_translate
+from .i18n import simple_translate
 
 from .nodes import Text
 from .nodes import Value
@@ -874,7 +874,7 @@ class Compiler(object):
                  TypeError
 
     defaults = {
-        'translate': Symbol(fast_translate),
+        'translate': Symbol(simple_translate),
         'decode': Builtin("str"),
         'convert': Builtin("str"),
         }

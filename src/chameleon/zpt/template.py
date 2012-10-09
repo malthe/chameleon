@@ -6,7 +6,7 @@ except ImportError:
 from functools import partial
 from os.path import dirname
 
-from ..i18n import fast_translate
+from ..i18n import simple_translate
 from ..tales import PythonExpr
 from ..tales import StringExpr
 from ..tales import NotExpr
@@ -142,7 +142,7 @@ class PageTemplate(BaseTemplate):
 
     default_expression = 'python'
 
-    translate = staticmethod(fast_translate)
+    translate = staticmethod(simple_translate)
 
     encoding = None
 

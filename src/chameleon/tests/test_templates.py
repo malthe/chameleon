@@ -438,7 +438,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             body = "<d tal:define=\"%s 'foo'\">${%s}</d>" % (name, name)
             self.assertRaises(TranslationError, self.from_string, body)
 
-    def test_fast_translate_mapping(self):
+    def test_simple_translate_mapping(self):
         template = self.from_string(
             '<div i18n:translate="">'
             '<span i18n:name="name">foo</span>'
