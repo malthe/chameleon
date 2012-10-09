@@ -48,6 +48,37 @@ class LoadPageTests(unittest.TestCase, LoadTests):
         return loader.load(filename, template.PageTemplateFile)
 
 
+class ModuleLoadTests(unittest.TestCase):
+    def _makeOne(self, *args, **kwargs):
+        from chameleon.loader import ModuleLoader
+        return ModuleLoader(*args, **kwargs)
+
+    def test_build(self):
+        import tempfile
+        path = tempfile.mkdtemp()
+        loader = self._makeOne(path)
+        source = "def function(): return %r" % "\xc3\xa6\xc3\xb8\xc3\xa5"
+        try:
+            source = source.decode('utf-8')
+        except AttributeError:
+            import sys
+            self.assertTrue(sys.version_info[0] > 2)
+
+        module = loader.build(source, "test.xml")
+        result1 = module['function']()
+        d = {}
+        code = compile(source, 'test.py', 'exec')
+        exec(code, d)
+        result2 = d['function']()
+        self.assertEqual(result1, result2)
+
+        import os
+        self.assertTrue("test.py" in os.listdir(path))
+
+        import shutil
+        shutil.rmtree(path)
+
+
 class ZPTLoadTests(unittest.TestCase):
     def _makeOne(self, *args, **kwargs):
         import os

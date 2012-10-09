@@ -30,6 +30,9 @@ Optimizations:
 
 Bugfixes:
 
+- The template module loader (file cache) now correctly encodes
+  generated template source code as UTF-8. This fixes issue #125.
+
 - Fixed issue where a closure might be reused unsafely in nested
   template rendering.
 

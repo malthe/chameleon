@@ -7,15 +7,12 @@ import shutil
 import sys
 import tempfile
 import warnings
-
 import pkg_resources
 
 log = logging.getLogger('chameleon.loader')
 
-try:
-    str = unicode
-except NameError:
-    basestring = str
+from .utils import string_type
+from .utils import encode_string
 
 
 def cache(func):
@@ -57,7 +54,7 @@ class TemplateLoader(object):
     def __init__(self, search_path=None, default_extension=None, **kwargs):
         if search_path is None:
             search_path = []
-        if isinstance(search_path, basestring):
+        if isinstance(search_path, string_type):
             search_path = [search_path]
         if default_extension is not None:
             self.default_extension = ".%s" % default_extension.lstrip('.')
@@ -137,12 +134,14 @@ class ModuleLoader(object):
 
             log.debug("writing source to disk (%d bytes)." % len(source))
             fd, fn = tempfile.mkstemp(prefix=base, suffix='.tmp', dir=self.path)
-            temp = os.fdopen(fd, 'w')
+            temp = os.fdopen(fd, 'wb')
+            encoded = source.encode('utf-8')
+            header = encode_string("# -*- coding: utf-8 -*-" + "\n")
 
             try:
                 try:
-                    temp.write("%s\n" % '# -*- coding: utf-8 -*-')
-                    temp.write(source)
+                    temp.write(header)
+                    temp.write(encoded)
                 finally:
                     temp.close()
             except:
