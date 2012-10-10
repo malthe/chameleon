@@ -18,5 +18,7 @@
     <span class="goodbye" />
     <span a="1" class="goodbye" />
     <span class="&quot;goodbye&quot;" />
+    <span class="&quot;goodbye&quot;" />
+    <span class="hello" />
   </body>
 </html>

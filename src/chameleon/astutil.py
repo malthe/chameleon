@@ -21,6 +21,7 @@ except ImportError:
 import sys
 import logging
 import weakref
+import collections
 
 node_annotations = weakref.WeakKeyDictionary()
 
@@ -78,6 +79,45 @@ def walk_names(target, mode):
             yield node.id
 
 
+def iter_fields(node):
+    """
+    Yield a tuple of ``(fieldname, value)`` for each field in ``node._fields``
+    that is present on *node*.
+    """
+    for field in node._fields:
+        try:
+            yield field, getattr(node, field)
+        except AttributeError:
+            pass
+
+
+def iter_child_nodes(node):
+    """
+    Yield all direct child nodes of *node*, that is, all fields that are nodes
+    and all items of fields that are lists of nodes.
+    """
+    for name, field in iter_fields(node):
+        if isinstance(field, Node):
+            yield field
+        elif isinstance(field, list):
+            for item in field:
+                if isinstance(item, Node):
+                    yield item
+
+
+def walk(node):
+    """
+    Recursively yield all descendant nodes in the tree starting at *node*
+    (including *node* itself), in no specified order.  This is useful if you
+    only want to modify nodes in place and don't care about the context.
+    """
+    todo = collections.deque([node])
+    while todo:
+        node = todo.popleft()
+        todo.extend(iter_child_nodes(node))
+        yield node
+
+
 def copy(source, target):
     target.__class__ = source.__class__
     target.__dict__ = source.__dict__
@@ -118,6 +158,14 @@ class Node(object):
                         for name in self._fields),
             id(self)
             )
+
+    def extract(self, condition):
+        result = []
+        for node in walk(self):
+            if condition(node):
+                result.append(node)
+
+        return result
 
 
 class Builtin(Node):

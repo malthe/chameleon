@@ -83,19 +83,21 @@ def split_parts(arg):
 
 
 def parse_attributes(clause):
-    attrs = {}
+    attrs = []
+    seen = set()
     for part in split_parts(clause):
         m = ATTR_RE.match(part)
         if not m:
-            name, expr = None, part
+            name, expr = None, part.strip()
         else:
             name, expr = groups(m, part)
 
-        if name in attrs:
+        if name in seen:
             raise LanguageError(
                 "Duplicate attribute name in attributes.", part)
 
-        attrs[name] = expr
+        seen.add(name)
+        attrs.append((name, expr))
 
     return attrs
 
@@ -198,12 +200,9 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
 
         normalized[name.lower()] = len(attributes) - 1
 
-    for name, expr in dyn_attributes.items():
-        if name is None:
-            computed.append(expr)
-            continue
+    for name, expr in dyn_attributes:
+        index = normalized.get(name.lower()) if name else None
 
-        index = normalized.get(name.lower())
         if index is not None:
             _, text, quote, space, eq, _ = attributes[index]
             add = attributes.__setitem__
@@ -214,7 +213,8 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
             eq = "="
             index = len(attributes)
             add = attributes.insert
-            normalized[name.lower()] = len(attributes) - 1
+            if name is not None:
+                normalized[name.lower()] = len(attributes) - 1
 
         attribute = name, text, quote, space, eq, expr
         add(index, attribute)
@@ -225,7 +225,7 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
             attributes.append((name, name, '"', " ", "=", None))
             normalized[attr] = len(attributes) - 1
 
-    return attributes, computed
+    return attributes
 
 
 class RepeatItem(object):

@@ -18,5 +18,7 @@
     <span class="hello" tal:attributes="{'class': 'goodbye'}" />
     <span a="1" class="hello" tal:attributes="{'class': 'goodbye'}" />
     <span tal:attributes="{'class': '&quot;goodbye&quot;'}" />
+    <span tal:attributes="class 'hello'; {'class': '&quot;goodbye&quot;'}" />
+    <span tal:attributes="{'class': '&quot;goodbye&quot;'}; class 'hello'" />
   </body>
 </html>

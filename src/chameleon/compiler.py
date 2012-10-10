@@ -20,6 +20,7 @@ from .astutil import NameLookupRewriteVisitor
 from .astutil import Comment
 from .astutil import Symbol
 from .astutil import Builtin
+from .astutil import Static
 
 from .codegen import TemplateCodeGenerator
 from .codegen import template
@@ -962,6 +963,7 @@ class Compiler(object):
 
         body += template("import re")
         body += template("import functools")
+        body += template("from itertools import chain as __chain")
         body += template("__marker = object()")
         body += template(
             r"g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
@@ -1297,9 +1299,8 @@ class Compiler(object):
             for stmt in emit_node(ast.Str(s=node.prefix + node.name)):
                 yield stmt
 
-            for attribute in node.attributes:
-                for stmt in self.visit(attribute):
-                    yield stmt
+            for stmt in self.visit(node.attributes):
+                yield stmt
 
             for stmt in emit_node(ast.Str(s=node.suffix)):
                 yield stmt
@@ -1314,49 +1315,71 @@ class Compiler(object):
             yield stmt
 
     def visit_Attribute(self, node):
-        f = node.space + node.name + node.eq + node.quote + "%s" + node.quote
+        attr_format = (node.space + node.name + node.eq +
+                       node.quote + "%s" + node.quote)
+
+        filter_args = list(map(self._engine.cache.get, node.filters))
+
+        filter_condition = template(
+            "NAME not in CHAIN",
+            NAME=ast.Str(s=node.name),
+            CHAIN=ast.Call(
+                func=load("__chain"),
+                args=filter_args,
+                keywords=[],
+                starargs=None,
+                kwargs=None,
+            ),
+            mode="eval"
+        )
 
         # Static attributes are just outputted directly
         if isinstance(node.expression, ast.Str):
-            s = f % node.expression.s
-            return template("__append(S)", S=ast.Str(s=s))
+            s = attr_format % node.expression.s
+            if node.filters:
+                return template(
+                    "if C: __append(S)", C=filter_condition, S=ast.Str(s=s)
+                )
+            else:
+                return template("__append(S)", S=ast.Str(s=s))
 
         target = identifier("attr", node.name)
         body = self._engine(node.expression, store(target))
-        return body + template(
-            "if TARGET is not None: __append(FORMAT % TARGET)",
-            FORMAT=ast.Str(s=f),
-            TARGET=target,
+
+        condition = template("TARGET is not None", TARGET=target, mode="eval")
+
+        if node.filters:
+            condition = ast.BoolOp(
+                values=[condition, filter_condition],
+                op=ast.And(),
             )
 
+        return body + template(
+            "if CONDITION: __append(FORMAT % TARGET)",
+            FORMAT=ast.Str(s=attr_format),
+            TARGET=target,
+            CONDITION=condition,
+        )
+
     def visit_DictAttributes(self, node):
-        count = len(node.expressions)
-        assert count > 0
-
         target = identifier("attr", id(node))
-        body = [ast.Assign(
-            targets=[store(target)], value=ast.Dict(keys=[], values=[])
-            )]
+        body = self._engine(node.expression, store(target))
 
-        for i, expression in enumerate(node.expressions):
-            expr_target = identifier("attr", id(expression))
-            body += self._engine(expression, store(expr_target))
-            body += template(
-                "TARGET.update(EXPR_TARGET)",
-                TARGET=target,
-                EXPR_TARGET=expr_target,
-                )
-
-        # Optimization
-        if count == 1:
-            target = expr_target
+        exclude = Static(template(
+            "set(LIST)", LIST=ast.List(
+                elts=[ast.Str(s=name) for name in node.exclude],
+                ctx=ast.Load(),
+            ), mode="eval"
+        ))
 
         body += template(
-            "__append(''.join("
-            "(' ' + NAME + '=' + QUOTE + "
-            "QUOTE_FUNC(VALUE, QUOTE, QUOTE_ENTITY, None, None) + QUOTE)"
-            "for (NAME, VALUE) in TARGET.items()))",
+            "for name, value in TARGET.items():\n  "
+            "if name not in EXCLUDE and value is not None: __append("
+            "' ' + name + '=' + QUOTE + "
+            "QUOTE_FUNC(value, QUOTE, QUOTE_ENTITY, None, None) + QUOTE"
+            ")",
             TARGET=target,
+            EXCLUDE=exclude,
             QUOTE_FUNC="__quote",
             QUOTE=ast.Str(s=node.quote),
             QUOTE_ENTITY=ast.Str(s=char2entity(node.quote or '\0')),

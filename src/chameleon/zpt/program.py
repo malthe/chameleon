@@ -247,7 +247,7 @@ class MacroProgram(ElementProgram):
             try:
                 clause = ns[TAL, 'attributes']
             except KeyError:
-                TAL_ATTRIBUTES = {}
+                TAL_ATTRIBUTES = []
             else:
                 TAL_ATTRIBUTES = tal.parse_attributes(clause)
 
@@ -260,7 +260,7 @@ class MacroProgram(ElementProgram):
                 I18N_ATTRIBUTES = i18n.parse_attributes(clause)
 
             # Prepare attributes from TAL language
-            prepared, computed = tal.prepare_attributes(
+            prepared = tal.prepare_attributes(
                 start['attrs'], TAL_ATTRIBUTES,
                 I18N_ATTRIBUTES, ns, self.DROP_NS
                 )
@@ -268,7 +268,7 @@ class MacroProgram(ElementProgram):
             # Create attribute nodes
             STATIC_ATTRIBUTES = self._create_static_attributes(prepared)
             ATTRIBUTES = self._create_attributes_nodes(
-                prepared, computed, I18N_ATTRIBUTES, STATIC_ATTRIBUTES
+                prepared, I18N_ATTRIBUTES, STATIC_ATTRIBUTES
                 )
 
             # Start- and end nodes
@@ -496,11 +496,13 @@ class MacroProgram(ElementProgram):
             if omit is False and start['namespace'] not in self.DROP_NS:
                 start_tag = copy(start_tag)
 
-                start_tag.attributes = filter(
-                    lambda attribute: isinstance(attribute, nodes.Attribute) and \
-                                      isinstance(attribute.expression, ast.Str),
-                    start_tag.attributes
+                start_tag.attributes = nodes.Sequence(
+                    start_tag.attributes.extract(
+                        lambda attribute:
+                        isinstance(attribute, nodes.Attribute) and
+                        isinstance(attribute.expression, ast.Str)
                     )
+                )
 
                 if end_tag is None:
                     # Make sure start-tag has opening suffix. We don't
@@ -673,11 +675,17 @@ class MacroProgram(ElementProgram):
 
         return content
 
-    def _create_attributes_nodes(self, prepared, computed, I18N, STATIC):
+    def _create_attributes_nodes(self, prepared, I18N_ATTRIBUTES, STATIC):
         attributes = []
 
-        for name, text, quote, space, eq, expr in prepared:
-            implicit_i18n = name.lower() in self.implicit_i18n_attributes
+        names = [attr[0] for attr in prepared]
+        filtering = [[]]
+
+        for i, (name, text, quote, space, eq, expr) in enumerate(prepared):
+            implicit_i18n = (
+                name is not None and
+                name.lower() in self.implicit_i18n_attributes
+            )
 
             char_escape = ('&', '<', '>', quote)
 
@@ -689,7 +697,7 @@ class MacroProgram(ElementProgram):
             else:
                 default_marker = self.default_marker
 
-            msgid = I18N.get(name, missing)
+            msgid = I18N_ATTRIBUTES.get(name, missing)
 
             # If (by heuristic) ``text`` contains one or more
             # interpolation expressions, apply interpolation
@@ -703,7 +711,16 @@ class MacroProgram(ElementProgram):
             # If the expression is non-trivial, the attribute is
             # dynamic (computed).
             elif expr is not None:
-                if name in self.boolean_attributes:
+                if name is None:
+                    expression = nodes.Value(expr)
+                    value = nodes.DictAttributes(
+                        expression, ('&', '<', '>', '"'), '"',
+                        set(filter(None, names[i:]))
+                    )
+                    for fs in filtering:
+                        fs.append(expression)
+                    filtering.append([])
+                elif name in self.boolean_attributes:
                     value = nodes.Boolean(expr, name)
                 else:
                     if text is not None:
@@ -716,47 +733,48 @@ class MacroProgram(ElementProgram):
             # Otherwise, it's a static attribute. We don't include it
             # here if there's one or more "computed" attributes
             # (dynamic, from one or more dict values).
-            elif computed:
-                continue
             else:
                 value = ast.Str(s=text)
                 if msgid is missing and implicit_i18n:
                     msgid = text
 
-            # If translation is required, wrap in a translation
-            # clause
-            if msgid is not missing:
-                value = nodes.Translate(msgid, value)
+            if name is not None:
+                # If translation is required, wrap in a translation
+                # clause
+                if msgid is not missing:
+                    value = nodes.Translate(msgid, value)
 
-            space = self._maybe_trim(space)
-            attribute = nodes.Attribute(name, value, quote, eq, space)
+                space = self._maybe_trim(space)
+                fs = filtering[-1]
+                attribute = nodes.Attribute(name, value, quote, eq, space, fs)
 
-            if not isinstance(value, ast.Str):
-                # Always define a ``default`` alias for non-static
-                # expressions.
-                attribute = nodes.Define(
-                    [nodes.Alias(["default"], default_marker)],
-                    attribute,
-                    )
+                if not isinstance(value, ast.Str):
+                    # Always define a ``default`` alias for non-static
+                    # expressions.
+                    attribute = nodes.Define(
+                        [nodes.Alias(["default"], default_marker)],
+                        attribute,
+                        )
 
-            attributes.append(attribute)
+                value = attribute
 
-        if computed:
-            expressions = [nodes.Value(expr) for expr in computed]
-            if STATIC:
-                expressions.insert(0, STATIC)
+            attributes.append(value)
 
-            attributes.append(
-                nodes.DictAttributes(
-                    expressions, ('&', '<', '>', '"'), '"',
-                ))
+        result = nodes.Sequence(attributes)
 
-        return attributes
+        fs = filtering[0]
+        if fs:
+            return nodes.Cache(fs, result)
+
+        return result
 
     def _create_static_attributes(self, prepared):
         static_attrs = {}
 
         for name, text, quote, space, eq, expr in prepared:
+            if name is None:
+                continue
+
             static_attrs[name] = text if text is not None else expr
 
         if not static_attrs:

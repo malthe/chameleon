@@ -72,13 +72,13 @@ class Element(Node):
 class DictAttributes(Node):
     """Element attributes from one or more Python dicts."""
 
-    _fields = "expressions", "char_escape", "quote"
+    _fields = "expression", "char_escape", "quote", "exclude"
 
 
 class Attribute(Node):
     """Element attribute."""
 
-    _fields = "name", "expression", "quote", "eq", "space"
+    _fields = "name", "expression", "quote", "eq", "space", "filters"
 
 
 class Start(Node):
