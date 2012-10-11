@@ -455,6 +455,12 @@ class MacroProgram(ElementProgram):
         except KeyError:
             pass
         else:
+            if not clause.strip():
+                raise LanguageError(
+                    "Must provide a non-trivial string for metal:fill-slot.",
+                    clause
+                )
+
             index = -(1 + int(bool(use_macro or extend_macro)))
 
             try:

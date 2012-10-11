@@ -49,6 +49,9 @@ Optimizations:
 
 Bugfixes:
 
+- An exception is now raised if a trivial string is passed for
+  ``metal:fill-slot``. This fixes issue #89.
+
 - An empty string is now never translated. Not really a bug, but it's
   been reported in as an issue (#92) because some translation
   frameworks handle this case incorrectly.
