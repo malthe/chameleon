@@ -49,6 +49,10 @@ Optimizations:
 
 Bugfixes:
 
+- An empty string is now never translated. Not really a bug, but it's
+  been reported in as an issue (#92) because some translation
+  frameworks handle this case incorrectly.
+
 - The template module loader (file cache) now correctly encodes
   generated template source code as UTF-8. This fixes issue #125.
 

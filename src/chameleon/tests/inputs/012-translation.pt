@@ -1,5 +1,6 @@
 <html>
   <body>
+    <div i18n:translate=""></div>
     <div i18n:translate="">
       Hello world!
     </div>

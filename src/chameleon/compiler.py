@@ -1274,7 +1274,7 @@ class Compiler(object):
 
         # emit the translation expression
         body += template(
-            "__append(translate("
+            "if msgid: __append(translate("
             "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=econtext))",
             msgid=msgid, default=default, mapping=mapping
             )
