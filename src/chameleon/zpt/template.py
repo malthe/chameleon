@@ -312,7 +312,10 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
     """
 
     expression_types = PageTemplate.expression_types.copy()
-    expression_types['load'] = partial(ProxyExpr, '__loader')
+    expression_types['load'] = partial(
+        ProxyExpr, '__loader',
+        ignore_prefix=False
+    )
 
     prepend_relative_search_path = True
 

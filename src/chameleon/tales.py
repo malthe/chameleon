@@ -113,7 +113,7 @@ class TalesExpr(object):
                  LookupError, \
                  TypeError
 
-    prefix_matching = True
+    ignore_prefix = True
 
     def __init__(self, expression):
         self.expression = expression
@@ -123,7 +123,7 @@ class TalesExpr(object):
         assignments = []
 
         while remaining:
-            if self.prefix_matching and match_prefix(remaining) is not None:
+            if self.ignore_prefix and match_prefix(remaining) is not None:
                 compiler = engine.parse(remaining)
                 assignment = compiler.assign_value(target)
                 remaining = ""
@@ -434,10 +434,10 @@ class StringExpr(object):
 
 class ProxyExpr(TalesExpr):
     braces_required = False
-    prefix_matching = False
 
-    def __init__(self, name, *args):
-        super(ProxyExpr, self).__init__(*args)
+    def __init__(self, name, expression, ignore_prefix=True):
+        super(ProxyExpr, self).__init__(expression)
+        self.ignore_prefix = ignore_prefix
         self.name = name
 
     def translate_proxy(self, engine, expression, target):
