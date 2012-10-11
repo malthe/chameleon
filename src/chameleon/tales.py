@@ -113,6 +113,8 @@ class TalesExpr(object):
                  LookupError, \
                  TypeError
 
+    prefix_matching = True
+
     def __init__(self, expression):
         self.expression = expression
 
@@ -121,7 +123,7 @@ class TalesExpr(object):
         assignments = []
 
         while remaining:
-            if match_prefix(remaining) is not None:
+            if self.prefix_matching and match_prefix(remaining) is not None:
                 compiler = engine.parse(remaining)
                 assignment = compiler.assign_value(target)
                 remaining = ""
@@ -135,7 +137,7 @@ class TalesExpr(object):
                     remaining = ""
 
                 expression = expression.replace('\\|', '|')
-                assignment = self.translate(expression, target)
+                assignment = self.translate_proxy(engine, expression, target)
             assignments.append(assignment)
 
         if not assignments:
@@ -143,7 +145,7 @@ class TalesExpr(object):
                 raise ExpressionError("No input:", remaining)
 
             assignments.append(
-                self.translate(remaining, target)
+                self.translate_proxy(engine, remaining, target)
                 )
 
         for i, assignment in enumerate(reversed(assignments)):
@@ -162,6 +164,11 @@ class TalesExpr(object):
                     )]
 
         return body
+
+    def translate_proxy(self, engine, *args):
+        """Default implementation delegates to ``translate`` method."""
+
+        return self.translate(*args)
 
     def translate(self, expression, target):
         """Return statements that assign a value to ``target``."""
@@ -425,13 +432,18 @@ class StringExpr(object):
         return self.translator(name, engine)
 
 
-class ProxyExpr(StringExpr):
+class ProxyExpr(TalesExpr):
+    braces_required = False
+    prefix_matching = False
+
     def __init__(self, name, *args):
         super(ProxyExpr, self).__init__(*args)
         self.name = name
 
-    def __call__(self, target, engine):
-        assignment = super(ProxyExpr, self).__call__(target, engine)
+    def translate_proxy(self, engine, expression, target):
+        translator = Interpolator(expression, self.braces_required)
+        assignment = translator(target, engine)
+
         return assignment + [
             ast.Assign(targets=[target], value=ast.Call(
                 func=load(self.name),
@@ -439,8 +451,8 @@ class ProxyExpr(StringExpr):
                 keywords=[],
                 starargs=None,
                 kwargs=None
-                ))
-            ]
+            ))
+        ]
 
 
 class ExistsExpr(object):

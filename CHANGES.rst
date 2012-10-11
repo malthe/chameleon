@@ -17,6 +17,13 @@ Deprecations:
 
 Features:
 
+- The ``ProxyExpr`` expression class (and hence the ``load:``
+  expression type) is now a TALES-expression. In practical terms, this
+  means that the expression type (which computes a string result using
+  the standard ``"${...}"`` interpolation syntax and proxies the
+  result through a function) now supports fallback using the pipe
+  operator (``"|"``). This fixes issue #128.
+
 - An attempt to interpolate using the empty string as the expression
   (i.e. ``${}``) now does nothing: the string ``${}`` is simply output
   as is.
