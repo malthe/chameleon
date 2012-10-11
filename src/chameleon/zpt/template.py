@@ -1,7 +1,7 @@
 try:
     import ast
 except ImportError:
-    from chameleon import ast24 as ast
+    from chameleon import ast25 as ast
 
 from functools import partial
 from os.path import dirname

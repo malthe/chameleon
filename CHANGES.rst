@@ -15,6 +15,10 @@ Deprecations:
   the HTTP request. Previously, with Chameleon this parameter was
   simply not provided and so that did not cause issues as such.
 
+- The ``ast24`` module has been renamed to ``ast25``. This should help
+  clear up any confusion that Chameleon 2.x might be support a Python
+  interpreter less than version 2.5 (it does not).
+
 Features:
 
 - The ``ProxyExpr`` expression class (and hence the ``load:``

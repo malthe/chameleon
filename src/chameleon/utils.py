@@ -11,7 +11,7 @@ version = sys.version_info[:3]
 try:
     import ast as _ast
 except ImportError:
-    from chameleon import ast24 as _ast
+    from chameleon import ast25 as _ast
 
 
 class ASTProxy(object):
