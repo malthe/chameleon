@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.10 (2012-10-12)
+-----------------
 
 Deprecations:
 
