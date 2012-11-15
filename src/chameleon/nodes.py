@@ -12,6 +12,9 @@ class Sequence(Node):
 
     _fields = "items",
 
+    def __nonzero__(self):
+        return bool(self.items)
+
 
 class Content(Node):
     """Content substitution."""

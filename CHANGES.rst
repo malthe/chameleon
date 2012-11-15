@@ -8,6 +8,11 @@ Features:
 - The simple translation function now supports the
   ``translationstring`` interface.
 
+Optimizations:
+
+- Minor optimization which correctly detects when an element has no
+  attributes.
+
 
 2.10 (2012-10-12)
 -----------------
