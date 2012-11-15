@@ -79,7 +79,10 @@ else:   # pragma: no cover
 def simple_translate(msgid, domain=None, mapping=None, context=None,
                    target_language=None, default=None):
     if default is None:
-        return msgid
+        default = getattr(msgid, "default", msgid)
+
+    if mapping is None:
+        mapping = getattr(msgid, "mapping", None)
 
     if mapping:
         def replace(match):

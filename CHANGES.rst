@@ -1,6 +1,14 @@
 Changes
 =======
 
+In next release ...
+
+Features:
+
+- The simple translation function now supports the
+  ``translationstring`` interface.
+
+
 2.10 (2012-10-12)
 -----------------
 
