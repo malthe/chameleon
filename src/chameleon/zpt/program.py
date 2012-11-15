@@ -195,6 +195,7 @@ class MacroProgram(ElementProgram):
         use_macro = ns.get((METAL, 'use-macro'))
         extend_macro = ns.get((METAL, 'extend-macro'))
         if use_macro or extend_macro:
+            omit = True
             slots = []
             self._use_macro.append(slots)
 

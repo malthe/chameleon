@@ -5,6 +5,9 @@ In next release ...
 
 Bugfixes:
 
+- An issue was resolved where a METAL statement was combined with a
+  ``tal:on-error`` handler.
+
 - Fix minor parser issue with incorrectly formatted processing
   instructions.
 
