@@ -1474,7 +1474,7 @@ class Compiler(object):
         for stmt in stmts:
             self._visitor(stmt)
 
-        return stmts
+        return [try_except_wrap(stmts, node.source)]
 
     def visit_UseExternalMacro(self, node):
         self._macros.append(node.extend)

@@ -3,6 +3,10 @@ Changes
 
 In next release ...
 
+Bugfixes:
+
+- Provide proper error handling for Python inline code blocks.
+
 Features:
 
 - The simple translation function now supports the
