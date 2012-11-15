@@ -200,6 +200,9 @@ class ElementParser(object):
 
     def visit_processing_instruction(self, kind, token):
         m = match_processing_instruction.match(token)
+        if m is None:
+            return self.visit_default(kind, token)
+
         return "processing_instruction", (groupdict(m, token), )
 
     def visit_text(self, kind, token):

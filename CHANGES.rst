@@ -5,6 +5,9 @@ In next release ...
 
 Bugfixes:
 
+- Fix minor parser issue with incorrectly formatted processing
+  instructions.
+
 - Provide proper error handling for Python inline code blocks.
 
 Features:
