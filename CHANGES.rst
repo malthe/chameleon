@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.11 (2012-11-15)
+-----------------
 
 Bugfixes:
 
