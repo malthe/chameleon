@@ -362,7 +362,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             formatted = str(exc)
             self.assertFalse('NameError:' in formatted)
             self.assertTrue('foo' in formatted)
-            self.assertTrue('(1:23)' in formatted)
+            self.assertTrue('(line 1: col 23)' in formatted)
 
             formatted_exc = "\n".join(format_exception_only(type(exc), exc))
             self.assertTrue('NameError: foo' in formatted_exc)
@@ -419,7 +419,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             formatted = str(exc)
             self.assertTrue('TestException' in formatted)
             self.assertTrue('"expression"' in formatted)
-            self.assertTrue('(1:42)' in formatted)
+            self.assertTrue('(line 1: col 42)' in formatted)
         else:
             self.fail("unexpected error")
 

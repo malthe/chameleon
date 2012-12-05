@@ -157,7 +157,7 @@ class TemplateError(Exception):
             pass
         else:
             text += "\n"
-            text += " - Location:   (%d:%d)" % (line, column)
+            text += " - Location:   (line %d: col %d)" % (line, column)
 
         return text
 
@@ -258,7 +258,7 @@ class ExceptionFormatter(object):
 
             out.append(" - Expression: \"%s\"" % expression)
             out.append(" - Filename:   %s" % _filename)
-            out.append(" - Location:   (%d:%d)" % (line, column))
+            out.append(" - Location:   (line %d: col %d)" % (line, column))
 
             if filename and line and column:
                 try:
