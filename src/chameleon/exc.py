@@ -258,7 +258,7 @@ class ExceptionFormatter(object):
 
             out.append(" - Expression: \"%s\"" % expression)
             out.append(" - Filename:   %s" % _filename)
-            out.append(" - Location:   (line %d: col%d)" % (line, column))
+            out.append(" - Location:   (line %d: col %d)" % (line, column))
 
             if filename and line and column:
                 try:
