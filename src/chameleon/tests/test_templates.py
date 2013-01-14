@@ -306,26 +306,6 @@ class ZopePageTemplatesTest(RenderTestCase):
         rendered = template(test=object())
         self.assertTrue('object' in rendered)
 
-    def test_translate_escape_chars(self):
-        # regression test for a bug where escaping was applied before translation
-        # this results in strings containing escape chars not being translated
-        hello = 'hello world'
-        escapes = 'some escape chars: &<>'
-        def translate(msgid, domain=None, mapping=None, context=None,
-                      target_language=None, default=None):
-            if msgid == hello:
-                return "world was hello'ed"
-            if msgid == escapes:
-                return 'translated escapes: &<>'
-            return msgid
-        template = self.from_string('<tal:tag i18n:translate="">${test}</tal:tag>', translate=translate)
-        # test without escapes
-        rendered = template(test=hello)
-        self.assertEqual(rendered, "world was hello'ed")
-        # test with escapes (should also be translated, then ecaped)
-        rendered = template(test=escapes)
-        self.assertEqual(rendered, 'translated escapes: &amp;&lt;&gt;')
-
     def test_object_substitution_coerce_to_str(self):
         template = self.from_string('${test}', translate=None)
 
