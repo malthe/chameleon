@@ -307,24 +307,31 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertTrue('object' in rendered)
 
     def test_translate_escape_chars(self):
-        # regression test for a bug where escaping was applied before translation
-        # this results in strings containing escape chars not being translated
-        hello = 'hello world'
-        escapes = 'some escape chars: &<>'
         def translate(msgid, domain=None, mapping=None, context=None,
                       target_language=None, default=None):
-            if msgid == hello:
-                return "world was hello'ed"
-            if msgid == escapes:
-                return 'translated escapes: &<>'
+            if msgid == 'hello ${world}':
+                return "translated: hello {world}".format(**mapping)
             return msgid
-        template = self.from_string('<tal:tag i18n:translate="">${test}</tal:tag>', translate=translate)
+
+        # ZPT style
+        template = '<tal:tag i18n:translate="">hello <span i18n:name="world" tal:replace="world"/></tal:tag>'
+        template = self.from_string(template, translate=translate)
         # test without escapes
-        rendered = template(test=hello)
-        self.assertEqual(rendered, "world was hello'ed")
+        rendered = template(world="worl'd")
+        self.assertEqual(rendered, "translated: hello worl'd")
         # test with escapes (should also be translated, then ecaped)
-        rendered = template(test=escapes)
-        self.assertEqual(rendered, 'translated escapes: &amp;&lt;&gt;')
+        rendered = template(world="&<>")
+        self.assertEqual(rendered, 'translated: hello &amp;&lt;&gt;')
+
+        # ${style} tags
+        template = '<tal:tag i18n:translate="">hello ${world}</tal:tag>'
+        template = self.from_string(template, translate=translate)
+        # test without escapes, no translation as substitution happens before
+        rendered = template(world="&<>")
+        self.assertEqual(rendered, "hello worl'd")
+        # test with escapes, no translation as substitution happens before
+        rendered = template(world=escapes)
+        self.assertEqual(rendered, 'hello &amp;&lt;&gt;')
 
     def test_object_substitution_coerce_to_str(self):
         template = self.from_string('${test}', translate=None)
