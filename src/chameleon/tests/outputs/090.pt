@@ -1,0 +1,14 @@
+<ul>
+  <li>
+    <a href="#main" id="mainnav">Welcome</a>
+  </li>
+  <li>
+    <a href="#listings" id="listingsnav">Listings</a>
+  </li>
+  <li>
+    <a href="#about" id="aboutnav">About</a>
+  </li>
+  <li>
+    <a href="#contact" id="contactnav">Contact</a>
+  </li>
+</ul>

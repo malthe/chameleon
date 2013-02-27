@@ -1,0 +1,8 @@
+<ul tal:define="items ('main', 'Welcome'),
+                      ('listings', 'Listings'),
+                      ('about', 'About'),
+                      ('contact', 'Contact')">
+  <li tal:repeat="(route, title) items">
+    <a href="#${route}" id="${route}nav">${title}</a>
+  </li>
+</ul>
