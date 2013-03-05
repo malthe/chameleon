@@ -1,6 +1,18 @@
 Changes
 =======
 
+In next release ...
+
+Changes:
+
+- When a ``tal:case`` condition succeeds, no other case now will.
+
+Bugfixes:
+
+- The ``default`` symbol in a ``tal:case`` condition now allows the
+  element only if no other case succeeds.
+
+
 2.11 (2012-11-15)
 -----------------
 

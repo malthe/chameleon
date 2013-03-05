@@ -185,7 +185,8 @@ class MacroProgram(ElementProgram):
         except KeyError:
             switch = None
         else:
-            switch = nodes.Value(clause)
+            value = nodes.Value(clause)
+            switch = value, nodes.Copy(value)
 
         self._switches.append(switch)
 
@@ -376,12 +377,11 @@ class MacroProgram(ElementProgram):
                     )
 
             CASE = lambda node: nodes.Define(
-                [nodes.Assignment(["default"], switch, True)],
+                [nodes.Alias(["default"], switch[1], False)],
                 nodes.Condition(
-                    nodes.Equality(switch, value),
-                    node,
-                    )
-                )
+                    nodes.Equality(switch[0], value),
+                    nodes.Cancel([switch[0]], node),
+                ))
 
         # tal:repeat
         try:
@@ -416,7 +416,7 @@ class MacroProgram(ElementProgram):
         if switch is None:
             SWITCH = skip
         else:
-            SWITCH = partial(nodes.Cache, [switch])
+            SWITCH = partial(nodes.Cache, list(switch))
 
         # i18n:domain
         try:

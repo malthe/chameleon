@@ -122,6 +122,14 @@ class Cache(Node):
     _fields = "expressions", "node"
 
 
+class Cancel(Cache):
+    pass
+
+
+class Copy(Node):
+    _fields = "expression",
+
+
 class Assignment(Node):
     """Variable assignment."""
 

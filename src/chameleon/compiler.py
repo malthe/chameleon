@@ -790,6 +790,9 @@ class ExpressionTransform(object):
         compiler = engine.parse(node.value)
         return compiler.assign_value(target)
 
+    def visit_Copy(self, node, target):
+        return self.translate(node.expression, target)
+
     def visit_Default(self, node, target):
         value = annotated(node.marker)
         return [ast.Assign(targets=[target], value=value)]
@@ -944,8 +947,6 @@ class Compiler(object):
                 yield stmt
 
     def visit_Element(self, node):
-        self._aliases.append(self._aliases[-1].copy())
-
         for stmt in self.visit(node.start):
             yield stmt
 
@@ -955,8 +956,6 @@ class Compiler(object):
         if node.end is not None:
             for stmt in self.visit(node.end):
                 yield stmt
-
-        self._aliases.pop()
 
     def visit_Module(self, node):
         body = []
@@ -1172,6 +1171,7 @@ class Compiler(object):
     def visit_Define(self, node):
         scope = set(self._scopes[-1])
         self._scopes.append(scope)
+        self._aliases.append(self._aliases[-1].copy())
 
         for assignment in node.assignments:
             if assignment.local:
@@ -1190,6 +1190,7 @@ class Compiler(object):
                     yield stmt
 
         self._scopes.pop()
+        self._aliases.pop()
 
     def visit_Omit(self, node):
         return self.visit_Condition(node)
@@ -1400,6 +1401,22 @@ class Compiler(object):
 
             body += self._engine(expression, target)
             self._expression_cache[expression] = target
+
+        body += self.visit(node.node)
+
+        return body
+
+    def visit_Cancel(self, node):
+        body = []
+
+        for expression in node.expressions:
+            name = identifier("cache", id(expression))
+            target = store(name)
+
+            if not self._expression_cache.get(expression):
+               continue
+
+            body.append(ast.Assign([target], load("None")))
 
         body += self.visit(node.node)
 

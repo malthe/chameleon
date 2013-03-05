@@ -3,10 +3,18 @@
     <div tal:switch="True">
       <span tal:case="False">bad</span>
       <span tal:case="True">ok</span>
-      <span tal:case="not not True">ok</span>
+      <span tal:case="True">ok</span>
+      <span tal:case="default">bad</span>
+      <span tal:case="True">bad</span>
+      ${default|string:ok}
     </div>
     <div tal:switch="True">
       <span tal:case="False">bad</span>
+      <span tal:case="default">ok</span>
+    </div>
+    <div tal:switch="3">
+      <span tal:case="1">bad</span>
+      <span tal:case="2">bad</span>
       <span tal:case="default">ok</span>
     </div>
   </body>
