@@ -9,6 +9,10 @@ Changes:
 
 Bugfixes:
 
+- Implicit translation now correctly extracts and normalizes complete
+  sentences, instead of words.
+  [witsch]
+
 - The ``default`` symbol in a ``tal:case`` condition now allows the
   element only if no other case succeeds.
 
