@@ -603,29 +603,17 @@ class MacroProgram(ElementProgram):
         if not translation:
             return nodes.Text(node)
 
-        seq = []
-        while node:
-            m = re.search('\s+', node)
-            if m is not None:
-                s = m.start()
-                if s:
-                    t = node[:s]
-                    seq.append(nodes.Translate(t, nodes.Text(t)))
-
-                e = m.end()
-                whitespace = nodes.Text(node[s:e])
-                seq.append(whitespace)
-
-                if e < len(node):
-                    node = node[e:]
-                    continue
-
-            else:
-                seq.append(nodes.Translate(node, nodes.Text(node)))
-
-            break
-
-        return nodes.Sequence(seq)
+        match = re.search(r'(\s*)(.*\S)(\s*)', node)
+        if match is not None:
+            prefix, text, suffix = match.groups()
+            normalized = re.sub('\s+', ' ', text)
+            return nodes.Sequence([
+                nodes.Text(prefix),
+                nodes.Translate(normalized, nodes.Text(normalized)),
+                nodes.Text(suffix),
+            ])
+        else:
+            return nodes.Text(node)
 
     def _pop_defaults(self, kwargs, *attributes):
         for attribute in attributes:
