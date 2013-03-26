@@ -613,8 +613,8 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             # source when debugging
             self.shortDescription = lambda: input_path
 
-            # Very implicitly enable implicit translation based on
-            # a string included in the input path:
+            # When input path contaiins the string 'implicit-i18n', we
+            # enable "implicit translation".
             implicit_i18n = 'implicit-i18n' in input_path
             implicit_i18n_attrs = ("alt", "title") if implicit_i18n else ()
 
