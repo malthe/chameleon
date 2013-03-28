@@ -116,7 +116,7 @@ used on the same element.
 .. note:: The ``tal:case`` and ``tal:switch`` statements are available
           in Chameleon only.
 
-TAL does not use use the order in which statements are written in the
+TAL does not use the order in which statements are written in the
 tag to determine the order in which they are executed.  When an
 element has multiple statements, they are executed in the order
 printed in the table above.
