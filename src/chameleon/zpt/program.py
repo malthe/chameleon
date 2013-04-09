@@ -603,7 +603,7 @@ class MacroProgram(ElementProgram):
         if not translation:
             return nodes.Text(node)
 
-        match = re.search(r'(\s*)(.*\S)(\s*)', node)
+        match = re.search(r'(\s*)(.*\S)(\s*)', node, flags=re.DOTALL)
         if match is not None:
             prefix, text, suffix = match.groups()
             normalized = re.sub('\s+', ' ', text)
