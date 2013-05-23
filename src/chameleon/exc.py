@@ -134,6 +134,7 @@ class TemplateError(Exception):
         self.token = safe_native(token)
         self.offset = getattr(token, "pos", 0)
         self.filename = token.filename
+        self.location = token.location
 
     def __copy__(self):
         inst = Exception.__new__(type(self))
@@ -151,13 +152,9 @@ class TemplateError(Exception):
             text += "\n"
             text += " - Filename:   %s" % self.filename
 
-        try:
-            line, column = self.token.location
-        except AttributeError:
-            pass
-        else:
-            text += "\n"
-            text += " - Location:   (line %d: col %d)" % (line, column)
+        line, column = self.location
+        text += "\n"
+        text += " - Location:   (line %d: col %d)" % (line, column)
 
         return text
 
