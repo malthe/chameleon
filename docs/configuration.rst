@@ -28,6 +28,15 @@ The following settings are useful in general.
    This setting controls the default value of the ``auto_reload``
    parameter.
 
+Command Line Scripts
+--------------------
+
+``chameleon-precompile``
+    Find and compile all templates within a directory,
+    saving the result in the cache configured via the
+    ``CHAMELEON_CACHE`` environment variable. It is an
+    alternative to ``CHAMELEON_EAGER``.
+
 Development
 -----------
 

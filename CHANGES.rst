@@ -3,6 +3,12 @@ Changes
 
 In next release ...
 
+Changes:
+
+- Add a command line script ``chameleon-precompile`` which can be used
+  to find chameleon templates in a directory and compile them to the
+  cache.
+
 Bugfixes:
 
 - In debug-mode, correctly remove temporary files when the module
