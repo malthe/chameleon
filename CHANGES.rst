@@ -1,6 +1,15 @@
 Changes
 =======
 
+In next release ...
+
+Bugfixes:
+
+- In debug-mode, correctly remove temporary files when the module
+  loader is garbage-collected (on ``__del__``).
+  [graffic]
+
+
 2.12 (2013-03-26)
 -----------------
 

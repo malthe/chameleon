@@ -54,7 +54,7 @@ def _make_module_loader():
         path = tempfile.mkdtemp()
         remove = True
 
-    return ModuleLoader(path)
+    return ModuleLoader(path, remove)
 
 
 class BaseTemplate(object):
