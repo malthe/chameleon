@@ -14,6 +14,7 @@ General usage
 The following settings are useful in general.
 
 ``CHAMELEON_EAGER``
+
    Parse and compile templates on instantiation.
 
 ``CHAMELEON_CACHE``
@@ -25,6 +26,7 @@ The following settings are useful in general.
    speeds up startup.
 
 ``CHAMELEON_RELOAD``
+
    This setting controls the default value of the ``auto_reload``
    parameter.
 
@@ -32,6 +34,7 @@ Command Line Scripts
 --------------------
 
 ``chameleon-precompile``
+
     Find and compile all templates within a directory,
     saving the result in the cache configured via the
     ``CHAMELEON_CACHE`` environment variable. It is an
