@@ -27,6 +27,9 @@ if version < (2, 7, 0):
     install_requires.append("ordereddict")
     install_requires.append("unittest2")
 
+if version < (3, 3, 0):
+    install_requires.append("mock")
+
 
 class Benchmark(test):
     description = "Run benchmarks"
@@ -83,6 +86,8 @@ setup(
     install_requires=install_requires,
     zip_safe=False,
     test_suite="chameleon.tests",
+    entry_points = {'console_scripts':
+        ['chameleon-precompile = chameleon.precompile:compile']},
     cmdclass={
         'benchmark': Benchmark,
         }
