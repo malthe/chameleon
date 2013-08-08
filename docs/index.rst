@@ -89,7 +89,7 @@ treated as "structure". An example of such an object is the
 ``Markup`` class that's included as a utility::
 
   from chameleon.utils import Markup
-  username = "<tt>%s</tt>" % username
+  username = Markup("<tt>%s</tt>" % username)
 
 The macro language (known as the *macro expansion language* or METAL)
 provides a means of filling in portions of a generic template.
