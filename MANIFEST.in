@@ -1,0 +1,2 @@
+recursive-include src/chameleon/tests/inputs *
+recursive-include src/chameleon/tests/outputs *
