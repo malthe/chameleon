@@ -9,6 +9,11 @@ Bugfixes:
   loader is garbage-collected (on ``__del__``).
   [graffic]
 
+- Using the three-argument form of ``getattr`` on a
+  ``chameleon.tal.RepeatDict`` no longer raises ``KeyError``,
+  letting the default provided to ``getattr`` be used. This fixes
+  attempting to adapt a ``RepeatDict`` to a Zope interface under
+  PyPy.
 
 2.12 (2013-03-26)
 -----------------
