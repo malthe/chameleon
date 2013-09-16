@@ -427,14 +427,33 @@ class RepeatDict(dict):
     >>> repeat['numbers']
     <chameleon.tal.RepeatItem object at ...>
 
-    """
+    >>> repeat.numbers
+    <chameleon.tal.RepeatItem object at ...>
 
-    __slots__ = "__setitem__", "__getitem__", "__getattr__"
+    >>> getattr(repeat, 'missing_key', None) is None
+    True
+
+	>>> try:
+	...     import interfaces
+	...     interfaces.ITALESIterator(repeat,None) is None
+	... except ImportError:
+	...     True
+	...
+	True
+	"""
+
+    __slots__ = "__setitem__", "__getitem__"
 
     def __init__(self, d):
         self.__setitem__ = d.__setitem__
         self.__getitem__ = d.__getitem__
-        self.__getattr__ = d.__getitem__
+
+    def __getattr__(self,key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
+
 
     def __call__(self, key, iterable):
         """We coerce the iterable to a tuple and return an iterator
