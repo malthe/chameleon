@@ -215,6 +215,12 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_repeat_i18n_name_error(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('repeat'), body[exc.offset:])
 
+    @error('''<tal:dummy>
+            <span i18n:name="not_in_translation"/>
+            </tal:dummy>''')
+    def test_i18n_name_not_in_translation_error(self, body, exc):
+        self.assertTrue(body[exc.offset:].startswith('not_in_translation'))
+
     def test_encoded(self):
         filename = '074-encoded-template.pt'
         with open(os.path.join(self.root, 'inputs', filename), 'rb') as f:
