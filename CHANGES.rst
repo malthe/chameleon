@@ -8,6 +8,8 @@ Bugfixes:
 - In debug-mode, correctly remove temporary files when the module
   loader is garbage-collected (on ``__del__``).
   [graffic]
+- Fix error message when duplicate i18n:name directives are used in a
+  translation.
 
 
 2.12 (2013-03-26)

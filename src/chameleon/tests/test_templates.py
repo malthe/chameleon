@@ -209,6 +209,12 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_repeat_syntax_error_message(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('key,value'))
 
+    @error('''<tal:dummy><p i18n:translate="mymsgid">
+            <span i18n:name="repeat"/><span i18n:name="repeat"/>
+            </p></tal:dummy>''')
+    def test_repeat_i18n_name_error(self, body, exc):
+        self.assertTrue(body[exc.offset:].startswith('repeat'), body[exc.offset:])
+
     def test_encoded(self):
         filename = '074-encoded-template.pt'
         with open(os.path.join(self.root, 'inputs', filename), 'rb') as f:
