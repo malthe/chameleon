@@ -142,7 +142,7 @@ class BaseTemplate(object):
     def cook(self, body):
         builtins_dict = self.builtins.copy()
         builtins_dict.update(self.extra_builtins)
-        names, builtins = zip(*[(k,builtins_dict[k]) for k in sorted(builtins_dict)])
+        names, builtins = zip(*sorted(builtins_dict.items()))
         digest = self._digest(body, names)
         program = self._cook(body, digest, names)
 
