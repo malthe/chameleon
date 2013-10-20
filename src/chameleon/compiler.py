@@ -1461,7 +1461,7 @@ class Compiler(object):
 
         if node.name in self._translations[-1]:
             raise TranslationError(
-                "Duplicate translation name: %s." % node.name)
+                "Duplicate translation name: %s.", node.name)
 
         self._translations[-1].add(node.name)
         body = []
