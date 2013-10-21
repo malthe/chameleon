@@ -5,6 +5,7 @@ except ImportError:
 
 from functools import partial
 from os.path import dirname
+from hashlib import md5
 
 from ..i18n import simple_translate
 from ..tales import PythonExpr
@@ -259,6 +260,24 @@ class PageTemplate(BaseTemplate):
     def include(self, *args, **kwargs):
         self.cook_check()
         self._render(*args, **kwargs)
+
+    def digest(self, body, names):
+        hex = super(PageTemplate, self).digest(body, names)
+        digest = md5(hex.encode('ascii'))
+        digest.update(';'.join(names).encode('utf-8'))
+
+        for attr in (
+            'trim_attribute_space',
+            'implicit_i18n_translate',
+            'literal_false',
+            'strict'
+        ):
+            v = getattr(self, attr)
+            digest.update(
+                (";%s=%s" % (attr, str(v))).encode('ascii')
+            )
+
+        return digest.hexdigest()
 
     def _builtins(self):
         return {

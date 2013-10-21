@@ -2,9 +2,7 @@ from __future__ import with_statement
 
 import os
 import sys
-import copy
 import hashlib
-import shutil
 import logging
 import tempfile
 import inspect
@@ -143,7 +141,7 @@ class BaseTemplate(object):
         builtins_dict = self.builtins.copy()
         builtins_dict.update(self.extra_builtins)
         names, builtins = zip(*sorted(builtins_dict.items()))
-        digest = self._digest(body, names)
+        digest = self.digest(body, names)
         program = self._cook(body, digest, names)
 
         initialize = program['initialize']
@@ -207,20 +205,21 @@ class BaseTemplate(object):
 
         self.cook(body)
 
-    def _get_module_name(self, digest):
-        return "%s.py" % digest
+    def _get_module_name(self, name):
+        return "%s.py" % name
 
-    def _cook(self, body, digest, builtins):
-        name = self._get_module_name(digest)
-        cooked = self.loader.get(name)
+    def _cook(self, body, name, builtins):
+        filename = self._get_module_name(name)
+        cooked = self.loader.get(filename)
         if cooked is None:
             try:
                 source = self._make(body, builtins)
                 if self.debug:
-                    source = "# template: %s\n#\n%s" % (self.filename, source)
+                    source = "# template: %s\n#\n%s" % (
+                        self.filename, source)
                 if self.keep_source:
                     self.source = source
-                cooked = self.loader.build(source, name)
+                cooked = self.loader.build(source, filename)
             except TemplateError:
                 exc = sys.exc_info()[1]
                 exc.filename = self.filename
@@ -231,17 +230,13 @@ class BaseTemplate(object):
                 self.source = inspect.getsource(module)
             else:
                 self.source = None
-
         return cooked
 
-    def _digest(self, body, names):
+    def digest(self, body, names):
         class_name = type(self).__name__.encode('utf-8')
         sha = pkg_digest.copy()
         sha.update(body.encode('utf-8', 'ignore'))
         sha.update(class_name)
-        sha.update(','.join(names).encode('utf-8'))
-        sha.update(repr(self.strict).encode('utf-8'))
-        sha.update(repr(self.__dict__.get('trim_attribute_space','')).encode('utf-8'))
         return sha.hexdigest()
 
     def _compile(self, program, builtins):
@@ -319,10 +314,10 @@ class BaseTemplateFile(BaseTemplate):
 
         return body
 
-    def _get_module_name(self, digest):
+    def _get_module_name(self, name):
         filename = os.path.basename(self.filename)
         mangled = mangle(filename)
-        return "%s_%s.py" % (mangled, digest)
+        return "%s_%s.py" % (mangled, name)
 
     def _get_filename(self):
         return self.__dict__.get('filename')

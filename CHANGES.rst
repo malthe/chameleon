@@ -5,9 +5,19 @@ In next release ...
 
 Bugfixes:
 
+- The template cache mechanism now includes additional configuration
+  settings as part of the cache key such as ``strict`` and
+  ``trim_attribute_space``.
+  [ossmkitty]
+
+- Fix cache issue where sometimes cached templates would not load
+  correctly.
+  [ossmkitty]
+
 - In debug-mode, correctly remove temporary files when the module
   loader is garbage-collected (on ``__del__``).
   [graffic]
+
 - Fix error message when duplicate i18n:name directives are used in a
   translation.
 
