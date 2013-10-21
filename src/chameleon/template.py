@@ -140,10 +140,10 @@ class BaseTemplate(object):
         return self.__dict__.get('keep_source', DEBUG_MODE)
 
     def cook(self, body):
-        digest = self._digest(body)
         builtins_dict = self.builtins.copy()
         builtins_dict.update(self.extra_builtins)
-        names, builtins = zip(*builtins_dict.items())
+        names, builtins = zip(*sorted(builtins_dict.items()))
+        digest = self._digest(body, names)
         program = self._cook(body, digest, names)
 
         initialize = program['initialize']
@@ -234,11 +234,14 @@ class BaseTemplate(object):
 
         return cooked
 
-    def _digest(self, body):
+    def _digest(self, body, names):
         class_name = type(self).__name__.encode('utf-8')
         sha = pkg_digest.copy()
         sha.update(body.encode('utf-8', 'ignore'))
         sha.update(class_name)
+        sha.update(','.join(names).encode('utf-8'))
+        sha.update(repr(self.strict).encode('utf-8'))
+        sha.update(repr(self.__dict__.get('trim_attribute_space','')).encode('utf-8'))
         return sha.hexdigest()
 
     def _compile(self, program, builtins):
