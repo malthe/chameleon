@@ -3,12 +3,6 @@ __version__ = '2.13-1'
 import os
 import sys
 
-try:
-    from distribute_setup import use_setuptools
-    use_setuptools()
-except:  # doesn't work under tox/pip
-    pass
-
 from setuptools import setup, find_packages
 from setuptools.command.test import test
 
