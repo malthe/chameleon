@@ -459,23 +459,7 @@ class RepeatDict(dict):
         """We coerce the iterable to a tuple and return an iterator
         after registering it in the repeat dictionary."""
 
-        try:
-            iterable = tuple(iterable)
-        except TypeError:
-            if iterable is None:
-                iterable = ()
-            else:
-                # The message below to the TypeError is the Python
-                # 2.5-style exception message. Python 2.4.X also
-                # raises a TypeError, but with a different message.
-                # ("TypeError: iteration over non-sequence").  The
-                # Python 2.5 error message is more helpful.  We
-                # construct the 2.5-style message explicitly here so
-                # that both Python 2.4.X and Python 2.5+ will raise
-                # the same error.  This makes writing the tests eaiser
-                # and makes the output easier to understand.
-                raise TypeError("%r object is not iterable" %
-                                type(iterable).__name__)
+        iterable = tuple(iterable)
 
         length = len(iterable)
         iterator = iter(iterable)
