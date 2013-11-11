@@ -1,6 +1,12 @@
 Changes
 =======
 
+In next release ...
+
+- Use absolute import for ``chameleon.interfaces`` module. This fixes
+  issue #161.
+
+
 2.13-1 (2013-10-24)
 -------------------
 

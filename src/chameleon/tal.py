@@ -29,7 +29,7 @@ except NameError:
 
 try:
     # optional library: `zope.interface`
-    import interfaces
+    from chameleon import interfaces
     import zope.interface
 except ImportError:
     interfaces = None
@@ -434,7 +434,7 @@ class RepeatDict(dict):
     True
 
 	>>> try:
-	...     import interfaces
+	...     from chameleon import interfaces
 	...     interfaces.ITALESIterator(repeat,None) is None
 	... except ImportError:
 	...     True
