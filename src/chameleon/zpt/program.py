@@ -395,6 +395,11 @@ class MacroProgram(ElementProgram):
 
             expression = nodes.Value(expr)
 
+            if start['namespace'] == TAL:
+                self._last = None
+                self._whitespace = whitespace.lstrip('\n')
+                whitespace = ""
+
             REPEAT = partial(
                 nodes.Repeat,
                 names,

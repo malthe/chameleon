@@ -1,6 +1,7 @@
 <html>
   <body>
     <ul>
+      <li tal:repeat="i (1, 2, 3)" tal:content="i" />
       <tal:item repeat="i (1, 2, 3)"><li tal:content="i" /></tal:item>
       <span tal:omit-tag="" tal:repeat="j (1, 2, 3)"><li tal:content="j" /></span>
       <tal:count>

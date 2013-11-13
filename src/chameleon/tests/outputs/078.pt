@@ -4,8 +4,6 @@
         <script type="text/javascript">
           copyDataForSubmit('foo');</script>
       </span>
-      <span class="selected-option">1</span>, 
-      <span class="selected-option">2</span>, 
-      <span class="selected-option">3</span>
+      <span class="selected-option">1</span>, <span class="selected-option">2</span>, <span class="selected-option">3</span>
   </body>
 

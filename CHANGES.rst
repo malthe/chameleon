@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Element repetition using the ``TAL`` namespace no longer includes
+  whitespace. This fixes issue #110.
+
 - Use absolute import for ``chameleon.interfaces`` module. This fixes
   issue #161.
 
