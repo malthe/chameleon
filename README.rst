@@ -8,8 +8,8 @@ You can use it in any Python web application with just about any
 version of Python (2.5 and up, including 3.x and `pypy
 <http://pypy.org>`_).
 
-Visit the `website <http://pagetemplates.org>`_ for more information
-or the `documentation <http://pagetemplates.org/docs/latest/>`_.
+Visit the `website <http://pagetemplates.org/>`_ for more information
+or the `documentation <http://chameleon.readthedocs.org/en/latest/>`_.
 
 License and Copyright
 ---------------------
