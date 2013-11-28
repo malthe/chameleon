@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.14 (2013-11-28)
+-----------------
 
 - Element repetition using the ``TAL`` namespace no longer includes
   whitespace. This fixes issue #110.
