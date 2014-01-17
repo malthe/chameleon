@@ -39,3 +39,8 @@ in the `grokcore.chameleon
 This package will setup Grok's policy for templating integration and
 associate the Chameleon template components for the ``.cpt`` template
 filename extension.
+
+Django
+------
+
+Install the `django-chameleon-templates <https://bitbucket.org/kveroneau/django-chameleon-templates>`_ app to enable Chameleon as a template engine.
