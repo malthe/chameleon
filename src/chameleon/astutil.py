@@ -914,6 +914,9 @@ class ASTCodeGenerator(object):
             self._write(', ')
         self._write(')')
 
+    # NameConstant(singleton value)
+    def visit_NameConstant(self, node):
+        self._write(str(node.value))
 
 class AnnotationAwareVisitor(ast.NodeVisitor):
     def visit(self, node):
