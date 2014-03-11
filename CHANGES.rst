@@ -1,6 +1,14 @@
 Changes
 =======
 
+
+2.15 (2014-03-11)
+-----------------
+
+- Add Support for Python 3.4's ``NameConstant``.
+  [brakhane]
+
+
 2.14 (2013-11-28)
 -----------------
 
