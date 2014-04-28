@@ -2,6 +2,17 @@ Changes
 =======
 
 
+Unreleased
+-----------
+
+- Remove fossil test dependency on deprecated ``distribute``.
+
+- Add explicit support / testing for Python 3.3 / 3.4.
+
+- Drop explicit support for Python 2.5 (out of maintenance, and no longer
+  supported by ``tox`` or ``Travis-CI``).
+
+
 2.15 (2014-03-11)
 -----------------
 
