@@ -459,7 +459,7 @@ class RepeatDict(dict):
         """We coerce the iterable to a tuple and return an iterator
         after registering it in the repeat dictionary."""
 
-        iterable = tuple(iterable)
+        iterable = list(iterable) if iterable is not None else ()
 
         length = len(iterable)
         iterator = iter(iterable)

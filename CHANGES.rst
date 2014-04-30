@@ -5,6 +5,13 @@ Changes
 Unreleased
 -----------
 
+- If a repeat expression evaluates to ``None`` then it is now
+  equivalent to an empty set.
+
+  This changes a behavior introduced in 2.14.
+
+  This fixes issue #172.
+
 - Remove fossil test dependency on deprecated ``distribute``.
 
 - Add explicit support / testing for Python 3.3 / 3.4.
