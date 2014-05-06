@@ -2,8 +2,8 @@ Changes
 =======
 
 
-Unreleased
------------
+2.16 (2014-05-06)
+-----------------
 
 - If a repeat expression evaluates to ``None`` then it is now
   equivalent to an empty set.
