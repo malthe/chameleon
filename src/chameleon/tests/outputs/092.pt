@@ -1,20 +1,6 @@
 <html>
-<body>
-    <tr>
-        <td class="tavara_col1"><input name="1-koodi" value="456"></td>
-        <td class="tavara_col2"><input name="1-nimi" value="DEF"></td>
-        <td class="tavara_col3"><input name="1-hinta" value="32.0"></td>
-        <td class="tavara_col4"><input name="1-maara" value="23"></td>
-        <td class="tavara_col5"><input name="1-A" type="checkbox" checked></td>
-        <td class="tavara_col6"><input name="1-T" type="checkbox" checked></td>
-    </tr>
-    <tr>
-        <td class="tavara_col1"><input name="1-koodi" value="456"></td>
-        <td class="tavara_col2"><input name="1-nimi" value="DEF"></td>
-        <td class="tavara_col3"><input name="1-hinta" value="32.0"></td>
-        <td class="tavara_col4"><input name="1-maara" value="23"></td>
-        <td class="tavara_col5"><input name="1-A" type="checkbox" checked></td>
-        <td class="tavara_col6"><input name="1-T" type="checkbox" checked></td>
-    </tr>
+  <body>
+    <input name="foo" type="checkbox" checked>
+    <input name="foo" type="checkbox" checked="checked">
   </body>
 </html>

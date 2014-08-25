@@ -1,13 +1,6 @@
 <html>
-<body tal:define="tavarat [{'id':1, 'koodi': '456', 'nimi': 'DEF', 'hinta': '32.0', 'maara': '23', 'tyyppi': 'AT'},
-                           {'id':1, 'koodi': '456', 'nimi': 'DEF', 'hinta': '32.0', 'maara': '23', 'tyyppi': 'AT'}]">
-    <tr tal:repeat="tavara tavarat">
-        <td class="tavara_col1"><input name="${tavara.id}-koodi" value="${tavara.koodi}"></td>
-        <td class="tavara_col2"><input name="${tavara.id}-nimi" value="${tavara.nimi}"></td>
-        <td class="tavara_col3"><input name="${tavara.id}-hinta" value="${tavara.hinta}"></td>
-        <td class="tavara_col4"><input name="${tavara.id}-maara" value="${tavara.maara}"></td>
-        <td class="tavara_col5"><input name="${tavara.id}-A" type="checkbox" ${'checked' if 'A' in tavara.tyyppi else ''}></td>
-        <td class="tavara_col6"><input name="${tavara.id}-T" type="checkbox" ${'checked' if 'T' in tavara.tyyppi else ''}></td>
-    </tr>
+  <body>
+    <input name="${'foo'}" type="checkbox" ${'checked' if True else ''}>
+    <input name="${'foo'}" type="checkbox" checked="${'checked' if True else ''}">
   </body>
 </html>
