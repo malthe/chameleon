@@ -306,6 +306,15 @@ class RepeatItem(object):
 
         return self.index % 2 == 0 and 'even' or ''
 
+    @descriptorstr
+    def parity(self):
+        """Return 'odd' or 'even' depending on the position's parity
+
+        Useful for assigning CSS class names to table rows.
+        """
+
+        return self.index % 2 == 0 and 'even' or 'odd'
+
     def next(self):
         raise NotImplementedError(
             "Method not implemented (can't update local variable).")

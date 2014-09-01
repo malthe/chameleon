@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release ...
+
+- Add missing 'parity' repeat property.
+  [voxspox]
+
 
 2.16 (2014-05-06)
 -----------------
