@@ -523,6 +523,7 @@ The following information is available from the repeat variable:
 ``number``          Repetition number, starting from one.
 ``even``            True for even-indexed repetitions (0, 2, 4, ...).
 ``odd``             True for odd-indexed repetitions (1, 3, 5, ...).
+``parity``          For odd-indexed repetitions, this is 'odd', else 'even'.
 ``start``           True for the starting repetition (index 0).
 ``end``             True for the ending, or final, repetition.
 ``first``           True for the first item in a group - see note below
