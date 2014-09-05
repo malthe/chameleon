@@ -6,6 +6,9 @@ In next release ...
 - Add missing 'parity' repeat property.
   [voxspox]
 
+- Don't modify environment when getting variables from it.
+  [fschulze]
+
 
 2.16 (2014-05-06)
 -----------------
