@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Add support for ``i18n:context``.
+  [wiggy]
+
 - Add missing 'parity' repeat property.
   [voxspox]
 
