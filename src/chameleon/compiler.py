@@ -220,7 +220,7 @@ def emit_func_convert(
 
 @template
 def emit_translate(target, msgid, default=None):  # pragma: no cover
-    target = translate(msgid, default=default, domain=__i18n_domain)
+    target = translate(msgid, default=default, domain=__i18n_domain, context=__i18n_context)
 
 
 @template
@@ -381,7 +381,7 @@ class Interpolator(object):
 
             if translate and isinstance(target, ast.Str):
                 target = template(
-                    "translate(msgid, domain=__i18n_domain, context=econtext)",
+                    "translate(msgid, domain=__i18n_domain, context=__i18n_context)",
                     msgid=target, mode="eval",
                     )
         else:
@@ -400,7 +400,7 @@ class Interpolator(object):
                         values.append(node)
 
                 target = template(
-                    "translate(msgid, mapping=mapping, domain=__i18n_domain, context=econtext)",
+                    "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context)",
                     msgid=ast.Str(s=formatting_string),
                     mapping=ast.Dict(keys=keys, values=values),
                     mode="eval"
@@ -1057,8 +1057,9 @@ class Compiler(object):
                     param("econtext"),
                     param("rcontext"),
                     param("__i18n_domain"),
+                    param("__i18n_context"),
                     ],
-                defaults=[load("None")],
+                defaults=[load("None"), load("None")],
             ),
             body=body
             )
@@ -1074,6 +1075,13 @@ class Compiler(object):
                template("__i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
                self.visit(node.node) + \
                template("__i18n_domain = BACKUP", BACKUP=backup)
+
+    def visit_TxContext(self, node):
+        backup = "__previous_i18n_context_%s" % mangle(id(node))
+        return template("BACKUP = __i18n_context", BACKUP=backup) + \
+               template("__i18n_context = NAME", NAME=ast.Str(s=node.name)) + \
+               self.visit(node.node) + \
+               template("__i18n_context = BACKUP", BACKUP=backup)
 
     def visit_OnError(self, node):
         body = []
@@ -1276,7 +1284,7 @@ class Compiler(object):
         # emit the translation expression
         body += template(
             "if msgid: __append(translate("
-            "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=econtext))",
+            "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=__i18n_context))",
             msgid=msgid, default=default, mapping=mapping
             )
 

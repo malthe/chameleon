@@ -614,9 +614,15 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             else:
                 with_domain = " with domain '%s'" % domain
 
+            if context is None:
+                with_context = ""
+            else:
+                import pdb ; pdb.set_trace()
+                with_context = " and context '%s'" % context
+
             stripped = default.rstrip('\n ')
-            return "%s ('%s' translation into '%s'%s)%s" % (
-                stripped, msgid, target_language, with_domain,
+            return "%s ('%s' translation into '%s'%s%s)%s" % (
+                stripped, msgid, target_language, with_domain, with_context,
                 default[len(stripped):]
                 )
 
