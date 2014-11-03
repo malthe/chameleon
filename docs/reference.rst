@@ -1192,6 +1192,7 @@ The allowable ``i18n`` statements are:
 
 - ``i18n:translate``
 - ``i18n:domain``
+- ``i18n:context``
 - ``i18n:source``
 - ``i18n:target``
 - ``i18n:name``
@@ -1213,6 +1214,18 @@ The ``i18n:domain`` attribute is used to specify the domain to be used
 to get the translation.  If not specified, the translation services
 will use a default domain.  The value of the attribute is used
 directly; it is not a TALES expression.
+
+
+``i18n:context``
+^^^^^^^^^^^^^^^
+
+The ``i18n:context`` attribute is used to specify the context to be
+used to get the translation.  If not specified, the translation
+services will use a default context.  The context is generally use to
+distinguish identical texts in different context (because in a
+translation this may not be the case.) The value of the attribute is
+used literally; it is not an expression.
+
 
 ``i18n:source``
 ^^^^^^^^^^^^^^^
