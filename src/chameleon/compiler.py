@@ -1526,8 +1526,9 @@ class Compiler(object):
                             param("econtext"),
                             param("rcontext"),
                             param("__i18n_domain"),
+                            param("__i18n_context"),
                             ],
-                        defaults=[load("__i18n_domain")],
+                        defaults=[load("__i18n_domain"), load("__i18n_context")],
                         ),
                     body=body or [ast.Pass()],
                 ))
