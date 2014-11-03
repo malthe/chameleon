@@ -1,7 +1,9 @@
 Changes
 =======
 
-In next release ...
+
+2.17 (2014-11-03)
+-----------------
 
 - Add support for ``i18n:context``.
   [wiggy]
