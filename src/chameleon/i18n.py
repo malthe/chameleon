@@ -22,6 +22,7 @@ NAME_RE = r"[a-zA-Z][-a-zA-Z0-9_]*"
 WHITELIST = frozenset([
     "translate",
     "domain",
+    "context",
     "target",
     "source",
     "attributes",

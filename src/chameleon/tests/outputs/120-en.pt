@@ -1,0 +1,9 @@
+<html>
+  <body>
+    <div>Hello world! ('Hello world!' translation into 'en')</div>
+    <button>Hello world! ('Hello world!' translation into 'en', context 'button')</button>
+    <div>
+       <a>Tab ('Tab' translation into 'en' with domain 'new', context 'navigation')</a>
+    </div>
+  </body>
+</html>

@@ -205,6 +205,12 @@ class Domain(Node):
     _fields = "name", "node"
 
 
+class TxContext(Node):
+    """Update translation context."""
+
+    _fields = "name", "node"
+
+
 class OnError(Node):
     _fields = "fallback", "name", "node"
 

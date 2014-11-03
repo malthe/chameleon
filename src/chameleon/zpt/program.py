@@ -431,6 +431,14 @@ class MacroProgram(ElementProgram):
         else:
             DOMAIN = partial(nodes.Domain, clause)
 
+        # i18n:context
+        try:
+            clause = ns[I18N, 'context']
+        except KeyError:
+            CONTEXT = skip
+        else:
+            CONTEXT = partial(nodes.TxContext, clause)
+
         # i18n:name
         try:
             clause = ns[I18N, 'name']
@@ -453,6 +461,7 @@ class MacroProgram(ElementProgram):
             REPEAT,
             SWITCH,
             DOMAIN,
+            CONTEXT,
             )
 
         # metal:fill-slot
