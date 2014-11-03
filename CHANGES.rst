@@ -1,7 +1,10 @@
 Changes
 =======
 
-In next release ...
+2.18 (2014-11-03)
+-----------------
+
+- Fix minor compilation error.
 
 
 2.17 (2014-11-03)
