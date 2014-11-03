@@ -617,8 +617,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             if context is None:
                 with_context = ""
             else:
-                import pdb ; pdb.set_trace()
-                with_context = " and context '%s'" % context
+                with_context = ", context '%s'" % context
 
             stripped = default.rstrip('\n ')
             return "%s ('%s' translation into '%s'%s%s)%s" % (

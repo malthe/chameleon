@@ -1,14 +1,9 @@
 <html>
   <body>
-    <p>Hello world!</p>
+    <div>Hello world!</div>
+    <button>Hello world!</button>
     <div>
-      Hello world!
-    </div>
-    <button>
-      Hello world!
-    </button>
-    <div>
-      <a>Tab</a>
+       <a>Tab</a>
     </div>
   </body>
 </html>

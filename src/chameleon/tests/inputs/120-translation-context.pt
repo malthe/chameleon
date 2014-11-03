@@ -6,7 +6,7 @@
     <button i18n:context="button" i18n:translate="">
       Hello world!
     </button>
-    <div i18n:context="navigation">
+    <div i18n:domain="new" i18n:context="navigation">
        <a i18n:translate="">Tab</a>
     </div>
   </body>
