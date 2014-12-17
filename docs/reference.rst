@@ -1198,6 +1198,7 @@ The allowable ``i18n`` statements are:
 - ``i18n:name``
 - ``i18n:attributes``
 - ``i18n:data``
+- ``i18n:comment``
 
 ``i18n:translate``
 ^^^^^^^^^^^^^^^^^^
@@ -1321,6 +1322,19 @@ objects, one of the most obvious cases being ``datetime`` objects. The
 object.  If ``data`` is used, ``i18n:translate`` must be used to give
 an explicit message ID, rather than relying on a message ID computed
 from the content.
+
+``i18n:comment``
+^^^^^^^^^^^^^^^^
+
+The ``i18n:comment`` attribute can be used to add extra comments for
+translators. It is not used by Chameleon for processing, but will be
+picked up by tools like `lingua <pypi.python.org/pypi/lingua>`_.
+
+An example:
+
+   <h3 i18n:comment="Header for the news section"
+       i18n:translate="">News</h3>
+
 
 Relation with TAL processing
 ----------------------------

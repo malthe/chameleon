@@ -1,0 +1,7 @@
+<html>
+  <body>
+    <h1 i18n:translate="" i18n:comment="Site title">
+      Hello world!
+    </h1>
+  </body>
+</html>

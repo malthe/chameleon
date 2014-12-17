@@ -30,7 +30,8 @@ WHITELIST = frozenset([
     "name",
     "mode",
     "xmlns",
-    "xml"
+    "xml",
+    "comment",
     ])
 
 _interp_regex = re.compile(r'(?<!\$)(\$(?:(%(n)s)|{(%(n)s)}))'
