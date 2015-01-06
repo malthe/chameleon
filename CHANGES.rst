@@ -1,7 +1,12 @@
 Changes
 =======
 
-In next release ...
+2.19 (2015-01-06)
+-----------------
+
+- Fix logging deprecation.
+
+- Fix environment-based configuration logging error.
 
 
 2.18 (2014-11-03)
