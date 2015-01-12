@@ -3,7 +3,10 @@ Changes
 
 In next release ...
 
--
+- Pass ``search_path`` to template class when loaded using
+  ``TemplateLoader`` (or one of the derived classes).
+  [faassen]
+
 
 2.19 (2015-01-06)
 -----------------

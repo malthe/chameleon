@@ -75,15 +75,16 @@ class TemplateLoader(object):
         if ':' in spec:
             spec = abspath_from_asset_spec(spec)
 
-        if os.path.isabs(spec):
-            return cls(spec, **self.kwargs)
+        if not os.path.isabs(spec):
+            for path in self.search_path:
+                path = os.path.join(path, spec)
+                if os.path.exists(path):
+                    spec = path
+                    break
+            else:
+                raise ValueError("Template not found: %s." % spec)
 
-        for path in self.search_path:
-            path = os.path.join(path, spec)
-            if os.path.exists(path):
-                return cls(path, **self.kwargs)
-
-        raise ValueError("Template not found: %s." % spec)
+        return cls(spec, search_path=self.search_path, **self.kwargs)
 
     def bind(self, cls):
         return functools.partial(self.load, cls=cls)
