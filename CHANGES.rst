@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.20 (2015-01-12)
+-----------------
 
 - Pass ``search_path`` to template class when loaded using
   ``TemplateLoader`` (or one of the derived classes).
