@@ -84,7 +84,7 @@ class TemplateLoader(object):
             else:
                 raise ValueError("Template not found: %s." % spec)
 
-        return cls(spec, **self.kwargs)
+        return cls(spec, search_path=self.search_path, **self.kwargs)
 
     def bind(self, cls):
         return functools.partial(self.load, cls=cls)
