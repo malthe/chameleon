@@ -113,8 +113,9 @@ API reference
 
 This section describes the documented API of the library.
 
-Template classes
-~~~~~~~~~~~~~~~~
+
+Templates
+~~~~~~~~~
 
 Use the ``PageTemplate*`` template classes to define a template from a
 string or file input:
@@ -134,8 +135,8 @@ string or file input:
 
   .. autoclass:: chameleon.PageTextTemplateFile
 
-Template loader
-~~~~~~~~~~~~~~~
+Loader
+~~~~~~
 
 Some systems have framework support for loading templates from
 files. The following loader class is directly compatible with the
@@ -162,8 +163,9 @@ Pylons framework and may be adapted to other frameworks:
 
    .. automethod:: load
 
-Expression engine
-~~~~~~~~~~~~~~~~~
+
+Expressions
+~~~~~~~~~~~
 
 For advanced integration, the compiler module provides support for
 dynamic expression evaluation:
