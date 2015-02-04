@@ -741,7 +741,7 @@ class ExpressionTransform(object):
                 raise
 
             exc = sys.exc_info()[1]
-            p = pickle.dumps(exc)
+            p = pickle.dumps(exc, -1)
 
             stmts = template(
                 "__exc = loads(p)", loads=self.loads_symbol, p=ast.Str(s=p)

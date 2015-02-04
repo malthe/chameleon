@@ -21,6 +21,7 @@ else:
                 pkg_digest.update(version)
 
 
+from .exc import RenderError
 from .exc import TemplateError
 from .exc import ExceptionFormatter
 from .compiler import Compiler
@@ -181,7 +182,9 @@ class BaseTemplate(object):
                 formatter = ExceptionFormatter(errors, econtext, rcontext)
 
                 try:
-                    exc = create_formatted_exception(exc, cls, formatter)
+                    exc = create_formatted_exception(
+                        exc, cls, formatter, RenderError
+                    )
                 except TypeError:
                     pass
 
@@ -222,7 +225,7 @@ class BaseTemplate(object):
                 cooked = self.loader.build(source, filename)
             except TemplateError:
                 exc = sys.exc_info()[1]
-                exc.filename = self.filename
+                exc.token.filename = self.filename
                 raise
         elif self.keep_source:
             module = sys.modules.get(cooked.get('__name__'))

@@ -207,10 +207,10 @@ def substitute_entity(match, n2cp=htmlentitydefs.name2codepoint):
             return match.group()
 
 
-def create_formatted_exception(exc, cls, formatter):
+def create_formatted_exception(exc, cls, formatter, base=Exception):
     try:
         try:
-            new = type(cls.__name__, (cls, Exception), {
+            new = type(cls.__name__, (cls, base), {
                 '__str__': formatter,
                 '__new__': BaseException.__new__,
                 '__module__': cls.__module__,

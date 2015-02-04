@@ -18,6 +18,7 @@ except ImportError:
 
 
 from chameleon.utils import byte_string
+from chameleon.exc import RenderError
 
 
 class Message(object):
@@ -369,7 +370,8 @@ class ZopePageTemplatesTest(RenderTestCase):
             )
         try:
             template()
-        except:
+        except Exception as exc:
+            self.assertIn(RenderError, type(exc).__bases__)
             exc = sys.exc_info()[1]
             formatted = str(exc)
             self.assertFalse('NameError:' in formatted)

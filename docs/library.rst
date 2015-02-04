@@ -108,78 +108,14 @@ It's probably best to stick with a Python expression::
   <div tal:content="'hello, world'.upper()" />
 
 
-.. _whats-new:
-
-Changes between 1.x and 2.x
----------------------------
-
-This sections describes new features, improvements and changes from
-1.x to 2.x.
-
-New parser
-~~~~~~~~~~
-
-This series features a new, custom-built parser, implemented in pure
-Python. It parses both HTML and XML inputs (the previous parser relied
-on the expat system library and was more strict about its input).
-
-The main benefit of the new parser is that the compiler is now able to
-point to the source location of parse- and compilation errors much
-more accurately. This should be a great aid in debugging these errors.
-
-Compatible output
-~~~~~~~~~~~~~~~~~
-
-The 2.x engine matches the output of the reference implementation more
-closely (usually exactly). There are less differences altogether; for
-instance, the method of escaping TALES expression (usually a
-semicolon) has been changed to match that of the reference
-implementation.
-
-New language features
-~~~~~~~~~~~~~~~~~~~~~
-
-This series also introduces a number of new language features:
-
-1. Support for the ``tal:on-error`` from the reference specification
-   has been added.
-
-2. Two new attributes ``tal:switch`` and ``tal:case`` have been added
-   to make element conditions more flexible.
-
-
-Code improvements
-~~~~~~~~~~~~~~~~~
-
-The template classes have been refactored and simplified allowing
-better reuse of code and more intuitive APIs on the lower levels.
-
-Expression engine
-~~~~~~~~~~~~~~~~~
-
-The expression engine has been redesigned to make it easier to
-understand and extend. The new engine is based on the ``ast`` module
-(available since Python 2.6; backports included for Python 2.5). This
-means that expression compilers now need to return a valid list of AST
-statements that include an assignment to the target node.
-
-Compiler
-~~~~~~~~
-
-The new compiler has been optimized for complex templates. As a
-result, in the benchmark suite included with the package, this
-compiler scores about half of the 1.x series. For most real world
-applications, the engine should still perform as well as the 1.x
-series.
-
-
 API reference
 -------------
 
 This section describes the documented API of the library.
 
-Template classes
-~~~~~~~~~~~~~~~~
+
+Templates
+~~~~~~~~~
 
 Use the ``PageTemplate*`` template classes to define a template from a
 string or file input:
@@ -199,8 +135,8 @@ string or file input:
 
   .. autoclass:: chameleon.PageTextTemplateFile
 
-Template loader
-~~~~~~~~~~~~~~~
+Loader
+~~~~~~
 
 Some systems have framework support for loading templates from
 files. The following loader class is directly compatible with the
@@ -227,8 +163,39 @@ Pylons framework and may be adapted to other frameworks:
 
    .. automethod:: load
 
-Expression engine
-~~~~~~~~~~~~~~~~~
+
+Exceptions
+~~~~~~~~~~
+
+Chameleon may raise exceptions during both the cooking and the
+rendering phase, but those raised during the cooking phase (parse and
+compile) all inherit from a single base class:
+
+.. class:: chameleon.TemplateError(msg, token)
+
+   This exception is the base class of all exceptions raised by the
+   template engine in the case where a template has an error.
+
+   It may be raised during rendering since templates are processed
+   lazily (unless eager loading is enabled).
+
+
+An error that occurs during the rendering of a template is wrapped in
+an exception class to disambiguate the two cases:
+
+.. class:: chameleon.RenderError(*args)
+
+   Indicates an exception that resulted from the evaluation of an
+   expression in a template.
+
+   A complete traceback is attached to the exception beginning with
+   the expression that resulted in the error. The traceback includes
+   a string representation of the template variable scope for further
+   reference.
+
+
+Expressions
+~~~~~~~~~~~
 
 For advanced integration, the compiler module provides support for
 dynamic expression evaluation:
