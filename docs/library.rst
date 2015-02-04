@@ -164,6 +164,36 @@ Pylons framework and may be adapted to other frameworks:
    .. automethod:: load
 
 
+Exceptions
+~~~~~~~~~~
+
+Chameleon may raise exceptions during both the cooking and the
+rendering phase, but those raised during the cooking phase (parse and
+compile) all inherit from a single base class:
+
+.. class:: chameleon.TemplateError(msg, token)
+
+   This exception is the base class of all exceptions raised by the
+   template engine in the case where a template has an error.
+
+   It may be raised during rendering since templates are processed
+   lazily (unless eager loading is enabled).
+
+
+An error that occurs during the rendering of a template is wrapped in
+an exception class to disambiguate the two cases:
+
+.. class:: chameleon.RenderError(*args)
+
+   Indicates an exception that resulted from the evaluation of an
+   expression in a template.
+
+   A complete traceback is attached to the exception beginning with
+   the expression that resulted in the error. The traceback includes
+   a string representation of the template variable scope for further
+   reference.
+
+
 Expressions
 ~~~~~~~~~~~
 

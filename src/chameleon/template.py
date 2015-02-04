@@ -21,6 +21,7 @@ else:
                 pkg_digest.update(version)
 
 
+from .exc import RenderError
 from .exc import TemplateError
 from .exc import ExceptionFormatter
 from .compiler import Compiler
@@ -181,7 +182,9 @@ class BaseTemplate(object):
                 formatter = ExceptionFormatter(errors, econtext, rcontext)
 
                 try:
-                    exc = create_formatted_exception(exc, cls, formatter)
+                    exc = create_formatted_exception(
+                        exc, cls, formatter, RenderError
+                    )
                 except TypeError:
                     pass
 

@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Added ``RenderError`` exception which indicates that an error
+  occurred during the evaluation of an expression.
+
 - Clean up ``TemplateError`` exception implementation.
 
 

@@ -99,6 +99,14 @@ def ellipsify(string, limit):
     return string
 
 
+class RenderError(Exception):
+    """An error raised during rendering.
+
+    This class is used as a mixin which is added to the original
+    exception.
+    """
+
+
 class TemplateError(Exception):
     """An error raised by Chameleon.
 
