@@ -185,7 +185,7 @@ statement, the replacement is made on each repetition of the element,
 and the replacement expression is evaluated fresh for each repetition.
 
 .. note:: If you want to include a semicolon (";") in an expression, it
-          must be escaped by doubling it (";;") [1]_.
+          must be escaped by doubling it (";;").
 
 Examples
 ~~~~~~~~
@@ -359,7 +359,7 @@ or ``global`` in front of the assignment. The default setting is
 ``local``; thus, in practice, only the ``global`` keyword is used.
 
 .. note:: If you want to include a semicolon (";") in an expression, it
-          must be escaped by doubling it (";;") [1]_.
+          must be escaped by doubling it (";;").
 
 Examples
 ~~~~~~~~
@@ -1691,38 +1691,3 @@ implementation (ZPT):
 The `z3c.pt <http://pypi.python.org/pypi/z3c.pt>`_ package works as a
 compatibility layer. The template classes in this package provide a
 implementation which is fully compatible with ZPT.
-
-Notes
-#####
-
-.. [1] This has been changed in 2.x. Previously, it was up to the
-       expression engine to parse the expression values including any
-       semicolons and since for instance Python-expressions can never
-       end in a semicolon, it was possible to clearly distinguish
-       between the different uses of the symbol, e.g.
-
-       ::
-
-         tal:define="text 'Hello world; goodbye world'"
-
-       The semicolon appearing in the definition above is part of the
-       Python-expression simply because it makes the expression
-       valid. Meanwhile:
-
-       ::
-
-         tal:define="text1 'Hello world'; text2 'goodbye world'"
-
-       The semicolon here must denote a second variable definition
-       because there is no valid Python-expression that includes it.
-
-       While this behavior works well in practice, it is incompatible
-       with the reference specification, and also blurs the interface
-       between the compiler and the expression engine. In 2.x we
-       therefore have to escape the semicolon by doubling it (as
-       defined by the specification):
-
-       ::
-
-         tal:define="text 'Hello world;; goodbye world'"
-
