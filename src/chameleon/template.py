@@ -222,7 +222,7 @@ class BaseTemplate(object):
                 cooked = self.loader.build(source, filename)
             except TemplateError:
                 exc = sys.exc_info()[1]
-                exc.filename = self.filename
+                exc.token.filename = self.filename
                 raise
         elif self.keep_source:
             module = sys.modules.get(cooked.get('__name__'))

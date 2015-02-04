@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Clean up ``TemplateError`` exception implementation.
+
 
 2.20 (2015-01-12)
 -----------------
