@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.21 (2015-02-06)
+-----------------
 
 - Added ``RenderError`` exception which indicates that an error
   occurred during the evaluation of an expression.
