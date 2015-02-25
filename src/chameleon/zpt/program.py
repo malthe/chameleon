@@ -68,6 +68,20 @@ def validate_attributes(attributes, namespace, whitelist):
                 )
 
 
+def convert_data_attributes(ns_attrs, attrs, namespaces):
+    d = 0
+    for i, attr in list(enumerate(attrs)):
+        name = attr['name']
+        if name.startswith('data-'):
+            name = name[5:]
+            if '-' not in name:
+                continue
+            prefix, name = name.split('-', 1)
+            ns_attrs[namespaces[prefix], name] = attr['value']
+            attrs.pop(i - d)
+            d += 1
+
+
 class MacroProgram(ElementProgram):
     """Visitor class that generates a program for the ZPT language."""
 
@@ -118,6 +132,10 @@ class MacroProgram(ElementProgram):
     # If set, additional attribute whitespace will be stripped.
     trim_attribute_space = False
 
+    # If set, data attributes can be used instead of namespace
+    # attributes, e.g. "data-tal-content" instead of "tal:content".
+    enable_data_attributes = False
+
     def __init__(self, *args, **kwargs):
         # Internal array for switch statements
         self._switches = []
@@ -140,6 +158,7 @@ class MacroProgram(ElementProgram):
             'implicit_i18n_translate',
             'implicit_i18n_attributes',
             'trim_attribute_space',
+            'enable_data_attributes',
             )
 
         super(MacroProgram, self).__init__(*args, **kwargs)
@@ -159,6 +178,11 @@ class MacroProgram(ElementProgram):
 
     def visit_element(self, start, end, children):
         ns = start['ns_attrs']
+        attrs = start['attrs']
+
+        if self.enable_data_attributes:
+            attrs = list(attrs)
+            convert_data_attributes(ns, attrs, start['ns_map'])
 
         for (prefix, attr), encoded in tuple(ns.items()):
             if prefix == TAL:
@@ -263,7 +287,7 @@ class MacroProgram(ElementProgram):
 
             # Prepare attributes from TAL language
             prepared = tal.prepare_attributes(
-                start['attrs'], TAL_ATTRIBUTES,
+                attrs, TAL_ATTRIBUTES,
                 I18N_ATTRIBUTES, ns, self.DROP_NS
                 )
 

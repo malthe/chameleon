@@ -61,6 +61,10 @@ well.
 
 .. note:: Default prefixes are a special feature of Chameleon.
 
+If the ``enable_data_attributes`` option is set then you can use
+``data-prefix-command="argument"`` in addition to the namespace prefix
+attributes.
+
 .. _tal:
 
 Basics (TAL)

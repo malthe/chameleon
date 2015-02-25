@@ -107,7 +107,10 @@ def parse_tag(token, namespace):
     default = node['namespace'] = namespace.get(prefix, XML_NS)
 
     node['ns_attrs'] = unpack_attributes(
-        node['attrs'], namespace, default)
+        node['attrs'], namespace, default
+    )
+
+    node['ns_map'] = namespace
 
     return node
 
