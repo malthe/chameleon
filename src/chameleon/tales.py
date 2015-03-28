@@ -25,7 +25,7 @@ except SyntaxError:
 
 
 split_parts = re.compile(r'(?<!\\)\|')
-match_prefix = re.compile(r'^\s*([a-z\-_]+):').match
+match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
 re_continuation = re.compile(r'\\\s*$', re.MULTILINE)
 
 try:
