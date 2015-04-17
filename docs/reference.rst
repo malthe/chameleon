@@ -206,7 +206,7 @@ Replacing two attributes::
 
 A checkbox input::
 
-    <input type="input" tal:attributes="checked True" />
+    <input type="checkbox" tal:attributes="checked True" />
 
 ``tal:condition``
 ^^^^^^^^^^^^^^^^^
