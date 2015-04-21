@@ -1328,7 +1328,7 @@ from the content.
 
 The ``i18n:comment`` attribute can be used to add extra comments for
 translators. It is not used by Chameleon for processing, but will be
-picked up by tools like `lingua <pypi.python.org/pypi/lingua>`_.
+picked up by tools like `lingua <http://pypi.python.org/pypi/lingua>`_.
 
 An example:
 
