@@ -1,0 +1,10 @@
+<html>
+  <body>
+    <h1 i18n:ignore="true">Hello world!</h1>
+    <a href="http://www.python.org"
+       title="Python"
+       i18n:ignore-attributes="title">
+      Python is a programming language.
+    </a>
+  </body>
+</html>
