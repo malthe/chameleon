@@ -1199,6 +1199,8 @@ The allowable ``i18n`` statements are:
 - ``i18n:attributes``
 - ``i18n:data``
 - ``i18n:comment``
+- ``i18n:ignore``
+- ``i18n:ignore-attributes``
 
 ``i18n:translate``
 ^^^^^^^^^^^^^^^^^^
@@ -1336,6 +1338,31 @@ An example:
 
    <h3 i18n:comment="Header for the news section"
        i18n:translate="">News</h3>
+
+``i18n:ignore``
+^^^^^^^^^^^^^^^
+
+The ``i18n:ignore`` attribute can be used to inform translation extraction tools
+like `i18ndude <http://pypi.python.org/pypi/i18ndude>`_ to not give a
+warning/error on the given tag if there is no ``i18n:translate`` attribute.
+
+An example:
+
+   <h1 i18n:ignore="">News</h3>
+
+``i18n:ignore-attributes``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``i18n:ignore-attributes``, just like ``i18n:ignore`` is expected to be
+used by translation extraction tools like `i18ndude <http://pypi.python.org/pypi/i18ndude>`_.
+If ``i18n:ignore`` makes text within a tag to be ignored, ``i18n:ignore-attributes``
+marks the given attributes as ignored.
+
+An example:
+
+   <a href="http://python.org"
+      title="Python!"
+      i18n:ignore-attributes="title">Python website</a>
 
 
 Relation with TAL processing

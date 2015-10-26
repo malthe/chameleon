@@ -32,6 +32,8 @@ WHITELIST = frozenset([
     "xmlns",
     "xml",
     "comment",
+    "ignore",
+    "ignore-attributes",
     ])
 
 _interp_regex = re.compile(r'(?<!\$)(\$(?:(%(n)s)|{(%(n)s)}))'
