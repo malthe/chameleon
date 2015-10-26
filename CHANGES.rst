@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.23 (2015-10-26)
+-----------------
 
 - Added ``enable_data_attributes`` option that allows using HTML5 data
   attributes as control attributes instead or in addition to XML
