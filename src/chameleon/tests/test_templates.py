@@ -637,12 +637,15 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             implicit_i18n = 'implicit-i18n' in input_path
             implicit_i18n_attrs = ("alt", "title") if implicit_i18n else ()
 
+            enable_data_attributes = 'data-attributes' in input_path
+
             template = factory(
                 input_path,
                 keep_source=True,
                 strict=False,
                 implicit_i18n_translate=implicit_i18n,
                 implicit_i18n_attributes=implicit_i18n_attrs,
+                enable_data_attributes=enable_data_attributes,
                 )
 
             params = kwargs.copy()

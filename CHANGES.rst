@@ -3,7 +3,10 @@ Changes
 
 In next release ...
 
--
+- Added ``enable_data_attributes`` option that allows using HTML5 data
+  attributes as control attributes instead or in addition to XML
+  namespace attributes.
+
 
 2.22 (2015-02-06)
 -----------------

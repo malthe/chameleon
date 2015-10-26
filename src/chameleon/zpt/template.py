@@ -159,6 +159,8 @@ class PageTemplate(BaseTemplate):
 
     trim_attribute_space = False
 
+    enable_data_attributes = False
+
     def __init__(self, body, **config):
         self.macros = Macros(self)
         super(PageTemplate, self).__init__(body, **config)
@@ -201,6 +203,7 @@ class PageTemplate(BaseTemplate):
             implicit_i18n_translate=self.implicit_i18n_translate,
             implicit_i18n_attributes=self.implicit_i18n_attributes,
             trim_attribute_space=self.trim_attribute_space,
+            enable_data_attributes=self.enable_data_attributes,
             )
 
     def render(self, encoding=None, translate=None, **vars):

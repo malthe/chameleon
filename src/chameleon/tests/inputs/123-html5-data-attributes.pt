@@ -1,0 +1,5 @@
+<html>
+  <body>
+    <div foo="bar" data-tal-content="'Hello world!'" />
+  </body>
+</html>
