@@ -22,6 +22,8 @@ class ASTProxy(object):
         }
 
     def __getattr__(self, name):
+        if name.startswith('__'):
+            raise AttributeError(name)
         return _ast.__dict__.get(name) or getattr(_ast, self.aliases[name])
 
 
