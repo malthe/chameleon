@@ -1,9 +1,12 @@
 Changes
 =======
 
-In next release ...
+2.24 (2015-10-28)
+-----------------
 
-...
+- Fixed Python 3.5 compatibility.
+
+- Fixed brown bag release.
 
 
 2.23 (2015-10-26)
