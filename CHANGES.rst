@@ -3,7 +3,7 @@ Changes
 
 In next release ...
 
--
+- Add explicit support / testing for Python 3.5.
 
 2.24 (2015-10-28)
 -----------------
