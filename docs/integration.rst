@@ -10,10 +10,10 @@ translation (internationalization) configuration.
 Pyramid
 -------
 
-Chameleon is the default template engine for the `Pyramid
-<http://pylonsproject.org/projects/pyramid/about>`_ framework. See the
-section on `Page Templates
-<http://docs.pylonsproject.org/projects/pyramid/1.1/narr/templates.html#chameleon-zpt-templates>`_ for a complete reference.
+`pyramid_chameleon
+<http://docs.pylonsproject.org/projects/pyramid-chameleon/en/latest/>`_
+is a set of bindings that make templates written for the Chameleon
+templating system work under the Pyramid web framework.
 
 Zope 2 / Plone
 --------------
