@@ -91,13 +91,20 @@ def template(function, mode='exec', **kw):
         return wrapper(**kw)
 
     source = textwrap.dedent(inspect.getsource(function))
-    parameters = inspect.signature(function).parameters
-    p = [(x.name, x.default) for x in parameters.values()
-                             if x.kind in (x.POSITIONAL_ONLY,
-                                           x.POSITIONAL_OR_KEYWORD)]
-    args = [x[0] for x in p]
-    defaults = tuple(filter(lambda x: x is not inspect.Parameter.empty,
-                            [x[1] for x in p]))
+
+    try:
+        parameters = inspect.signature(function).parameters
+        p = [(x.name, x.default) for x in parameters.values()
+                                 if x.kind in (x.POSITIONAL_ONLY,
+                                               x.POSITIONAL_OR_KEYWORD)]
+        args = [x[0] for x in p]
+        defaults = tuple(filter(lambda x: x is not inspect.Parameter.empty,
+                                [x[1] for x in p]))
+    except AttributeError:
+        argspec = inspect.getargspec(function)
+        args = argspec[0]
+        defaults = argspec[3] or ()
+
     return wrapper
 
 
