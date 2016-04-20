@@ -91,9 +91,13 @@ def template(function, mode='exec', **kw):
         return wrapper(**kw)
 
     source = textwrap.dedent(inspect.getsource(function))
-    argspec = inspect.getargspec(function)
-    args = argspec[0]
-    defaults = argspec[3] or ()
+    parameters = inspect.signature(function).parameters
+    p = [(x.name, x.default) for x in parameters.values()
+                             if x.kind in (x.POSITIONAL_ONLY,
+                                           x.POSITIONAL_OR_KEYWORD)]
+    args = [x[0] for x in p]
+    defaults = tuple(filter(lambda x: x is not inspect.Parameter.empty,
+                            [x[1] for x in p]))
     return wrapper
 
 
