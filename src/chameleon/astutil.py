@@ -954,6 +954,10 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
         self.visit(node)
         return self.transformed
 
+    def visit_arg(self, node):
+        scope = self.scopes[-1]
+        scope.add(node.arg)
+
     def visit_Name(self, node):
         scope = self.scopes[-1]
         if isinstance(node.ctx, ast.Param):
