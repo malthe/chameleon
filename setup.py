@@ -71,7 +71,7 @@ setup(
       ],
     author="Malthe Borch",
     author_email="mborch@gmail.com",
-    url="http://www.pagetemplates.org/",
+    url="https://github.com/icemac/chameleon",
     license='BSD-like (http://repoze.org/license.html)',
     packages=find_packages('src'),
     package_dir = {'': 'src'},
