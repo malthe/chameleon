@@ -827,9 +827,13 @@ class ASTCodeGenerator(object):
                 self._write(', ')
             first = False
             # keyword = (identifier arg, expr value)
-            self._write(keyword.arg)
-            self._write('=')
+            if keyword.arg is not None:
+                self._write(keyword.arg)
+                self._write('=')
+            else:
+                self._write('**')
             self.visit(keyword.value)
+        # Attribute removed in Python 3.5
         if getattr(node, 'starargs', None):
             if not first:
                 self._write(', ')
@@ -837,6 +841,7 @@ class ASTCodeGenerator(object):
             self._write('*')
             self.visit(node.starargs)
 
+        # Attribute removed in Python 3.5
         if getattr(node, 'kwargs', None):
             if not first:
                 self._write(', ')
@@ -894,6 +899,11 @@ class ASTCodeGenerator(object):
         _process_slice(node.slice)
         self._write(']')
 
+    # Starred(expr value, expr_context ctx)
+    def visit_Starred(self, node):
+        self._write('*')
+        self.visit(node.value)
+
     # Name(identifier id, expr_context ctx)
     def visit_Name(self, node):
         self._write(node.id)
@@ -943,6 +953,10 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
     def __call__(self, node):
         self.visit(node)
         return self.transformed
+
+    def visit_arg(self, node):
+        scope = self.scopes[-1]
+        scope.add(node.arg)
 
     def visit_Name(self, node):
         scope = self.scopes[-1]
