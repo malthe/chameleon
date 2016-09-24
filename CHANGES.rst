@@ -5,6 +5,11 @@ In next release ...
 
 - Add explicit support / testing for Python 3.5.
 
+- Add ``\r`` to negative regex matches to the chameleon parser, where ``\n`` is used but ``\r`` was missing.
+  Fixes a case, where the tag name was parsed into ``html\r`` instead of ``html``.
+  Fixes: https://github.com/malthe/chameleon/issues/219
+
+
 2.24 (2015-10-28)
 -----------------
 
