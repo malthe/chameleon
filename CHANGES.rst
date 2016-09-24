@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+2.25 (2016-09-24)
+-----------------
 
 - Add explicit support / testing for Python 3.5.
 
