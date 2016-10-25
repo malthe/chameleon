@@ -90,7 +90,7 @@ def identifier(prefix, suffix=None):
 
 
 def mangle(string):
-    return RE_MANGLE.sub('_', str(string)).replace('\n', '').replace('-', '_')
+    return RE_MANGLE.sub('_', unicode(string)).replace('\n', '').replace('-', '_')
 
 
 def load_econtext(name):
