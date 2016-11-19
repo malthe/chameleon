@@ -145,9 +145,8 @@ the markup::
 
   "You have ${amount} dollars in your account."
 
-If you use a web framework such as `Pyramid
-<https://docs.pylonsproject.org/docs/pyramid.html>`_, the translation
-system is set up automatically and will negotiate on a *target
+If you use a web framework such as `Pyramid <https://trypyramid.com/>`_, the
+translation system is set up automatically and will negotiate on a *target
 language* based on the HTTP request or other parameter. If not, then
 you need to configure this manually.
 
