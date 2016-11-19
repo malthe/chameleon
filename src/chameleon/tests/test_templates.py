@@ -689,7 +689,9 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 content_type, encoding = detect_encoding(
                     output, template.default_encoding)
 
-            want = output.decode(encoding)
+            # Newline normalization across platforms
+            want = '\n'.join(output.decode(encoding).splitlines())
+            got = '\n'.join(got.splitlines())
 
             if checker.check_output(want, got, 0) is False:
                 from doctest import Example
