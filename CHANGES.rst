@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Throw a parse error if '--' (double hyphen) appears in an XML
+  comment.
+
 - Add support for non-ascii attribute names.
   [sank]
 

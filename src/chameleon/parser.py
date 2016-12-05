@@ -10,6 +10,7 @@ from .exc import ParseError
 from .namespaces import XML_NS
 from .tokenize import Token
 
+match_double_hyphen = re.compile(r'--(?!>)')
 match_tag_prefix_and_name = re.compile(
     r'^(?P<prefix></?)(?P<name>([^:\n\r ]+:)?[^ \n\t\r>/]+)'
     '(?P<suffix>(?P<space>\s*)/?>)?',
@@ -152,6 +153,12 @@ def unpack_attributes(attributes, namespace, default):
 def identify(string):
     if string.startswith("<"):
         if string.startswith("<!--"):
+            m = match_double_hyphen.search(string[4:])
+            if m is not None:
+                raise ParseError(
+                    "The string '--' is not allowed in a comment.",
+                    string[4 + m.start():4 + m.end()]
+                )
             return "comment"
         if string.startswith("<![CDATA["):
             return "cdata"
