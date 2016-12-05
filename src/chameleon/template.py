@@ -240,7 +240,12 @@ class BaseTemplate(object):
         sha = pkg_digest.copy()
         sha.update(body.encode('utf-8', 'ignore'))
         sha.update(class_name)
-        return sha.hexdigest()
+        digest = sha.hexdigest()
+
+        if self.filename is not BaseTemplate.filename:
+            digest = os.path.splitext(self.filename)[0] + '-' + digest
+
+        return digest
 
     def _compile(self, program, builtins):
         compiler = Compiler(self.engine, program, builtins, strict=self.strict)

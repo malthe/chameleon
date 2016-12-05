@@ -5,6 +5,11 @@ In next release ...
 
 - Drop support for Python 2.6, 3.1, and 3.2.
 
+- Include filename in the on-disk cache module name. Previously,
+  only the SHA digest in hex representation would be used, making
+  it difficult to see where the module came from. This fixes issue
+  #132.
+
 - Throw a parse error if '--' (double hyphen) appears in an XML
   comment.
 
