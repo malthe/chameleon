@@ -1,7 +1,6 @@
 __version__ = '2.26-dev'
 
 import os
-import sys
 
 from setuptools import setup, find_packages
 from setuptools.command.test import test
@@ -15,11 +14,6 @@ except:  # doesn't work under tox/pip
     CHANGES = ''
 
 install_requires = []
-
-version = sys.version_info[:3]
-if version < (2, 7, 0):
-    install_requires.append("ordereddict")
-    install_requires.append("unittest2")
 
 
 class Benchmark(test):
@@ -61,10 +55,7 @@ setup(
        "Programming Language :: Python",
        "Programming Language :: Python :: 2",
        "Programming Language :: Python :: 3",
-       "Programming Language :: Python :: 2.6",
        "Programming Language :: Python :: 2.7",
-       "Programming Language :: Python :: 3.1",
-       "Programming Language :: Python :: 3.2",
        "Programming Language :: Python :: 3.3",
        "Programming Language :: Python :: 3.4",
        "Programming Language :: Python :: 3.5",
