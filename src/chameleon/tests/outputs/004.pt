@@ -3,6 +3,7 @@
     <span class="hello" />
     <span class="hello" />
     <span class="hello" />
+    <span data-æøå="hello" />
     <span />
     <span b="2" c="3" />
     <span a="1" c="3" />

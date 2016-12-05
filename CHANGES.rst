@@ -3,7 +3,9 @@ Changes
 
 In next release ...
 
--
+- Add support for non-ascii attribute names.
+  [sank]
+
 
 2.25 (2016-09-24)
 -----------------
