@@ -44,6 +44,12 @@ class PageTemplate(BaseTemplate):
 
     Configuration (keyword arguments):
 
+      ``auto_reload``
+
+        Enables automatic reload of templates. This is mostly useful
+        in a development mode since it takes a significant performance
+        hit.
+
       ``default_expression``
 
         Set the default expression type. The default setting is
@@ -130,6 +136,7 @@ class PageTemplate(BaseTemplate):
         If set, additional attribute whitespace will be stripped.
 
     Output is unicode on Python 2 and string on Python 3.
+
     """
 
     expression_types = {
