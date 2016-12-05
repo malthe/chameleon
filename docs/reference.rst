@@ -241,8 +241,9 @@ Description
 
 .. note:: Like Python itself, ZPT considers None, zero, empty strings,
    empty sequences, empty dictionaries, and instances which return a
-   nonzero value from ``__len__`` or ``__nonzero__`` false; all other
-   values are true, including ``default``.
+   nonzero value from ``__len__`` or which return false from
+   ``__nonzero__``; all other values are true, including ``default``.
+
 
 Examples
 ~~~~~~~~
@@ -455,8 +456,9 @@ the statement element is replaced with its contents.
 
 .. note:: Like Python itself, ZPT considers None, zero, empty strings,
    empty sequences, empty dictionaries, and instances which return a
-   nonzero value from ``__len__`` or ``__nonzero__`` false; all other
-   values are true, including ``default``.
+   nonzero value from ``__len__`` or which return false from
+   ``__nonzero__``; all other values are true, including ``default``.
+
 
 Examples
 ~~~~~~~~
