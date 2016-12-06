@@ -479,7 +479,7 @@ class ExistsExpr(object):
 
     def __call__(self, target, engine):
         ignore = store("_ignore")
-        compiler = engine.parse(self.expression)
+        compiler = engine.parse(self.expression, False)
         body = compiler.assign_value(ignore)
 
         classes = map(resolve_global, self.exceptions)
@@ -493,8 +493,8 @@ class ExistsExpr(object):
                     body=template("target = 0", target=target),
                     )],
                 orelse=template("target = 1", target=target)
-                )
-            ]
+            )
+        ]
 
 
 class ExpressionParser(object):
@@ -528,7 +528,7 @@ class SimpleEngine(object):
         if expression is not None:
             self.expression = expression
 
-    def parse(self, string):
+    def parse(self, string, handle_errors=False):
         compiler = self.expression(string)
         return SimpleCompiler(compiler, self)
 

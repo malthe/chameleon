@@ -198,6 +198,22 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("Expected exception")
 
+    def test_exists_error_leak(self):
+        body = '''\
+        <?xml version="1.0"?>
+        <root>
+        <one tal:condition="exists: var_does_not_exists" />
+        <two tal:attributes="my_attr dict()['key-does-not-exist']" />
+        </root>'''
+        template = self.from_string(body, strict=False)
+        try:
+            template()
+        except RenderError:
+            exc = sys.exc_info()[1]
+            self.assertNotIn('var_does_not_exists', str(exc))
+        else:
+            self.fail("Expected exception")
+
     def test_render_error_macro_include(self):
         body = """<metal:block use-macro='"bad"' />"""
         template = self.from_string(body, strict=False)

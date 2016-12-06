@@ -8,6 +8,7 @@ import functools
 import collections
 import pickle
 import textwrap
+import weakref
 
 from .astutil import load
 from .astutil import store
@@ -493,12 +494,12 @@ class ExpressionEngine(object):
         compiler = self.parse(string)
         return compiler(string, target)
 
-    def parse(self, string):
+    def parse(self, string, handle_errors=True):
         expression = self._parser(string)
-        compiler = self.get_compiler(expression, string)
+        compiler = self.get_compiler(expression, string, handle_errors)
         return ExpressionCompiler(compiler, self)
 
-    def get_compiler(self, expression, string):
+    def get_compiler(self, expression, string, handle_errors):
         def compiler(target, engine, result_type=None, *args):
             stmts = expression(target, engine)
 
@@ -507,7 +508,10 @@ class ExpressionEngine(object):
                 steps = method(target, *args)
                 stmts.extend(steps)
 
-            return [try_except_wrap(stmts, string)]
+            if handle_errors:
+                return [try_except_wrap(stmts, string.strip())]
+
+            return stmts
 
         return compiler
 
@@ -852,7 +856,7 @@ class ExpressionTransform(object):
             expr.value, node.braces_required, node.translation
             )
 
-        compiler = engine.get_compiler(interpolator, expr.value)
+        compiler = engine.get_compiler(interpolator, expr.value, True)
         return compiler(target, engine)
 
     def visit_Translate(self, node, target):

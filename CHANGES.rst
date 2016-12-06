@@ -1,6 +1,8 @@
 Changes
 =======
 
+- The "exists" expression no longer leaks error information.
+
 - Allow unquoted attribute values.
 
 - Wrap attribute error thrown when trying to use a non-macro as a
