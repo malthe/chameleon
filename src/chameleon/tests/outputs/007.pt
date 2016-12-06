@@ -5,6 +5,11 @@
     <div>Hello world!</div>
     &lt;type 'str'&gt;
     &&
+    <script>
+      $(document).ready(function(){
+        imagecropping.init_editor();
+      });
+    </script>
 
     Hello world
     $leftalone

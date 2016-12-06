@@ -5,6 +5,11 @@
     ${structure: literal.s}
     ${"%stype 'str'%s" % (chr(60), chr(62))}
     &&
+    <script>
+      $$(document).ready(function(){
+        imagecropping.init_editor();
+      });
+    </script>
     ${None}
     ${None or
       'Hello world'}

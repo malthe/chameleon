@@ -281,7 +281,7 @@ class Interpolator(object):
         re.DOTALL)
 
     braces_optional_regex = re.compile(
-        r'(?<!\\)\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))',
+        r'(?<![\\$])\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))',
         re.DOTALL)
 
     def __init__(self, expression, braces_required, translate=False):
@@ -333,7 +333,7 @@ class Interpolator(object):
             text = text[m.start():]
 
             if part:
-                node = ast.Str(s=part)
+                node = ast.Str(s=part.replace('$$', '$'))
                 nodes.append(node)
 
             if not body:
@@ -470,6 +470,9 @@ class ExpressionEngine(object):
 
     >>> eval('string:test ${1}${2}')
     'test 12'
+
+    >>> eval('string:test $${1}${2}')
+    'test ${1}2'
 
     """
 

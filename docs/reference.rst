@@ -189,7 +189,9 @@ statement, the replacement is made on each repetition of the element,
 and the replacement expression is evaluated fresh for each repetition.
 
 .. note:: If you want to include a semicolon (";") in an expression, it
-          must be escaped by doubling it (";;").
+          must be escaped by doubling it (";;"). Similarly, you can escape
+          expression interpolation using the "$" symbol by doubling it
+          ("$$").
 
 Examples
 ~~~~~~~~
