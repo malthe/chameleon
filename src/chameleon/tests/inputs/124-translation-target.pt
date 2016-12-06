@@ -1,0 +1,6 @@
+<html>
+  <body>
+    <h1 i18n:translate="" i18n:target="string:fr">Hello world!</h1>
+    <p i18n:translate="" i18n:target="default">It's a big world.</p>
+  </body>
+</html>

@@ -221,8 +221,9 @@ def emit_func_convert(
 
 
 @template
-def emit_translate(target, msgid, default=None):  # pragma: no cover
-    target = translate(msgid, default=default, domain=__i18n_domain, context=__i18n_context)
+def emit_translate(target, msgid, target_language, default=None):  \
+    # pragma: no cover
+    target = translate(msgid, default=default, domain=__i18n_domain, context=__i18n_context, target_language=target_language)
 
 
 @template
@@ -383,8 +384,9 @@ class Interpolator(object):
 
             if translate and isinstance(target, ast.Str):
                 target = template(
-                    "translate(msgid, domain=__i18n_domain, context=__i18n_context)",
+                    "translate(msgid, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",
                     msgid=target, mode="eval",
+                    target_language="target_language",
                     )
         else:
             if translate:
@@ -402,8 +404,9 @@ class Interpolator(object):
                         values.append(node)
 
                 target = template(
-                    "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context)",
+                    "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",
                     msgid=ast.Str(s=formatting_string),
+                    target_language=target_language,
                     mapping=ast.Dict(keys=keys, values=values),
                     mode="eval"
                     )
@@ -855,7 +858,10 @@ class ExpressionTransform(object):
         else:
             msgid = target
         return self.translate(node.node, target) + \
-               emit_translate(target, msgid, default=target)
+               emit_translate(
+                   target, msgid, "target_language",
+                   default=target
+               )
 
     def visit_Static(self, node, target):
         value = annotated(node)
@@ -1120,7 +1126,9 @@ class Compiler(object):
         body = self._engine(node.expression, store(name))
 
         if node.translate:
-            body += emit_translate(name, name)
+            body += emit_translate(
+                name, name, load_econtext("target_language")
+            )
 
         if node.char_escape:
             body += template(
@@ -1286,9 +1294,10 @@ class Compiler(object):
         # emit the translation expression
         body += template(
             "if msgid: __append(translate("
-            "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=__i18n_context))",
-            msgid=msgid, default=default, mapping=mapping
-            )
+            "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=__i18n_context, target_language=target_language))",
+            msgid=msgid, default=default, mapping=mapping,
+            target_language=load_econtext("target_language")
+        )
 
         # pop away translation block reference
         self._translations.pop()

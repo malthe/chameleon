@@ -213,34 +213,41 @@ class PageTemplate(BaseTemplate):
             enable_data_attributes=self.enable_data_attributes,
             )
 
-    def render(self, encoding=None, translate=None, **vars):
+    def render(self, encoding=None, **_kw):
         """Render template to string.
 
-        The ``encoding`` and ``translate`` arguments are documented in
-        the template class constructor. If passed to this method, they
-        are used instead of the class defaults.
+        If providd, the ``encoding`` argument overrides the template
+        default value.
 
-        Additional arguments:
+        Additional keyword arguments are passed as template variables.
+
+        In addition, some also have a special meaning:
+
+          ``translate``
+
+            This keyword argument will override the default template
+            translate function.
 
           ``target_language``
 
-            This argument will be partially applied to the translation
-            function.
+            This will be used as the default argument to the translate
+            function if no `i18n:target` value is provided.
 
-            An alternative is thus to simply provide a custom
-            translation function which includes this information or
-            relies on a different mechanism.
-
+            If not provided, the `translate` function will need to
+            negotiate a language based on the provided context.
         """
 
-        non_trivial_translate = translate is not None
-        translate = translate if non_trivial_translate else self.translate or \
-                    type(self).translate
+        translate = _kw.get('translate')
+        if translate is not None:
+            has_translate = True
+        else:
+            has_translate = False
+            translate = self.translate
 
-        # Curry language parameter if non-trivial
-        target_language = vars.get('target_language')
-        if target_language is not None:
-            translate = partial(translate, target_language=target_language)
+            # This should not be necessary, but we include it for
+            # backward compatibility.
+            if translate is None:
+                translate = type(self).translate
 
         encoding = encoding if encoding is not None else self.encoding
         if encoding is not None:
@@ -254,18 +261,19 @@ class PageTemplate(BaseTemplate):
         else:
             decode = decode_string
 
-        setdefault = vars.setdefault
-        setdefault("__translate", translate)
-        setdefault("__convert", translate)
-        setdefault("__decode", decode)
+        target_language = _kw.get('target_language')
 
-        if non_trivial_translate:
-            vars['translate'] = translate
+        setdefault = _kw.setdefault
+        setdefault("__translate", translate)
+        setdefault("__convert",
+                   partial(translate, target_language=target_language))
+        setdefault("__decode", decode)
+        setdefault("target_language", None)
 
         # Make sure we have a repeat dictionary
-        if 'repeat' not in vars: vars['repeat'] = RepeatDict({})
+        if 'repeat' not in _kw: _kw['repeat'] = RepeatDict({})
 
-        return super(PageTemplate, self).render(**vars)
+        return super(PageTemplate, self).render(**_kw)
 
     def include(self, *args, **kwargs):
         self.cook_check()

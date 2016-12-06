@@ -1247,8 +1247,6 @@ this information to the translation services.
 ``i18n:target``
 ^^^^^^^^^^^^^^^
 
-.. warning:: This is currrently ignored.
-
 The ``i18n:target`` attribute specifies the language of the
 translation we want to get.  If the value is ``default``, the language
 negotiation services will be used to choose the destination language.
