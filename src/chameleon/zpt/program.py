@@ -543,6 +543,13 @@ class MacroProgram(ElementProgram):
         except KeyError:
             pass
         else:
+            if ns.get((METAL, 'fill-slot')) is not None:
+                raise LanguageError(
+                    "Can't have 'fill-slot' and 'define-macro' "
+                    "on the same element.",
+                    clause
+                )
+
             self._macros[clause] = slot
             slot = nodes.UseInternalMacro(clause)
 
