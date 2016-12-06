@@ -1,6 +1,9 @@
 Changes
 =======
 
+- Wrap attribute error thrown when trying to use a non-macro as a
+  macro as a `RenderError` to get proper error output.
+
 - Fix use of macro definition inside translation block.
 
 - Escape '$$' into '$' in both content and string expressions.

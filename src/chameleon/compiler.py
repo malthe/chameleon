@@ -1571,11 +1571,16 @@ class Compiler(object):
         assignment = self._engine(node.expression, store("__macro"))
 
         return (
-            callbacks + \
-            assignment + \
+            callbacks +
+            assignment +
+            [try_except_wrap(
+                template("__m = __macro.include"),
+                node.expression.value
+            )] +
             template(
-                "__macro.include(__stream, econtext.copy(), " \
-                "rcontext, __i18n_domain)") + \
+                "__m(__stream, econtext.copy(), "
+                "rcontext, __i18n_domain)"
+            ) +
             template("econtext.update(rcontext)")
             )
 

@@ -198,6 +198,19 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("Expected exception")
 
+    def test_render_error_macro_include(self):
+        body = """<metal:block use-macro='"bad"' />"""
+        template = self.from_string(body, strict=False)
+
+        try:
+            template()
+        except RenderError:
+            exc = sys.exc_info()[1]
+            self.assertTrue(isinstance(exc, AttributeError))
+            self.assertIn('bad', str(exc))
+        else:
+            self.fail("Expected exception")
+
     @error("""<tal:dummy attributes=\"dummy 'dummy'\" />""")
     def test_attributes_on_tal_tag_fails(self, body, exc):
         self.assertTrue(body[exc.offset:].startswith('dummy'))
