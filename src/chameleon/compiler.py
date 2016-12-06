@@ -1258,6 +1258,7 @@ class Compiler(object):
         # Visit body to generate the message body
         code = self.visit(node.node)
         swap(ast.Suite(body=code), load(append), "__append")
+        swap(ast.Suite(body=code), load(stream), "__stream")
         body += code
 
         # Reduce white space and assign as message id

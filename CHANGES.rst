@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Fix use of macro definition inside translation block.
+
 - Escape '$$' into '$' in both content and string expressions.
 
 - The `i18n:target` attribute now overrides a default
