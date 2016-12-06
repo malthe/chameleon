@@ -243,8 +243,10 @@ class MacroProgram(ElementProgram):
                 pass
             else:
                 key, value = tal.parse_substitution(clause)
-                xlate = True if ns.get((I18N, 'translate')) == '' else False
-                content = self._make_content_node(value, content, key, xlate)
+                translate = ns.get((I18N, 'translate')) == ''
+                content = self._make_content_node(
+                    value, content, key, translate,
+                )
 
                 if end is None:
                     # Make sure start-tag has opening suffix.
@@ -294,8 +296,8 @@ class MacroProgram(ElementProgram):
             # Create attribute nodes
             STATIC_ATTRIBUTES = self._create_static_attributes(prepared)
             ATTRIBUTES = self._create_attributes_nodes(
-                prepared, I18N_ATTRIBUTES, STATIC_ATTRIBUTES
-                )
+                prepared, I18N_ATTRIBUTES, STATIC_ATTRIBUTES,
+            )
 
             # Start- and end nodes
             start_tag = nodes.Start(
@@ -357,8 +359,10 @@ class MacroProgram(ElementProgram):
                 pass
             else:
                 key, value = tal.parse_substitution(clause)
-                xlate = True if ns.get((I18N, 'translate')) == '' else False
-                inner = self._make_content_node(value, inner, key, xlate)
+                translate = ns.get((I18N, 'translate')) == ''
+                inner = self._make_content_node(
+                    value, inner, key, translate
+                )
 
         # metal:define-slot
         try:
@@ -372,18 +376,38 @@ class MacroProgram(ElementProgram):
         try:
             clause = ns[TAL, 'define']
         except KeyError:
-            DEFINE = skip
+            defines = []
         else:
             defines = tal.parse_defines(clause)
+
             if defines is None:
                 raise ParseError("Invalid define syntax.", clause)
 
+        # i18n:target
+        try:
+            target_language = ns[I18N, 'target']
+        except KeyError:
+            pass
+        else:
+            # The name "default" is an alias for the target language
+            # variable. We simply replace it.
+            target_language = target_language.replace(
+                'default', 'target_language'
+            )
+
+            defines.append(
+                ('local', ("target_language", ), target_language)
+            )
+
+        if defines:
             DEFINE = partial(
                 nodes.Define,
                 [nodes.Assignment(
                     names, nodes.Value(expr), context == "local")
                  for (context, names, expr) in defines],
                 )
+        else:
+            DEFINE = skip
 
         # tal:case
         try:
@@ -534,9 +558,10 @@ class MacroProgram(ElementProgram):
             ON_ERROR = skip
         else:
             key, value = tal.parse_substitution(clause)
-            translate = True if ns.get((I18N, 'translate')) == '' else False
-
-            fallback = self._make_content_node(value, None, key, translate)
+            translate = ns.get((I18N, 'translate')) == ''
+            fallback = self._make_content_node(
+                value, None, key, translate,
+            )
 
             if omit is False and start['namespace'] not in self.DROP_NS:
                 start_tag = copy(start_tag)
@@ -647,7 +672,7 @@ class MacroProgram(ElementProgram):
             normalized = re.sub('\s+', ' ', text)
             return nodes.Sequence([
                 nodes.Text(prefix),
-                nodes.Translate(normalized, nodes.Text(normalized)),
+                nodes.Translate(normalized, nodes.Text(normalized), None),
                 nodes.Text(suffix),
             ])
         else:

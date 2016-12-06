@@ -1,7 +1,9 @@
 Changes
 =======
 
-In next release ...
+- The `i18n:target` attribute now overrides a default
+  `target_language` variable and is passed to the translation
+  function.
 
 - Drop support for Python 2.6, 3.1, and 3.2.
 
