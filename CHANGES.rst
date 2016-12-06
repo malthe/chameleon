@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Escape '$$' into '$' in both content and string expressions.
+
 - The `i18n:target` attribute now overrides a default
   `target_language` variable and is passed to the translation
   function.

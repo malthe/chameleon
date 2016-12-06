@@ -670,6 +670,8 @@ class MacroProgram(ElementProgram):
             expression = nodes.Substitution(node, char_escape)
             return nodes.Interpolation(expression, True, translation)
 
+        node = node.replace('$$', '$')
+
         if not translation:
             return nodes.Text(node)
 
