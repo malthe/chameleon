@@ -64,7 +64,7 @@ setup(
       ],
     author="Malthe Borch",
     author_email="mborch@gmail.com",
-    url="https://github.com/malthe/chameleon",
+    url="https://chameleon.readthedocs.io",
     license='BSD-like (http://repoze.org/license.html)',
     packages=find_packages('src'),
     package_dir = {'': 'src'},
