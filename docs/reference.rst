@@ -854,6 +854,18 @@ Just like the TAL namespace URI, this URI is not attached to a web
 page; it's just a unique identifier.  This identifier must be used in
 all templates which use METAL.
 
+Note that elements that appear in a template with the METAL namespace
+are omitted from the output where they appear. This is useful when
+defining a macro::
+
+        <metal:block define-macro="hello">
+          ...
+        </metal:block>
+
+In the example above the element is named `block` but any name can be
+used to the same effect as long as it is qualified with the METAL
+namespace.
+
 Statements
 ----------
 
