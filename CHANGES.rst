@@ -3,6 +3,9 @@ Changes
 
 Bugs:
 
+- Fix issue on Python 2 where an exception was not cleared when using
+  the pipe operator and was thus accessible through `sys.exc_info()`.
+
 - The "exists" expression no longer leaks error information.
 
 - Escape '$$' into '$' in both content and string expressions.

@@ -214,6 +214,13 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("Expected exception")
 
+    def test_sys_exc_info_is_clear_after_pipe(self):
+        body = """<div tal:content="y|nothing"></div><span tal:content="error()" />"""
+        template = self.from_string(body, strict=False)
+
+        got = template.render(error=sys.exc_info)
+        self.assertTrue('<span>(None, None, None)</span>' in got)
+
     def test_render_error_macro_include(self):
         body = """<metal:block use-macro='"bad"' />"""
         template = self.from_string(body, strict=False)

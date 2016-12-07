@@ -976,6 +976,8 @@ class Compiler(object):
         body += template("import re")
         body += template("import functools")
         body += template("from itertools import chain as __chain")
+        if version < (3, 0, 0):
+            body += template("from sys import exc_clear as __exc_clear")
         body += template("__marker = object()")
         body += template(
             r"g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
