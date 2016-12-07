@@ -1,33 +1,39 @@
 Changes
 =======
 
+Bugs:
+
 - The "exists" expression no longer leaks error information.
+
+- Escape '$$' into '$' in both content and string expressions.
+
+- Fix use of macro definition inside translation block.
+
+Improvements:
 
 - Allow unquoted attribute values.
 
 - Wrap attribute error thrown when trying to use a non-macro as a
   macro as a `RenderError` to get proper error output.
 
-- Fix use of macro definition inside translation block.
-
-- Escape '$$' into '$' in both content and string expressions.
+- Throw a parse error if '--' (double hyphen) appears in an XML
+  comment.
 
 - The `i18n:target` attribute now overrides a default
   `target_language` variable and is passed to the translation
   function.
-
-- Drop support for Python 2.6, 3.1, and 3.2.
 
 - Include filename in the on-disk cache module name. Previously,
   only the SHA digest in hex representation would be used, making
   it difficult to see where the module came from. This fixes issue
   #132.
 
-- Throw a parse error if '--' (double hyphen) appears in an XML
-  comment.
-
 - Add support for non-ascii attribute names.
   [sank]
+
+Compatibility:
+
+- Drop support for Python 2.6, 3.1, and 3.2.
 
 
 2.25 (2016-09-24)
