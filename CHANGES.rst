@@ -1,6 +1,9 @@
 Changes
 =======
 
+3.0 (2016-12-07)
+----------------
+
 Bugs:
 
 - Fix issue on Python 2 where an exception was not cleared when using
