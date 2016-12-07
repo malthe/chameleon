@@ -1,5 +1,4 @@
 import re
-import cgi
 import sys
 import itertools
 import logging
@@ -8,7 +7,6 @@ import functools
 import collections
 import pickle
 import textwrap
-import weakref
 
 from .astutil import load
 from .astutil import store
