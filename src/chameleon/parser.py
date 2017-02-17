@@ -95,7 +95,7 @@ def match_tag(token, regex=match_tag_prefix_and_name):
     return d
 
 
-def parse_tag(token, namespace):
+def parse_tag(token, namespace, restricted_namespace):
     node = match_tag(token)
 
     update_namespace(node['attrs'], namespace)
@@ -108,7 +108,7 @@ def parse_tag(token, namespace):
     default = node['namespace'] = namespace.get(prefix, XML_NS)
 
     node['ns_attrs'] = unpack_attributes(
-        node['attrs'], namespace, default
+        node['attrs'], namespace, default, restricted_namespace
     )
 
     node['ns_map'] = namespace
@@ -128,7 +128,7 @@ def update_namespace(attributes, namespace):
             namespace[name[6:]] = value
 
 
-def unpack_attributes(attributes, namespace, default):
+def unpack_attributes(attributes, namespace, default, restricted_namespace):
     namespaced = OrderedDict()
 
     for index, attribute in enumerate(attributes):
@@ -141,8 +141,11 @@ def unpack_attributes(attributes, namespace, default):
             try:
                 ns = namespace[prefix]
             except KeyError:
-                raise KeyError(
-                    "Undefined namespace prefix: %s." % prefix)
+                if restricted_namespace:
+                    raise KeyError(
+                        "Undefined namespace prefix: %s." % prefix)
+                else:
+                    ns = default
         else:
             ns = default
         namespaced[ns, name] = value
@@ -181,11 +184,12 @@ def identify(string):
 class ElementParser(object):
     """Parses tokens into elements."""
 
-    def __init__(self, stream, default_namespaces):
+    def __init__(self, stream, default_namespaces, restricted_namespace):
         self.stream = stream
         self.queue = []
         self.index = []
         self.namespaces = [default_namespaces.copy()]
+        self.restricted_namespace = restricted_namespace
 
     def __iter__(self):
         for token in self.stream:
@@ -221,7 +225,7 @@ class ElementParser(object):
     def visit_start_tag(self, kind, token):
         namespace = self.namespaces[-1].copy()
         self.namespaces.append(namespace)
-        node = parse_tag(token, namespace)
+        node = parse_tag(token, namespace, self.restricted_namespace)
         self.index.append((node['name'], len(self.queue)))
         return kind, (node, )
 
@@ -231,7 +235,7 @@ class ElementParser(object):
         except IndexError:
             raise ParseError("Unexpected end tag.", token)
 
-        node = parse_tag(token, namespace)
+        node = parse_tag(token, namespace, self.restricted_namespace)
 
         while self.index:
             name, pos = self.index.pop()
@@ -247,5 +251,5 @@ class ElementParser(object):
 
     def visit_empty_tag(self, kind, token):
         namespace = self.namespaces[-1].copy()
-        node = parse_tag(token, namespace)
+        node = parse_tag(token, namespace, self.restricted_namespace)
         return "element", (node, None, [])

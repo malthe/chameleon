@@ -135,6 +135,16 @@ class PageTemplate(BaseTemplate):
 
         If set, additional attribute whitespace will be stripped.
 
+      ``restricted_namespace``
+
+        True by default. If set False, ignored all namespace except chameleon default namespaces. It will be useful working with attributes based javascript template renderer like VueJS.
+
+        Example:
+
+          <div v-bind:id="dynamicId"></div>
+          <button v-on:click="greet">Greet</button>
+          <button @click="greet">Greet</button>
+
     Output is unicode on Python 2 and string on Python 3.
 
     """
@@ -167,6 +177,8 @@ class PageTemplate(BaseTemplate):
     trim_attribute_space = False
 
     enable_data_attributes = False
+
+    restricted_namespace = True
 
     def __init__(self, body, **config):
         self.macros = Macros(self)
@@ -211,6 +223,7 @@ class PageTemplate(BaseTemplate):
             implicit_i18n_attributes=self.implicit_i18n_attributes,
             trim_attribute_space=self.trim_attribute_space,
             enable_data_attributes=self.enable_data_attributes,
+            restricted_namespace = self.restricted_namespace,
             )
 
     def render(self, encoding=None, **_kw):

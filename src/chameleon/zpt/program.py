@@ -136,6 +136,9 @@ class MacroProgram(ElementProgram):
     # attributes, e.g. "data-tal-content" instead of "tal:content".
     enable_data_attributes = False
 
+    # valid namespaces
+    restricted_namespace = True
+
     def __init__(self, *args, **kwargs):
         # Internal array for switch statements
         self._switches = []
@@ -159,6 +162,7 @@ class MacroProgram(ElementProgram):
             'implicit_i18n_attributes',
             'trim_attribute_space',
             'enable_data_attributes',
+            'restricted_namespace',
             )
 
         super(MacroProgram, self).__init__(*args, **kwargs)
