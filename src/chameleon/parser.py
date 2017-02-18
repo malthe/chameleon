@@ -95,7 +95,7 @@ def match_tag(token, regex=match_tag_prefix_and_name):
     return d
 
 
-def parse_tag(token, namespace, restricted_namespace):
+def parse_tag(token, namespace, restricted_namespace = True):
     node = match_tag(token)
 
     update_namespace(node['attrs'], namespace)
@@ -184,7 +184,7 @@ def identify(string):
 class ElementParser(object):
     """Parses tokens into elements."""
 
-    def __init__(self, stream, default_namespaces, restricted_namespace):
+    def __init__(self, stream, default_namespaces, restricted_namespace = True):
         self.stream = stream
         self.queue = []
         self.index = []
