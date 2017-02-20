@@ -411,12 +411,13 @@ class Interpolator(object):
                     )
             else:
                 nodes = [
+                    node if isinstance(node, ast.Str) else
                     template(
                         "NODE if NODE is not None else ''",
                         NODE=node, mode="eval"
-                        )
+                    )
                     for node in nodes
-                    ]
+                ]
 
                 target = ast.BinOp(
                     left=ast.Str(s="%s" * len(nodes)),

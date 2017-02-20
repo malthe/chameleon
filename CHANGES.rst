@@ -3,7 +3,11 @@ Changes
 
 In next release ...
 
--
+Optimizations:
+
+- Avoid checking if a static string is ``None`` during expression
+  interpolation.
+
 
 3.0 (2016-12-07)
 ----------------
