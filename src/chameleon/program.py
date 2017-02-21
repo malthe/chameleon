@@ -21,10 +21,12 @@ class ElementProgram(object):
         'text': iter_text,
         }
 
+    restricted_namespace = True
+
     def __init__(self, source, mode="xml", filename=None):
         tokenizer = self.tokenizers[mode]
         tokens = tokenizer(source, filename)
-        parser = ElementParser(tokens, self.DEFAULT_NAMESPACES)
+        parser = ElementParser(tokens, self.DEFAULT_NAMESPACES, self.restricted_namespace)
 
         self.body = []
 
