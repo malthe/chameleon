@@ -770,7 +770,7 @@ class MacroProgram(ElementProgram):
             # interpolation expressions, apply interpolation
             # substitution to the text
             if expr is None and text is not None and '${' in text:
-                expr = nodes.Substitution(text, char_escape, None)
+                expr = nodes.Substitution(text, char_escape)
                 translation = implicit_i18n and msgid is missing
                 value = nodes.Interpolation(expr, True, translation)
                 default_marker = self.default_marker
