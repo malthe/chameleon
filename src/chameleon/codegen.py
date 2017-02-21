@@ -121,10 +121,12 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
     names = ()
 
-    def __init__(self, tree):
+    def __init__(self, tree, source=None):
         self.imports = {}
         self.defines = {}
         self.markers = {}
+        self.source = source
+        self.tokens = []
 
         # Generate code
         super(TemplateCodeGenerator, self).__init__(tree)
@@ -242,3 +244,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
         node = self.define(name, node.value)
         self.visit(node)
+
+    def visit_TokenRef(self, node):
+        self.tokens.append((node.pos, node.length))
+        super(TemplateCodeGenerator, self).visit(ast.Num(n=node.pos))

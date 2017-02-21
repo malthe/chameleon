@@ -216,7 +216,7 @@ class BaseTemplate(object):
         cooked = self.loader.get(filename)
         if cooked is None:
             try:
-                source = self._make(body, builtins)
+                source = self._compile(body, builtins)
                 if self.debug:
                     source = "# template: %s\n#\n%s" % (
                         self.filename, source)
@@ -247,14 +247,14 @@ class BaseTemplate(object):
 
         return digest
 
-    def _compile(self, program, builtins):
-        compiler = Compiler(self.engine, program, builtins, strict=self.strict)
-        return compiler.code
-
-    def _make(self, body, builtins):
+    def _compile(self, body, builtins):
         program = self.parse(body)
         module = Module("initialize", program)
-        return self._compile(module, builtins)
+        compiler = Compiler(
+            self.engine, module, self.filename, body,
+            builtins, strict=self.strict
+        )
+        return compiler.code
 
 
 class BaseTemplateFile(BaseTemplate):

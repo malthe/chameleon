@@ -92,6 +92,20 @@ def compute_source_marker(line, column, expression, size):
     return s, column * " " + marker
 
 
+def iter_source_marker_lines(source, expression, line, column):
+    for i, l in enumerate(source):
+        if i + 1 != line:
+            continue
+
+        s, marker = compute_source_marker(
+            l, column, expression, LENGTH
+        )
+
+        yield " - Source:     %s" % s
+        yield "               %s" % marker
+        break
+
+
 def ellipsify(string, limit):
     if len(string) > limit:
         return "... " + string[-(limit - 4):]
@@ -242,19 +256,12 @@ class ExceptionFormatter(object):
             formatted[index + 1] = " " * 15 + string
 
         out = []
-        seen = set()
 
-        for error in reversed(self._errors):
+        for error in self._errors:
             expression, line, column, filename, exc = error
-
-            if exc in seen:
-                continue
-
-            seen.add(exc)
 
             if isinstance(exc, UnicodeDecodeError):
                 string = safe_native(exc.object)
-
                 s, marker = compute_source_marker(
                     string, exc.start, string[exc.start:exc.end], LENGTH
                     )
@@ -268,23 +275,17 @@ class ExceptionFormatter(object):
             out.append(" - Filename:   %s" % _filename)
             out.append(" - Location:   (line %d: col %d)" % (line, column))
 
-            if filename and line and column:
+            if filename and not filename.startswith('<') and line and column:
                 try:
                     f = open(filename, 'r')
                 except IOError:
                     pass
                 else:
+                    lines = iter_source_marker_lines(
+                        iter(f), expression, line, column
+                    )
                     try:
-                        # Pick out source line and format marker
-                        for i, l in enumerate(f):
-                            if i + 1 == line:
-                                s, marker = compute_source_marker(
-                                    l, column, expression, LENGTH
-                                    )
-
-                                out.append(" - Source:     %s" % s)
-                                out.append("               %s" % marker)
-                                break
+                        out.extend(lines)
                     finally:
                         f.close()
 

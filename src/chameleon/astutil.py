@@ -202,6 +202,12 @@ class Comment(Node):
     space = ""
 
 
+class TokenRef(Node):
+    """Represents a source-code token reference."""
+
+    _fields = "pos", "length"
+
+
 class ASTCodeGenerator(object):
     """General purpose base class for AST transformations.
 

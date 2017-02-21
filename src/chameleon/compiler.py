@@ -20,6 +20,7 @@ from .astutil import Comment
 from .astutil import Symbol
 from .astutil import Builtin
 from .astutil import Static
+from .astutil import TokenRef
 
 from .codegen import TemplateCodeGenerator
 from .codegen import template
@@ -107,15 +108,22 @@ def store_rcontext(name):
     return subscript(name, load("rcontext"), ast.Store())
 
 
-def set_error(exception):
+def set_error(exception, token):
     return template(
         "rcontext.setdefault('__error__', [])."
-        "append(__token + (exc, ))",
+        "append(token + (__filename, exc, ))",
         exc=exception,
+        token=token
     )
 
 
 def set_token(stmts, token):
+    pos = getattr(token, "pos", 0)
+    body = template("__token = pos", pos=TokenRef(pos, len(token)))
+    return body + stmts
+
+
+def eval_token(token):
     try:
         line, column = token.location
         filename = token.filename
@@ -125,15 +133,13 @@ def set_token(stmts, token):
 
     string = safe_native(token)
 
-    body = template(
-        "__token = string, line, col, src",
+    return template(
+        "(string, line, col)",
         string=ast.Str(s=string),
         line=ast.Num(n=line),
         col=ast.Num(n=column),
-        src=ast.Str(s=filename),
+        mode="eval"
     )
-
-    return body + stmts
 
 
 @template
@@ -638,8 +644,9 @@ class ExpressionEvaluator(object):
             module = Module("evaluate", Context(assignment))
 
             compiler = Compiler(
-                self._engine, module, ('econtext', 'rcontext') + self._names
-                )
+                self._engine, module, "<string>", string,
+                ('econtext', 'rcontext') + self._names
+            )
 
             env = {}
             exec(compiler.code, env)
@@ -760,13 +767,9 @@ class ExpressionTransform(object):
 
             stmts = template(
                 "__exc = loads(p)", loads=self.loads_symbol, p=ast.Str(s=p)
-                )
+            )
 
-            token = Token(exc.token, exc.offset, filename=exc.filename)
-
-            stmts = set_token(stmts, token)
-            stmts += set_error(load("__exc"))
-            stmts += [ast.Raise(exc=load("__exc"))]
+            stmts += set_token([ast.Raise(exc=load("__exc"))], exc.token)
 
         # Apply visitor to each statement
         for stmt in stmts:
@@ -907,7 +910,8 @@ class Compiler(object):
 
     global_builtins = set(builtins.__dict__)
 
-    def __init__(self, engine_factory, node, builtins={}, strict=True):
+    def __init__(self, engine_factory, node, filename, source,
+                 builtins={}, strict=True):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
@@ -944,14 +948,27 @@ class Compiler(object):
             module = ast.Module([])
             module.body += self.visit(node)
             ast.fix_missing_locations(module)
-            generator = TemplateCodeGenerator(module)
+            prelude = "__filename = %r" % filename
+            generator = TemplateCodeGenerator(module, source)
+            tokens = [
+                Token(source[pos:pos + length], pos, source)
+                for pos, length in generator.tokens
+            ]
+            token_map_def = "__tokens = {" + ", ".join("%d: %r" % (
+                token.pos,
+                (token, ) + token.location
+            ) for token in tokens) + "}"
         finally:
             if backup is not None:
                 node_annotations.clear()
                 node_annotations.update(backup)
                 self.lock.release()
 
-        self.code = generator.code
+        self.code = "\n".join((
+            prelude,
+            token_map_def,
+            generator.code
+        ))
 
     def visit(self, node):
         if node is None:
@@ -1041,7 +1058,7 @@ class Compiler(object):
         # Initialization
         body += template("__append = __stream.append")
         body += template("__re_amp = g_re_amp")
-        body += template("__token = ()")
+        body += template("__token = None")
         body += template("__re_needs_escape = g_re_needs_escape")
 
         body += emit_func_convert("__convert")
@@ -1067,9 +1084,12 @@ class Compiler(object):
                 "except: NAME = None",
                 KEY=ast.Str(s=name), NAME=store(name))
 
-        exc_handler = set_error(template(
-            "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
-        )) + template("raise")
+        exc_handler = set_error(
+            template(
+                "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
+            ),
+            template("__tokens.get(pos, ())", pos="__token", mode="eval")
+        ) + template("raise")
 
         # Wrap visited nodes in try-except error handler.
         body += [
@@ -1126,7 +1146,7 @@ class Compiler(object):
         self._leave_assignment((node.name, ))
 
         error_assignment = template(
-            "econtext[key] = cls(__exc, __token[1:3])",
+            "econtext[key] = cls(__exc, __tokens[__token][1:3])",
             cls=ErrorInfo,
             key=ast.Str(s=node.name),
             )
