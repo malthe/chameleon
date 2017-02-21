@@ -223,7 +223,7 @@ class PageTemplate(BaseTemplate):
             implicit_i18n_attributes=self.implicit_i18n_attributes,
             trim_attribute_space=self.trim_attribute_space,
             enable_data_attributes=self.enable_data_attributes,
-            restricted_namespace = self.restricted_namespace,
+            restricted_namespace=self.restricted_namespace,
             )
 
     def render(self, encoding=None, **_kw):

@@ -3,6 +3,13 @@ Changes
 
 In next release ...
 
+Features:
+
+- Add option ``restricted_namespace`` which controls whether to
+  restrict namespaces to those defined and used by the page template
+  language.
+  [hansroh]
+
 Bugs:
 
 - Fixed attribute HTML entity escaping issue where an entity such as

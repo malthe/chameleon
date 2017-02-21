@@ -136,7 +136,8 @@ class MacroProgram(ElementProgram):
     # attributes, e.g. "data-tal-content" instead of "tal:content".
     enable_data_attributes = False
 
-    # valid namespaces
+    # If set, XML namespaces are restricted to the list of those
+    # defined and used by the page template language.
     restricted_namespace = True
 
     def __init__(self, *args, **kwargs):
