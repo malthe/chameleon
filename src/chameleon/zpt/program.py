@@ -185,7 +185,7 @@ class MacroProgram(ElementProgram):
             convert_data_attributes(ns, attrs, start['ns_map'])
 
         for (prefix, attr), encoded in tuple(ns.items()):
-            if prefix == TAL:
+            if prefix == TAL or prefix == METAL:
                 ns[prefix, attr] = decode_htmlentities(encoded)
 
         # Validate namespace attributes
