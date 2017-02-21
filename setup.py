@@ -18,27 +18,17 @@ install_requires = []
 
 class Benchmark(test):
     description = "Run benchmarks"
-    user_options = []
-    test_suite = None
-
-    def initialize_options(self):
-        """init options"""
-        pass
 
     def finalize_options(self):
-        """finalize options"""
-
         self.distribution.tests_require = [
             'zope.pagetemplate',
             'zope.component',
             'zope.i18n',
             'zope.testing']
 
-    def run(self):
-        test.run(self)
-        self.with_project_on_sys_path(self.run_benchmark)
+        test.finalize_options(self)
 
-    def run_benchmark(self):
+    def run_tests(self):
         from chameleon import benchmark
         print("running benchmark...")
 
