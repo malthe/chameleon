@@ -999,7 +999,7 @@ class Compiler(object):
 
         body += template(
             r"__re_whitespace = "
-            r"functools.partial(re.compile('\s+').sub, ' ')",
+            r"functools.partial(re.compile('\\s+').sub, ' ')",
         )
 
         # Visit module content
