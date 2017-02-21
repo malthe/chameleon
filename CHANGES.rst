@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+Bugs:
+
+- Fixed attribute HTML entity escaping issue where an entity such as
+  ``&amp;`` would be encoded twice.
+
 Optimizations:
 
 - Avoid checking if a static string is ``None`` during expression

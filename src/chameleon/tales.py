@@ -411,7 +411,7 @@ class StringExpr(object):
 
     >>> class engine:
     ...     @staticmethod
-    ...     def parse(expression):
+    ...     def parse(expression, char_escape=None):
     ...         class compiler:
     ...             @staticmethod
     ...             def assign_text(target):
@@ -542,7 +542,7 @@ class SimpleEngine(object):
         if expression is not None:
             self.expression = expression
 
-    def parse(self, string, handle_errors=False):
+    def parse(self, string, handle_errors=False, char_escape=None):
         compiler = self.expression(string)
         return SimpleCompiler(compiler, self)
 

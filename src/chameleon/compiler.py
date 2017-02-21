@@ -54,7 +54,6 @@ from .utils import safe_native
 from .utils import builtins
 from .utils import decode_htmlentities
 
-
 if version >= (3, 0, 0):
     long = int
 
@@ -283,11 +282,13 @@ class Interpolator(object):
         r'(?<![\\$])\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))',
         re.DOTALL)
 
-    def __init__(self, expression, braces_required, translate=False):
+    def __init__(self, expression, braces_required, translate=False,
+                 decode_htmlentities=False):
         self.expression = expression
         self.regex = self.braces_required_regex if braces_required else \
                      self.braces_optional_regex
         self.translate = translate
+        self.decode_htmlentities = decode_htmlentities
 
     def __call__(self, name, engine):
         """The strategy is to find possible expression strings and
@@ -343,7 +344,9 @@ class Interpolator(object):
             while True:
                 d = groupdict(m, matched)
                 string = d["expression"] or d.get("variable") or ""
-                string = decode_htmlentities(string)
+
+                if self.decode_htmlentities:
+                    string = decode_htmlentities(string)
 
                 if string:
                     try:
@@ -493,18 +496,20 @@ class ExpressionEngine(object):
         compiler = self.parse(string)
         return compiler(string, target)
 
-    def parse(self, string, handle_errors=True):
+    def parse(self, string, handle_errors=True, char_escape=None):
         expression = self._parser(string)
-        compiler = self.get_compiler(expression, string, handle_errors)
+        compiler = self.get_compiler(expression, string, handle_errors, char_escape)
         return ExpressionCompiler(compiler, self)
 
-    def get_compiler(self, expression, string, handle_errors):
+    def get_compiler(self, expression, string, handle_errors, char_escape):
+        if char_escape is None:
+            char_escape = self._char_escape
         def compiler(target, engine, result_type=None, *args):
             stmts = expression(target, engine)
 
             if result_type is not None:
                 method = getattr(self, '_convert_%s' % result_type)
-                steps = method(target, *args)
+                steps = method(target, char_escape, *args)
                 stmts.extend(steps)
 
             if handle_errors:
@@ -514,7 +519,7 @@ class ExpressionEngine(object):
 
         return compiler
 
-    def _convert_bool(self, target, s):
+    def _convert_bool(self, target, char_escape, s):
         """Converts value given by ``target`` to a string ``s`` if the
         target is a true value, otherwise ``None``.
         """
@@ -525,41 +530,46 @@ class ExpressionEngine(object):
             default_marker=self._default_marker
             )
 
-    def _convert_text(self, target):
-        """Converts value given by ``target`` to text."""
-
-        if self._char_escape:
-            # This is a cop-out - we really only support a very select
-            # set of escape characters
-            other = set(self._char_escape) - self.supported_char_escape_set
-
-            if other:
-                for supported in '"', '\'', '':
-                    if supported in self._char_escape:
-                        quote = supported
-                        break
-                else:
-                    raise RuntimeError(
-                        "Unsupported escape set: %s." % repr(self._char_escape)
-                        )
-            else:
-                quote = '\0'
-
-            entity = char2entity(quote or '\0')
-
-            return template(
-                "TARGET = __quote(TARGET, QUOTE, Q_ENTITY, DEFAULT, MARKER)",
-                TARGET=target,
-                QUOTE=ast.Str(s=quote),
-                Q_ENTITY=ast.Str(s=entity),
-                DEFAULT=self._default,
-                MARKER=self._default_marker,
-                )
+    def _convert_structure(self, target, char_escape):
+        """Converts value given by ``target`` to structure output."""
 
         return emit_convert(
             target,
             default=self._default,
             default_marker=self._default_marker,
+            )
+
+    def _convert_text(self, target, char_escape):
+        """Converts value given by ``target`` to text."""
+
+        if not char_escape:
+            return self._convert_structure(target, char_escape)
+
+        # This is a cop-out - we really only support a very select
+        # set of escape characters
+        other = set(char_escape) - self.supported_char_escape_set
+
+        if other:
+            for supported in '"', '\'', '':
+                if supported in char_escape:
+                    quote = supported
+                    break
+            else:
+                raise RuntimeError(
+                    "Unsupported escape set: %s." % repr(char_escape)
+                    )
+        else:
+            quote = '\0'
+
+        entity = char2entity(quote or '\0')
+
+        return template(
+            "TARGET = __quote(TARGET, QUOTE, Q_ENTITY, DEFAULT, MARKER)",
+            TARGET=target,
+            QUOTE=ast.Str(s=quote),
+            Q_ENTITY=ast.Str(s=entity),
+            DEFAULT=self._default,
+            MARKER=self._default_marker,
             )
 
 
@@ -809,11 +819,8 @@ class ExpressionTransform(object):
         return [ast.Assign(targets=[target], value=value)]
 
     def visit_Substitution(self, node, target):
-        engine = self.engine_factory(
-            char_escape=node.char_escape,
-            default=node.default,
-            )
-        compiler = engine.parse(node.value)
+        engine = self.engine_factory(default=node.default)
+        compiler = engine.parse(node.value, char_escape=node.char_escape)
         return compiler.assign_text(target)
 
     def visit_Negate(self, node, target):
@@ -852,11 +859,15 @@ class ExpressionTransform(object):
             raise RuntimeError("Bad value: %r." % node.value)
 
         interpolator = Interpolator(
-            expr.value, node.braces_required, node.translation
-            )
+            expr.value, node.braces_required,
+            translate=node.translation,
+            decode_htmlentities=True
+        )
 
-        compiler = engine.get_compiler(interpolator, expr.value, True)
-        return compiler(target, engine)
+        compiler = engine.get_compiler(
+            interpolator, expr.value, True, ()
+        )
+        return compiler(target, engine, "text")
 
     def visit_Translate(self, node, target):
         if node.msgid is not None:

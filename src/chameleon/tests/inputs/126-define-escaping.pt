@@ -1,0 +1,10 @@
+<html>
+  <body tal:define="s1 string:&amp;;
+                    s2 python:'&amp;'">
+    ${s1}
+    ${s2}
+    ${structure: s1}amp;
+    ${structure: s2}amp;
+    <a tal:attributes="href string:localhost?a=1b${s1}2" />
+  </body>
+</html>

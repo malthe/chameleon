@@ -779,7 +779,7 @@ class MacroProgram(ElementProgram):
             # dynamic (computed).
             elif expr is not None:
                 if name is None:
-                    expression = nodes.Value(expr)
+                    expression = nodes.Value(decode_htmlentities(expr))
                     value = nodes.DictAttributes(
                         expression, ('&', '<', '>', '"'), '"',
                         set(filter(None, names[i:]))
@@ -795,7 +795,11 @@ class MacroProgram(ElementProgram):
                     else:
                         default = None
 
-                    value = nodes.Substitution(expr, char_escape, default)
+                    value = nodes.Substitution(
+                        decode_htmlentities(expr),
+                        char_escape,
+                        default
+                    )
 
             # Otherwise, it's a static attribute. We don't include it
             # here if there's one or more "computed" attributes
