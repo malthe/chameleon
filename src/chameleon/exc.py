@@ -165,6 +165,32 @@ class TemplateError(Exception):
         text += "\n"
         text += " - Location:   (line %d: col %d)" % (line, column)
 
+        if line and column:
+            if self.token.source:
+                lines = iter_source_marker_lines(
+                    self.token.source.splitlines(),
+                    self.token, line, column
+                )
+            elif self.filename and not self.filename.startswith('<'):
+                try:
+                    f = open(self.filename, 'r')
+                except IOError:
+                    pass
+                else:
+                    it = iter_source_marker_lines(
+                        iter(f), self.token, line, column
+                    )
+                    try:
+                        lines = list(lines)
+                    finally:
+                        f.close()
+            else:
+                lines = ()
+
+            # Prepend newlines.
+            for line in lines:
+                text += "\n" + line
+
         return text
 
     def __repr__(self):

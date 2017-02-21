@@ -9,6 +9,11 @@ Features:
 - Add the automatic variable ``macroname`` that's bound to the name of
   the executing macro. Fixes https://github.com/malthe/chameleon/issues/238
 
+Features:
+
+- Expression errors now display source marker (previously only
+  filename, line and column was shown).
+
 Optimizations:
 
 - Exception tracking now defers metadata allocation to time of error.
