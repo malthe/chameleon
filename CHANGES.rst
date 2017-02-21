@@ -10,6 +10,8 @@ Bugs:
 
 Optimizations:
 
+- Simplify exception tracking, reducing bytecode size significantly.
+
 - Avoid checking if a static string is ``None`` during expression
   interpolation.
 

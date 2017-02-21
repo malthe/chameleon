@@ -107,7 +107,15 @@ def store_rcontext(name):
     return subscript(name, load("rcontext"), ast.Store())
 
 
-def set_error(token, exception):
+def set_error(exception):
+    return template(
+        "rcontext.setdefault('__error__', [])."
+        "append(__token + (exc, ))",
+        exc=exception,
+    )
+
+
+def set_token(stmts, token):
     try:
         line, column = token.location
         filename = token.filename
@@ -117,29 +125,15 @@ def set_error(token, exception):
 
     string = safe_native(token)
 
-    return template(
-        "rcontext.setdefault('__error__', [])."
-        "append((string, line, col, src, exc))",
+    body = template(
+        "__token = string, line, col, src",
         string=ast.Str(s=string),
         line=ast.Num(n=line),
         col=ast.Num(n=column),
         src=ast.Str(s=filename),
-        sys=Symbol(sys),
-        exc=exception,
-        )
+    )
 
-
-def try_except_wrap(stmts, token):
-    exception = template(
-        "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
-        )
-
-    body = set_error(token, exception) + template("raise")
-
-    return ast.TryExcept(
-        body=stmts,
-        handlers=[ast.ExceptHandler(body=body)],
-        )
+    return body + stmts
 
 
 @template
@@ -513,7 +507,7 @@ class ExpressionEngine(object):
                 stmts.extend(steps)
 
             if handle_errors:
-                return [try_except_wrap(stmts, string.strip())]
+                return set_token(stmts, string.strip())
 
             return stmts
 
@@ -770,7 +764,8 @@ class ExpressionTransform(object):
 
             token = Token(exc.token, exc.offset, filename=exc.filename)
 
-            stmts += set_error(token, load("__exc"))
+            stmts = set_token(stmts, token)
+            stmts += set_error(load("__exc"))
             stmts += [ast.Raise(exc=load("__exc"))]
 
         # Apply visitor to each statement
@@ -1046,6 +1041,7 @@ class Compiler(object):
         # Initialization
         body += template("__append = __stream.append")
         body += template("__re_amp = g_re_amp")
+        body += template("__token = ()")
         body += template("__re_needs_escape = g_re_needs_escape")
 
         body += emit_func_convert("__convert")
@@ -1071,8 +1067,17 @@ class Compiler(object):
                 "except: NAME = None",
                 KEY=ast.Str(s=name), NAME=store(name))
 
-        # Append visited nodes
-        body += nodes
+        exc_handler = set_error(template(
+            "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
+        )) + template("raise")
+
+        # Wrap visited nodes in try-except error handler.
+        body += [
+            ast.TryExcept(
+                body=nodes,
+                handlers=[ast.ExceptHandler(body=exc_handler)]
+            )
+        ]
 
         function_name = "render" if node.name is None else \
                         "render_%s" % mangle(node.name)
@@ -1121,7 +1126,7 @@ class Compiler(object):
         self._leave_assignment((node.name, ))
 
         error_assignment = template(
-            "econtext[key] = cls(__exc, rcontext['__error__'][-1][1:3])",
+            "econtext[key] = cls(__exc, __token[1:3])",
             cls=ErrorInfo,
             key=ast.Str(s=node.name),
             )
@@ -1530,7 +1535,7 @@ class Compiler(object):
         for stmt in stmts:
             self._visitor(stmt)
 
-        return [try_except_wrap(stmts, node.source)]
+        return set_token(stmts, node.source)
 
     def visit_UseExternalMacro(self, node):
         self._macros.append(node.extend)
@@ -1589,10 +1594,10 @@ class Compiler(object):
         return (
             callbacks +
             assignment +
-            [try_except_wrap(
+            set_token(
                 template("__m = __macro.include"),
                 node.expression.value
-            )] +
+            ) +
             template(
                 "__m(__stream, econtext.copy(), "
                 "rcontext, __i18n_domain)"
