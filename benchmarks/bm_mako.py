@@ -74,7 +74,7 @@ PAGE_TEMPLATE = """
         </tr>
     % endfor
 </table>
-% for nr in xrange(img_count):
+% for nr in range(img_count):
     ${parent.img('/foo/bar/baz.png', 'no image :o')}
 % endfor
 ${next.body()}
@@ -129,8 +129,8 @@ def test_mako(count):
 
     template = Template(CONTENT_TEMPLATE, lookup=lookup)
     
-    table = [xrange(150) for i in xrange(150)]
-    paragraphs = xrange(50)
+    table = [range(150) for i in range(150)]
+    paragraphs = range(50)
     title = 'Hello world!'
 
     times = []

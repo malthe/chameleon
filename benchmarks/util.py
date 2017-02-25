@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 """Utility code for benchmark scripts."""
 
@@ -7,6 +8,11 @@ __author__ = "collinwinter@google.com (Collin Winter)"
 import math
 import operator
 
+try:
+	reduce
+except NameError:
+	import functools
+	reduce = functools.reduce
 
 def run_benchmark(options, num_runs, bench_func, *args):
     """Run the given benchmark, print results to stdout.
@@ -27,10 +33,10 @@ def run_benchmark(options, num_runs, bench_func, *args):
         data = bench_func(num_runs, *args)
         if options.take_geo_mean:
             product = reduce(operator.mul, data, 1)
-            print math.pow(product, 1.0 / len(data))
+            print (math.pow(product, 1.0 / len(data)))
         else:
             for x in data:
-                print x
+                print (x)
 
 
 def add_standard_options_to(parser):

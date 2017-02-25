@@ -55,7 +55,7 @@ PAGE_TEMPLATE = '''
 <body metal:fill-slot="body">
 <table metal:use-macro="base.macros['table']" />
 images:
-<tal:images repeat="nr xrange(img_count)">
+<tal:images repeat="nr range(img_count)">
     <img tal:define="src '/foo/bar/baz.png';
                      alt 'no image :o'"
          metal:use-macro="base.macros['img']" />
@@ -100,8 +100,8 @@ def test_mako(count):
     base = PageTemplate(BASE_TEMPLATE)
     page = PageTemplate(PAGE_TEMPLATE)
 
-    table = [xrange(150) for i in xrange(150)]
-    paragraphs = xrange(50)
+    table = [range(150) for i in range(150)]
+    paragraphs = range(50)
     title = 'Hello world!'
 
     times = []
