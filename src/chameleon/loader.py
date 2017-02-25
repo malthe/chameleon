@@ -8,6 +8,7 @@ import sys
 import tempfile
 import warnings
 import pkg_resources
+import atexit
 
 log = logging.getLogger('chameleon.loader')
 
@@ -105,8 +106,9 @@ class ModuleLoader(object):
     def __init__(self, path, remove=False):
         self.path = path
         self.remove = remove
+        atexit.register(self.destroy, shutil=shutil)
 
-    def __del__(self, shutil=shutil):
+    def destroy(self, shutil=shutil):
         if not self.remove:
             return
         try:
