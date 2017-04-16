@@ -1,0 +1,6 @@
+<html>
+  <body>
+    <input name="${'foo'}" type="checkbox" ${'checked' if True else ''}>
+    <input name="${'foo'}" type="checkbox" checked="${'checked' if True else ''}">
+  </body>
+</html>

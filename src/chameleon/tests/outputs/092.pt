@@ -1,0 +1,6 @@
+<html>
+  <body>
+    <input name="foo" type="checkbox" checked>
+    <input name="foo" type="checkbox" checked="checked">
+  </body>
+</html>
