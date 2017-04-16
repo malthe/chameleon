@@ -355,6 +355,33 @@ class ZopePageTemplatesTest(RenderTestCase):
         rendered = template(test=object())
         self.assertTrue('object' in rendered)
 
+    def test_translate_escape_chars(self):
+        def translate(msgid, domain=None, mapping=None, context=None,
+                      target_language=None, default=None):
+            if msgid == 'hello ${world}':
+                return "translated: hello {world}".format(**mapping)
+            return msgid
+
+        # ZPT style
+        template = '<tal:tag i18n:translate="">hello <span i18n:name="world" tal:replace="world"/></tal:tag>'
+        template = self.from_string(template, translate=translate)
+        # test without escapes
+        rendered = template(world="worl'd")
+        self.assertEqual(rendered, "translated: hello worl'd")
+        # test with escapes (should also be translated, then ecaped)
+        rendered = template(world="&<>")
+        self.assertEqual(rendered, 'translated: hello &amp;&lt;&gt;')
+
+        # ${style} tags
+        template = '<tal:tag i18n:translate="">hello ${world}</tal:tag>'
+        template = self.from_string(template, translate=translate)
+        # test without escapes, no translation as substitution happens before
+        rendered = template(world="&<>")
+        self.assertEqual(rendered, "hello worl'd")
+        # test with escapes, no translation as substitution happens before
+        rendered = template(world=escapes)
+        self.assertEqual(rendered, 'hello &amp;&lt;&gt;')
+
     def test_object_substitution_coerce_to_str(self):
         template = self.from_string('${test}', translate=None)
 
