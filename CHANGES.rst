@@ -11,6 +11,12 @@ Features:
 
 Features:
 
+- A tokenizer can now be configured on the template class. This is
+  useful in the case where the template file input is modified before
+  parsing (for example, where some tags are stripped away) such that
+  token positions need to be offset accordingly for error locations to
+  be rendered correctly.
+
 - Expression errors now display source marker (previously only
   filename, line and column was shown).
 

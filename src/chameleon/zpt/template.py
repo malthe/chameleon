@@ -145,6 +145,11 @@ class PageTemplate(BaseTemplate):
           <button v-on:click="greet">Greet</button>
           <button @click="greet">Greet</button>
 
+      ``tokenizer``
+
+        None by default. If provided, this tokenizer is used instead of the default
+        (which is selected based on the template mode parameter.)
+
     Output is unicode on Python 2 and string on Python 3.
 
     """
@@ -179,6 +184,8 @@ class PageTemplate(BaseTemplate):
     enable_data_attributes = False
 
     restricted_namespace = True
+
+    tokenizer = None
 
     def __init__(self, body, **config):
         self.macros = Macros(self)
@@ -224,7 +231,8 @@ class PageTemplate(BaseTemplate):
             trim_attribute_space=self.trim_attribute_space,
             enable_data_attributes=self.enable_data_attributes,
             restricted_namespace=self.restricted_namespace,
-            )
+            tokenizer=self.tokenizer
+        )
 
     def render(self, encoding=None, **_kw):
         """Render template to string.
