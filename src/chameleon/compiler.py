@@ -108,15 +108,6 @@ def store_rcontext(name):
     return subscript(name, load("rcontext"), ast.Store())
 
 
-def set_error(exception, token):
-    return template(
-        "rcontext.setdefault('__error__', [])."
-        "append(token + (__filename, exc, ))",
-        exc=exception,
-        token=token
-    )
-
-
 def set_token(stmts, token):
     pos = getattr(token, "pos", 0)
     body = template("__token = pos", pos=TokenRef(pos, len(token)))
@@ -1084,11 +1075,16 @@ class Compiler(object):
                 "except: NAME = None",
                 KEY=ast.Str(s=name), NAME=store(name))
 
-        exc_handler = set_error(
-            template(
-                "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
-            ),
-            template("__tokens.get(pos, ())", pos="__token", mode="eval")
+        exc = template(
+            "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
+        )
+
+        exc_handler = template(
+            "if pos is not None: rcontext.setdefault('__error__', [])."
+            "append(token + (__filename, exc, ))",
+            exc=exc,
+            token=template("__tokens[pos]", pos="__token", mode="eval"),
+            pos="__token"
         ) + template("raise")
 
         # Wrap visited nodes in try-except error handler.
