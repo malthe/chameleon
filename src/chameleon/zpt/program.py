@@ -233,10 +233,21 @@ class MacroProgram(ElementProgram):
                 inner = nodes.UseExternalMacro(
                     nodes.Value(use_macro), slots, False
                     )
+                macro_name = use_macro
             else:
                 inner = nodes.UseExternalMacro(
                     nodes.Value(extend_macro), slots, True
                     )
+                macro_name = extend_macro
+
+            # While the macro executes, it should have access to the name it was
+            # called with as 'macroname'. Splitting on / mirrors zope.tal and is a
+            # concession to the path expression syntax.
+            macro_name = macro_name.rsplit('/', 1)[-1]
+            inner = nodes.Define(
+                [nodes.Assignment(["macroname"], Static(ast.Str(macro_name)), True)],
+                inner,
+            )
         # -or- include tag
         else:
             content = nodes.Sequence(body)
@@ -555,10 +566,7 @@ class MacroProgram(ElementProgram):
                     clause
                 )
 
-            self._macros[clause] =  nodes.Define(
-                [nodes.Assignment(["macroname"], Static(ast.Str(clause)), True)],
-                slot,
-            )
+            self._macros[clause] =  slot
             slot = nodes.UseInternalMacro(clause)
 
         slot = wrap(
