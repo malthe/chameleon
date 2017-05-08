@@ -555,7 +555,10 @@ class MacroProgram(ElementProgram):
                     clause
                 )
 
-            self._macros[clause] = slot
+            self._macros[clause] =  nodes.Define(
+                [nodes.Assignment(["macroname"], Static(ast.Str(clause)), True)],
+                slot,
+            )
             slot = nodes.UseInternalMacro(clause)
 
         slot = wrap(

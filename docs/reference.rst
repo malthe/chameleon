@@ -556,7 +556,7 @@ the same value.
 Examples
 ~~~~~~~~
 
-Iterating over a sequence of strings::    
+Iterating over a sequence of strings::
 
         <p tal:repeat="txt ('one', 'two', 'three')">
            <span tal:replace="txt" />
@@ -578,8 +578,8 @@ Nested repeats::
         <table border="1">
           <tr tal:repeat="row range(10)">
             <td tal:repeat="column range(10)">
-              <span tal:define="x repeat.row.number; 
-                                y repeat.column.number; 
+              <span tal:define="x repeat.row.number;
+                                y repeat.column.number;
                                 z x * y"
                     tal:replace="string:$x * $y = $z">1 * 1 = 1</span>
             </td>
@@ -1007,7 +1007,9 @@ Description
 ~~~~~~~~~~~
 
 The ``metal:use-macro`` statement replaces the statement element with
-a macro. The statement expression describes a macro definition.
+a macro. The statement expression describes a macro definition. The
+``macroname`` variable will be bound to the defined name of the macro
+being used.
 
 .. note:: In Chameleon the expression may point to a template instance; in this case it will be rendered in its entirety.
 
@@ -1502,7 +1504,7 @@ You can also configure default options in a ``setup.cfg`` file. For example::
    [compile_catalog]
    domain = mydomain
    directory = i18n
-   
+
    [extract_messages]
    copyright_holder = Acme Inc.
    output_file = i18n/mydomain.pot

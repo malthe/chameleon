@@ -1,6 +1,14 @@
 Changes
 =======
 
+3.2 (unreleased)
+----------------
+
+Features:
+
+- Add the automatic variable ``macroname`` that's bound to the name of
+  the executing macro. Fixes https://github.com/malthe/chameleon/issues/238
+
 3.1 (2017-02-21)
 ----------------
 
