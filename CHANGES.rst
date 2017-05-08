@@ -9,8 +9,6 @@ Features:
 - Add the automatic variable ``macroname`` that's bound to the name of
   the executing macro. Fixes https://github.com/malthe/chameleon/issues/238
 
-Features:
-
 - A tokenizer can now be configured on the template class. This is
   useful in the case where the template file input is modified before
   parsing (for example, where some tags are stripped away) such that
@@ -23,6 +21,7 @@ Features:
 Optimizations:
 
 - Exception tracking now defers metadata allocation to time of error.
+
 
 3.1 (2017-02-21)
 ----------------
