@@ -1,0 +1,7 @@
+<span metal:define-macro="page" tal:omit-tag="">
+  <h1 metal:define-slot="name" tal:omit-tag="" />
+</span>
+
+<span metal:use-macro="macros['page']">
+  <h1 metal:fill-slot="name" tal:content="macroname">name</h1>
+</span>
