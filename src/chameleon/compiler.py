@@ -133,33 +133,34 @@ def eval_token(token):
     )
 
 
-@template
-def emit_node(node):  # pragma: no cover
-    __append(node)
+emit_node = template(is_func=True, func_args=('node',), source=r"""
+    __append(node)""")
 
 
-@template
-def emit_node_if_non_trivial(node):  # pragma: no cover
+emit_node_if_non_trivial = template(is_func=True, func_args=('node',),
+                                    source=r"""
     if node is not None:
         __append(node)
+""")
 
 
-@template
-def emit_bool(target, s, default_marker=None,
-                 default=None):  # pragma: no cover
+emit_bool = template(is_func=True,
+                     func_args=('target', 's', 'default_marker', 'default'),
+                     func_defaults=(None, None), source=r"""
     if target is default_marker:
         target = default
     elif target:
         target = s
     else:
-        target = None
+        target = None""")
 
 
-@template
-def emit_convert(
-    target, encoded=byte_string, str=unicode_string,
-    long=long, type=type,
-    default_marker=None, default=None):  # pragma: no cover
+emit_convert = template(is_func=True,
+                        func_args=('target', 'encoded', 'str', 'long', 'type',
+                                   'default_marker', 'default'),
+                        func_defaults=(byte_string, unicode_string, long, type,
+                                       None),
+                        source=r"""
     if target is None:
         pass
     elif target is default_marker:
@@ -178,13 +179,14 @@ def emit_convert(
                 __converted = convert(target)
                 target = str(target) if target is __converted else __converted
             else:
-                target = target()
+                target = target()""")
 
 
-@template
-def emit_func_convert(
-    func, encoded=byte_string, str=unicode_string,
-    long=long, type=type):  # pragma: no cover
+emit_func_convert = template(is_func=True,
+                             func_args=('func', 'encoded', 'str','long','type'),
+                             func_defaults=(byte_string, unicode_string, long,
+                                            type),
+                             source=r"""
     def func(target):
         if target is None:
             return
@@ -206,20 +208,24 @@ def emit_func_convert(
             else:
                 target = target()
 
-        return target
+        return target""")
 
 
-@template
-def emit_translate(target, msgid, target_language, default=None):  \
-    # pragma: no cover
-    target = translate(msgid, default=default, domain=__i18n_domain, context=__i18n_context, target_language=target_language)
+emit_translate = template(is_func=True,
+                          func_args=('target', 'msgid', 'target_language',
+                          'default'),
+                          func_defaults=(None,),
+                          source=r"""
+    target = translate(msgid, default=default, domain=__i18n_domain, 
+                       context=__i18n_context, 
+                       target_language=target_language)""")
 
 
-@template
-def emit_func_convert_and_escape(
-    func, str=unicode_string, long=long,
-    type=type, encoded=byte_string):  # pragma: no cover
-
+emit_func_convert_and_escape = template(
+    is_func=True,
+    func_args=('func', 'str', 'long', 'type', 'encoded'),
+    func_defaults=(unicode_string, long, type, byte_string,),
+    source=r"""
     def func(target, quote, quote_entity, default, default_marker):
         if target is None:
             return
@@ -261,7 +267,7 @@ def emit_func_convert_and_escape(
                         if quote is not None and quote in target:
                             target = target.replace(quote, quote_entity)
 
-        return target
+        return target""")
 
 
 class Interpolator(object):

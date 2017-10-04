@@ -44,7 +44,7 @@ except NameError:
     NATIVE_NUMBERS = int, float, bool
 
 
-def template(function, mode='exec', **kw):
+def template(source, mode='exec', is_func=False, func_args=(), func_defaults=(), **kw):
     def wrapper(*vargs, **kwargs):
         symbols = dict(zip(args, vargs + defaults))
         symbols.update(kwargs)
@@ -78,34 +78,18 @@ def template(function, mode='exec', **kw):
                     assert hasattr(value, '_fields')
                     node_annotations[node] = value
 
-        expr = parse(source, mode=mode)
-        if not isinstance(function, basestring):
-            expr = expr.body[0]
+        expr = parse(textwrap.dedent(source), mode=mode)
 
         Visitor().visit(expr)
         return expr.body
 
-    if isinstance(function, basestring):
-        source = function
-        defaults = args = ()
+    assert isinstance(source, basestring)
+    defaults = func_defaults
+    args = func_args
+    if is_func:
+        return wrapper
+    else:
         return wrapper(**kw)
-
-    source = textwrap.dedent(inspect.getsource(function))
-
-    try:
-        parameters = inspect.signature(function).parameters
-        p = [(x.name, x.default) for x in parameters.values()
-                                 if x.kind in (x.POSITIONAL_ONLY,
-                                               x.POSITIONAL_OR_KEYWORD)]
-        args = [x[0] for x in p]
-        defaults = tuple(filter(lambda x: x is not inspect.Parameter.empty,
-                                [x[1] for x in p]))
-    except AttributeError:
-        argspec = inspect.getargspec(function)
-        args = argspec[0]
-        defaults = argspec[3] or ()
-
-    return wrapper
 
 
 class TemplateCodeGenerator(ASTCodeGenerator):
