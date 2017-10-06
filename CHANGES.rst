@@ -18,6 +18,9 @@ Features:
 - Expression errors now display source marker (previously only
   filename, line and column was shown).
 
+- No longer require Python source files to import modules.
+  [mrh1997]
+
 Optimizations:
 
 - Exception tracking now defers metadata allocation to time of error.
