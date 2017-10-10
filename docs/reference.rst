@@ -341,8 +341,10 @@ disallowed (used internally by the compiler). Further, names are
 case-sensitive.
 
 Variable names support basic iterable unpacking when surrounded by
-parenthesis. (This also applies to the variable established by
-``tal:repeat``.)
+parenthesis. This also applies to the variable established by
+``tal:repeat``.
+
+.. note:: This is a Chameleon-specific :ref:`language extension <new-features>`.
 
 Python builtins are always "in scope", but most of them may be
 redefined (such as ``help``). Exceptions are:: ``float``, ``int``,
