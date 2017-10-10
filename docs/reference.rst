@@ -534,8 +534,6 @@ The following information is available from the repeat variable:
 ``parity``          For odd-indexed repetitions, this is 'odd', else 'even'.
 ``start``           True for the starting repetition (index 0).
 ``end``             True for the ending, or final, repetition.
-``first``           True for the first item in a group - see note below
-``last``            True for the last item in a group - see note below
 ``length``          Length of the sequence, which will be the total number of repetitions.
 ``letter``          Repetition number as a lower-case letter: "a" - "z", "aa" - "az", "ba" - "bz", ..., "za" - "zz", "aaa" - "aaz", and so forth.
 ``Letter``          Upper-case version of *letter*.
@@ -549,9 +547,13 @@ or ``repeat.item.start``.
 
 .. note:: For legacy compatibility, the attributes ``odd``, ``even``, ``number``, ``letter``, ``Letter``, ``roman``, and ``Roman`` are callable (returning ``self``).
 
-Note that ``first`` and ``last`` are intended for use with sorted
-sequences.  They try to divide the sequence into group of items with
-the same value.
+.. note:: Earlier versions of this document, and the `Zope 2 Page
+          Templates Reference
+          <https://docs.zope.org/zope2/zope2book/AppendixC.html#repeat-variables>`_,
+          referred to ``first`` and ``last`` attributes for use with
+          sorted sequences. These are not implemented in Chameleon or
+          the Zope reference implementation zope.tales. Instead, you
+          can use :func:`itertools.groupby`, as in the example below.
 
 Examples
 ~~~~~~~~
@@ -586,18 +588,27 @@ Nested repeats::
           </tr>
         </table>
 
-Insert objects. Separates groups of objects by type by drawing a rule
-between them::
+Grouping objects by type, drawing a rule between elements of different
+types::
 
-        <div tal:repeat="object objects">
-          <h2 tal:condition="repeat.object.first.meta_type"
-            tal:content="object.type">Meta Type</h2>
-          <p tal:content="object.id">Object ID</p>
-          <hr tal:condition="object.last.meta_type" />
+        <div tal:repeat="type_objects list(map(lambda g: (g[0], list(g[1])), itertools.groupby(objects, key=lambda o: o.meta_type)))"
+             tal:define="itertools import:itertools">
+          <h2 tal:content="type_objects[0]">Meta Type</h2>
+          <p tal:repeat="object type_objects[1]"
+             tal:content="object.id">Object ID</p>
+          <hr />
         </div>
 
-.. note:: the objects in the above example should already be sorted by
-   type.
+.. caution:: It is important to fully realize the iterator produced by
+             :func:`itertools.groupby`, as well as the iterator
+             produced for each group, in the expression passed to
+             ``tal:repeat``. This is because the implementation of
+             certain repeat variables, such as ``length`` and ``end``
+             requires Chameleon to look ahead in the iterator,
+             consuming it faster than is visible. The iterator returned
+             by :func:`itertools.groupby` is shared among all of its
+             subgroups, so without the full reification of all the
+             iterators, incorrect results will be produced.
 
 ``tal:replace``
 ^^^^^^^^^^^^^^^
@@ -691,7 +702,8 @@ These are the available TALES expression types:
              expression type, which is closely tied to the Zope
              framework. This expression is not implemented in
              Chameleon (but it's available in a Zope framework
-             compatibility package).
+             compatibility package, `z3c.pt
+             <http://pypi.python.org/pypi/z3c.pt>`_).
 
 There's a mechanism to allow fallback to alternative expressions, if
 one should fail (raise an exception). The pipe character ('|') is used
@@ -1242,7 +1254,7 @@ directly; it is not a TALES expression.
 
 
 ``i18n:context``
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 The ``i18n:context`` attribute is used to specify the context to be
 used to get the translation.  If not specified, the translation
