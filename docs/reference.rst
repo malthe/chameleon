@@ -320,10 +320,11 @@ Syntax
 
 ``tal:define`` syntax::
 
-    argument ::= define_scope [';' define_scope]*
-    define_scope ::= (['local'] | 'global')
-    define_var define_var ::= variable_name
-    expression variable_name ::= Name
+    variable_name  ::= Name | '(' Name [',' Name]* ')'
+    define_var     ::= variable_name expression
+    define_scope   ::= (['local'] | 'global') define_var
+    argument       ::= define_scope [';' define_scope]*
+
 
 Description
 ~~~~~~~~~~~
@@ -338,6 +339,10 @@ Note that valid variable names are any Python identifier string
 including underscore, although two or more leading underscores are
 disallowed (used internally by the compiler). Further, names are
 case-sensitive.
+
+Variable names support basic iterable unpacking when surrounded by
+parenthesis. (This also applies to the variable established by
+``tal:repeat``.)
 
 Python builtins are always "in scope", but most of them may be
 redefined (such as ``help``). Exceptions are:: ``float``, ``int``,
@@ -361,6 +366,9 @@ element. When you define a global variables, you can use it in any
 element processed after the defining element. If you redefine a global
 variable, you replace its definition for the rest of the template.
 
+.. tip:: Global variables may be changed by the execution of a
+         macro if that macro also declares the variable to be global.
+
 To set the definition scope of a variable, use the keywords ``local``
 or ``global`` in front of the assignment. The default setting is
 ``local``; thus, in practice, only the ``global`` keyword is used.
@@ -378,6 +386,14 @@ Defining a variable::
 Defining two variables, where the second depends on the first::
 
         tal:define="mytitle context.title; tlen len(mytitle)"
+
+Defining a local and global variable::
+
+        tal:define="global mytitle context.title; tlen len(mytitle)"
+
+Unpacking a sequence::
+
+        tal:define="(key,value) ('a', 42)"
 
 
 ``tal:switch`` and ``tal:case``
@@ -591,10 +607,10 @@ Nested repeats::
 Grouping objects by type, drawing a rule between elements of different
 types::
 
-        <div tal:repeat="type_objects list(map(lambda g: (g[0], list(g[1])), itertools.groupby(objects, key=lambda o: o.meta_type)))"
+        <div tal:repeat="(type,objects) list(map(lambda g: (g[0], list(g[1])), itertools.groupby(objects, key=lambda o: o.meta_type)))"
              tal:define="itertools import:itertools">
-          <h2 tal:content="type_objects[0]">Meta Type</h2>
-          <p tal:repeat="object type_objects[1]"
+          <h2 tal:content="type">Meta Type</h2>
+          <p tal:repeat="object objects"
              tal:content="object.id">Object ID</p>
           <hr />
         </div>
