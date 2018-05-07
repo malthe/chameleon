@@ -2,6 +2,7 @@
 
 import traceback
 
+from .utils import create_formatted_exception
 from .utils import format_kwargs
 from .utils import safe_native
 from .tokenize import Token
@@ -317,6 +318,11 @@ class ExceptionFormatter(object):
 
         out.append(" - Arguments:  %s" % "\n".join(formatted))
 
+        if isinstance(exc.__str__, ExceptionFormatter):
+            # This is a nested error that has already been wrapped
+            # We must unwrap it before trying to format it to prevent
+            # recursion
+            exc = create_formatted_exception(exc, type(exc), exc._original__str__)
         formatted = traceback.format_exception_only(type(exc), exc)[-1]
         formatted_class = "%s:" % type(exc).__name__
 
