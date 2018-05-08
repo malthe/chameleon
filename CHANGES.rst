@@ -6,6 +6,8 @@ Changes
 
 Bugfixes:
 
+- Reset error token when rendering internal macro calls.
+
 - Fix edge case in exception handler causing recursion.
   [MatthewWilkes]
 
