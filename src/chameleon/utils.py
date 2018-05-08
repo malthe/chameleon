@@ -214,6 +214,7 @@ def create_formatted_exception(exc, cls, formatter, base=Exception):
         try:
             new = type(cls.__name__, (cls, base), {
                 '__str__': formatter,
+                '_original__str__': exc.__str__,
                 '__new__': BaseException.__new__,
                 '__module__': cls.__module__,
                 })

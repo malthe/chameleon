@@ -221,6 +221,36 @@ class ZopePageTemplatesTest(RenderTestCase):
         got = template.render(error=sys.exc_info)
         self.assertTrue('<span>(None, None, None)</span>' in got)
 
+    def test_render_macro_include_subtemplate_containing_error(self):
+        macro_inner = self.from_string('''<two tal:attributes="my_attr dict()['key-does-not-exist']" />''')
+        macro_wrap = self.from_string('''<one tal:content="macro_inner()" />''')
+        template = self.from_string(
+            '''
+            <tal:defs define="translate string:">
+              <span i18n:translate="">foo</span>
+              <metal:macro use-macro="macro" />
+            </tal:defs>
+            ''')
+        try:
+            result = template(macro=macro_wrap, macro_inner=macro_inner)
+        except RenderError:
+            exc = sys.exc_info()[1]
+            self.assertTrue(isinstance(exc, KeyError))
+            self.assertIn(''''key-does-not-exist'
+
+ - Expression: "dict()['key-does-not-exist']"
+ - Filename:   <string>
+ - Location:   (line 1: col 29)
+ - Expression: "macro_inner()"
+ - Filename:   <string>
+ - Location:   (line 1: col 18)
+ - Expression: "macro"
+ - Filename:   <string>
+ - Location:   (line 4: col 38)
+''', str(exc))
+        else:
+            self.fail("Expected exception")
+
     def test_render_error_macro_include(self):
         body = """<metal:block use-macro='"bad"' />"""
         template = self.from_string(body, strict=False)
