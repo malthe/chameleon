@@ -2,4 +2,5 @@
 <!ELEMENT doc (#PCDATA)>
 ]>
 <doc>
-</doc>
+
+</doc>
