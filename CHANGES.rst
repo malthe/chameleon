@@ -4,7 +4,10 @@ Changes
 3.3 (unreleased)
 ----------------
 
-...
+Bugfixes:
+
+- Fix edge case in exception handler causing recursion.
+  [MatthewWilkes]
 
 
 3.2 (2017-10-06)
