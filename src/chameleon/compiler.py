@@ -1493,8 +1493,8 @@ class Compiler(object):
             render = "render"
         else:
             render = "render_%s" % mangle(node.name)
-
-        return template(
+        token_reset = template("__token = None")
+        return token_reset + template(
             "f(__stream, econtext.copy(), rcontext, __i18n_domain)",
             f=render) + \
             template("econtext.update(rcontext)")
