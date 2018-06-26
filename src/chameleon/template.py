@@ -7,18 +7,30 @@ import logging
 import tempfile
 import inspect
 
-pkg_digest = hashlib.sha1(__name__.encode('utf-8'))
 
-try:
-    import pkg_resources
-except ImportError:
-    logging.info("Setuptools not installed. Unable to determine version.")
-else:
+def get_package_versions():
+    try:
+        import pkg_resources
+    except ImportError:
+        logging.info("Setuptools not installed. Unable to determine version.")
+        return []
+
+    versions = dict()
     for path in sys.path:
         for distribution in pkg_resources.find_distributions(path):
             if distribution.has_version():
-                version = distribution.version.encode('utf-8')
-                pkg_digest.update(version)
+                versions.setdefault(
+                    distribution.project_name,
+                    distribution.version,
+                )
+
+    return sorted(versions.items())
+
+
+pkg_digest = hashlib.sha1(__name__.encode('utf-8'))
+for name, version in get_package_versions():
+    pkg_digest.update(name.encode('utf-8'))
+    pkg_digest.update(version.encode('utf-8'))
 
 
 from .exc import RenderError
