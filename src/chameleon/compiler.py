@@ -405,7 +405,7 @@ class Interpolator(object):
                 target = template(
                     "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",
                     msgid=ast.Str(s=formatting_string),
-                    target_language=target_language,
+                    target_language="target_language",
                     mapping=ast.Dict(keys=keys, values=values),
                     mode="eval"
                     )

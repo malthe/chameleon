@@ -4,7 +4,10 @@ Changes
 3.4 (unreleased)
 ----------------
 
-In next release ...
+Bugfixes:
+
+- Fix regression with translations in case of multiple nodes.
+
 
 3.3 (2018-05-23)
 ----------------
