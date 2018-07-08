@@ -385,7 +385,7 @@ class Interpolator(object):
                 target = template(
                     "translate(msgid, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",
                     msgid=target, mode="eval",
-                    target_language="target_language",
+                    target_language=load("target_language"),
                     )
         else:
             if translate:
@@ -405,7 +405,7 @@ class Interpolator(object):
                 target = template(
                     "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",
                     msgid=ast.Str(s=formatting_string),
-                    target_language=target_language,
+                    target_language=load("target_language"),
                     mapping=ast.Dict(keys=keys, values=values),
                     mode="eval"
                     )
