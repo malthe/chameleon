@@ -901,6 +901,7 @@ class Compiler(object):
         'translate': Symbol(simple_translate),
         'decode': Builtin("str"),
         'convert': Builtin("str"),
+        'on_error_handler': Builtin("str")
         }
 
     lock = threading.Lock()
@@ -1148,8 +1149,10 @@ class Compiler(object):
         self._leave_assignment((node.name, ))
 
         error_assignment = template(
-            "econtext[key] = cls(__exc, __tokens[__token][1:3])",
+            "econtext[key] = cls(__exc, __tokens[__token][1:3])\n"
+            "if handler is not None: handler(__exc)",
             cls=ErrorInfo,
+            handler=load("on_error_handler"),
             key=ast.Str(s=node.name),
             )
 

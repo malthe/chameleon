@@ -122,6 +122,11 @@ class PageTemplate(BaseTemplate):
 
           implicit_i18n_attributes = set(['alt', 'title'])
 
+      ``on_error_handler``
+
+        This is an optional exception handler that is invoked during the
+        "on-error" fallback block.
+
       ``strict``
 
         Enabled by default. If disabled, expressions are only required
@@ -182,6 +187,8 @@ class PageTemplate(BaseTemplate):
     trim_attribute_space = False
 
     enable_data_attributes = False
+
+    on_error_handler = None
 
     restricted_namespace = True
 
@@ -290,6 +297,7 @@ class PageTemplate(BaseTemplate):
                    partial(translate, target_language=target_language))
         setdefault("__decode", decode)
         setdefault("target_language", None)
+        setdefault("__on_error_handler", self.on_error_handler)
 
         # Make sure we have a repeat dictionary
         if 'repeat' not in _kw: _kw['repeat'] = RepeatDict({})

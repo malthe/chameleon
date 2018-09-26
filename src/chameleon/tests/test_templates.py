@@ -385,6 +385,17 @@ class ZopePageTemplatesTest(RenderTestCase):
         rendered = template(test=object())
         self.assertTrue('object' in rendered)
 
+    def test_on_error_handler(self):
+        exc = []
+        handler = exc.append
+        template = self.from_string(
+            '<tal:block on-error="string:error">${test}</tal:block>',
+            on_error_handler=handler
+        )
+        rendered = template()
+        self.assertEquals(len(exc), 1)
+        self.assertEquals(exc[0].__class__.__name__, "NameError")
+
     def test_object_substitution_coerce_to_str(self):
         template = self.from_string('${test}', translate=None)
 
