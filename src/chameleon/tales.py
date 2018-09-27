@@ -353,6 +353,7 @@ class IdentityExpr(object):
 
 class StringExpr(object):
     """Similar to the built-in ``string.Template``, but uses an
+
     expression engine to support pluggable string substitution
     expressions.
 
@@ -384,7 +385,12 @@ class StringExpr(object):
     syntax:
 
     >>> test(StringExpr('\\${name}'))
-    '\\\${name}'
+    '${name}'
+
+    Alternatively, escaping may be done with double dollar symbols.
+
+    >>> test(StringExpr('$${name}'))
+    '${name}'
 
     Multiple interpolations in one:
 
@@ -394,12 +400,18 @@ class StringExpr(object):
     Here's a more involved example taken from a javascript source:
 
     >>> result = test(StringExpr(\"\"\"
-    ... function(oid) {
+    ... function($$, oid) {
     ...     $('#' + oid).autocomplete({source: ${'source'}});
     ... }
     ... \"\"\"))
 
     >>> 'source: source' in result
+    True
+
+    The double-dollar escape does not affect non-interpolation
+    expressions.
+
+    >>> 'function($$, oid)' in result
     True
 
     In the above examples, the expression is evaluated using the
@@ -432,7 +444,8 @@ class StringExpr(object):
     We evaluate the expression using the new engine:
 
     >>> test(expr, engine)
-    'There are 11 characters in \"hello world\"'
+    'There are 11 characters in \"hello world\
+"'
     """
 
     def __init__(self, expression, braces_required=False):
