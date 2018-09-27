@@ -4,8 +4,9 @@ Changes
 3.5 (unreleased)
 ----------------
 
-- ...
-
+- Add support for custom exception handling for the `tal:on-error`
+  statement. There is now an option `on_error_handler` available
+  as a template configuration (issue #266).
 
 3.4 (2018-07-14)
 ----------------
