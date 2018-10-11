@@ -8,6 +8,12 @@ Changes
   statement. There is now an option `on_error_handler` available
   as a template configuration (issue #266).
 
+- Fix issue where double '$$' escaping would affect non-interpolation
+  expressions such as the bare '$$' (issue #265).
+
+- Fix an issue where backslash dollar escaping would leave the
+  backslash character still in place.
+
 3.4 (2018-07-14)
 ----------------
 
