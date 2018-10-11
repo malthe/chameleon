@@ -4,6 +4,9 @@ Changes
 3.5 (unreleased)
 ----------------
 
+- Add support for TAL attributes in an XML declaration tag. This fixes
+  issue #269.
+
 - Add support for custom exception handling for the `tal:on-error`
   statement. There is now an option `on_error_handler` available
   as a template configuration (issue #266).
