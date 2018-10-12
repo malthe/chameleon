@@ -253,3 +253,6 @@ class ElementParser(object):
         namespace = self.namespaces[-1].copy()
         node = parse_tag(token, namespace, self.restricted_namespace)
         return "element", (node, None, [])
+
+    def visit_xml_declaration(self, kind, token):
+        return self.visit_empty_tag(kind, token)
