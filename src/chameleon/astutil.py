@@ -862,6 +862,13 @@ class ASTCodeGenerator(object):
         self.visit(node.value)
         self._write('`')
 
+    # Constant(object value)
+    def visit_Constant(self, node):
+        if node.value is Ellipsis:
+            self._write('...')
+        else:
+            self._write(repr(node.value))
+
     # Num(object n)
     def visit_Num(self, node):
         self._write(repr(node.n))
@@ -869,6 +876,9 @@ class ASTCodeGenerator(object):
     # Str(string s)
     def visit_Str(self, node):
         self._write(repr(node.s))
+
+    def visit_Ellipsis(self, node):
+        self._write('...')
 
     # Attribute(expr value, identifier attr, expr_context ctx)
     def visit_Attribute(self, node):
@@ -880,30 +890,42 @@ class ASTCodeGenerator(object):
     def visit_Subscript(self, node):
         self.visit(node.value)
         self._write('[')
-
-        def _process_slice(node):
-            if isinstance(node, ast.Ellipsis):
-                self._write('...')
-            elif isinstance(node, ast.Slice):
-                if getattr(node, 'lower', 'None'):
-                    self.visit(node.lower)
-                self._write(':')
-                if getattr(node, 'upper', None):
-                    self.visit(node.upper)
-                if getattr(node, 'step', None):
-                    self._write(':')
-                    self.visit(node.step)
-            elif isinstance(node, ast.Index):
-                self.visit(node.value)
-            elif isinstance(node, ast.ExtSlice):
-                self.visit(node.dims[0])
-                for dim in node.dims[1:]:
+        if isinstance(node.slice, ast.Tuple) and node.slice.elts:
+            self.visit(node.slice.elts[0])
+            if len(node.slice.elts) == 1:
+                self._write(', ')
+            else:
+                for dim in node.slice.elts[1:]:
                     self._write(', ')
                     self.visit(dim)
-            else:
-                raise NotImplemented('Slice type not implemented')
-        _process_slice(node.slice)
+        else:
+            self.visit(node.slice)
         self._write(']')
+
+    # Slice(expr? lower, expr? upper, expr? step)
+    def visit_Slice(self, node):
+        if getattr(node, 'lower', None) is not None:
+            self.visit(node.lower)
+        self._write(':')
+        if getattr(node, 'upper', None) is not None:
+            self.visit(node.upper)
+        if getattr(node, 'step', None) is not None:
+            self._write(':')
+            self.visit(node.step)
+
+    # Index(expr value)
+    def visit_Index(self, node):
+        self.visit(node.value)
+
+    # ExtSlice(slice* dims)
+    def visit_ExtSlice(self, node):
+        self.visit(node.dims[0])
+        if len(node.dims) == 1:
+            self._write(', ')
+        else:
+            for dim in node.dims[1:]:
+                self._write(', ')
+                self.visit(dim)
 
     # Starred(expr value, expr_context ctx)
     def visit_Starred(self, node):
