@@ -1,8 +1,10 @@
 Changes
 =======
 
-3.5 (unreleased)
+3.5 (2018-10-17)
 ----------------
+
+- Add support for Python 3.8.
 
 - Add support for TAL attributes in an XML declaration tag. This fixes
   issue #269.
