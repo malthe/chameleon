@@ -694,7 +694,7 @@ class MacroProgram(ElementProgram):
         match = re.search(r'(\s*)(.*\S)(\s*)', node, flags=re.DOTALL)
         if match is not None:
             prefix, text, suffix = match.groups()
-            normalized = re.sub('\s+', ' ', text)
+            normalized = re.sub(r'\s+', ' ', text)
             return nodes.Sequence([
                 nodes.Text(prefix),
                 nodes.Translate(normalized, nodes.Text(normalized), None),

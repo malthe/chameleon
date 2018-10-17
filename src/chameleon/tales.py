@@ -229,7 +229,7 @@ class PathExpr(TalesExpr):
 
 
 class PythonExpr(TalesExpr):
-    """Python expression compiler.
+    r"""Python expression compiler.
 
     >>> test(PythonExpr('2 + 2'))
     4
@@ -242,7 +242,7 @@ class PythonExpr(TalesExpr):
 
     To include a pipe character, use a backslash escape sequence:
 
-    >>> test(PythonExpr('\"\|\"'))
+    >>> test(PythonExpr(r'"\|"'))
     '|'
     """
 
@@ -384,7 +384,7 @@ class StringExpr(object):
     We can escape interpolation using the standard escaping
     syntax:
 
-    >>> test(StringExpr('\\${name}'))
+    >>> test(StringExpr(r'\\${name}'))
     '${name}'
 
     Alternatively, escaping may be done with double dollar symbols.
@@ -394,7 +394,7 @@ class StringExpr(object):
 
     Multiple interpolations in one:
 
-    >>> test(StringExpr(\"Hello ${'a'}${'b'}${'c'}!\"))
+    >>> test(StringExpr("Hello ${'a'}${'b'}${'c'}!"))
     'Hello abc!'
 
     Here's a more involved example taken from a javascript source:
