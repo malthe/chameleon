@@ -13,7 +13,7 @@ from .tokenize import Token
 match_double_hyphen = re.compile(r'--(?!>)')
 match_tag_prefix_and_name = re.compile(
     r'^(?P<prefix></?)(?P<name>([^:\n\r ]+:)?[^ \n\t\r>/]+)'
-    '(?P<suffix>(?P<space>\s*)/?>)?',
+    r'(?P<suffix>(?P<space>\s*)/?>)?',
     re.UNICODE | re.DOTALL)
 match_single_attribute = re.compile(
     r'(?P<space>\s+)(?!\d)'
