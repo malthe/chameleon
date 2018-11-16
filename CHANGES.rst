@@ -3,7 +3,7 @@ Changes
 
 In next release ...
 
--
+- Drop support for Python 3.3.
 
 3.5 (2018-10-17)
 ----------------
