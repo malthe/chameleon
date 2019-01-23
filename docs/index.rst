@@ -10,7 +10,7 @@ typically HTML markup or XML.
 The language used is *page templates*, originally a `Zope
 <http://www.zope.org>`_ invention [1]_, but available here as a
 :ref:`standalone library <no-dependencies>` that you can use in any
-script or application running Python 2.5 and up (including 3.x and
+script or application running Python 2.7 and up, including 3.4+ and
 `pypy <http://pypy.org>`_). It comes with a set of :ref:`new features
 <new-features>`, too.
 
