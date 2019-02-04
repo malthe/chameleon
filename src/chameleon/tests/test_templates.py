@@ -16,6 +16,10 @@ try:
 except ImportError:
     from unittest import TestCase
 
+try:
+    RecursionError
+except NameError:
+    RecursionError = RuntimeError
 
 from chameleon.utils import byte_string
 from chameleon.exc import RenderError
@@ -301,6 +305,16 @@ class ZopePageTemplatesTest(RenderTestCase):
             body = f.read()
 
         self.from_string(body)
+
+    def test_recursion_error(self):
+        template = self.from_string(
+            '<div metal:define-macro="main" '
+            'metal:use-macro="template.macros.main" />'
+        )
+        self.assertRaises(
+            RecursionError,
+            template
+        )
 
     def test_unicode_decode_error(self):
         template = self.from_file(
