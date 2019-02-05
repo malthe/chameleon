@@ -7,6 +7,10 @@ import logging
 import tempfile
 import inspect
 
+try:
+    RecursionError
+except NameError:
+    RecursionError = RuntimeError
 
 def get_package_versions():
     try:
@@ -181,6 +185,8 @@ class BaseTemplate(object):
         stream = self.output_stream_factory()
         try:
             self._render(stream, econtext, rcontext)
+        except RecursionError:
+            raise
         except:
             cls, exc, tb = sys.exc_info()
             errors = rcontext.get('__error__')

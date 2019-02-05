@@ -311,10 +311,11 @@ class ZopePageTemplatesTest(RenderTestCase):
             '<div metal:define-macro="main" '
             'metal:use-macro="template.macros.main" />'
         )
-        self.assertRaises(
-            RecursionError,
-            template
-        )
+        self.assertRaises(RecursionError, template)
+        try:
+            template()
+        except RecursionError as exc:
+            self.assertFalse(isinstance(exc, RenderError))
 
     def test_unicode_decode_error(self):
         template = self.from_file(
