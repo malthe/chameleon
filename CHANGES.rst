@@ -3,6 +3,18 @@ Changes
 
 In next release ...
 
+- Fix double dollar '$$' escaping such that a double dollar is always
+  resolved, either as an interpolation expression, or as an escape
+  where it is substituted by a single dollar symbol. This is now
+  consistent with Zope's handling of this character.
+
+  Backslash-escaping of dollar-based string interpolation is no longer
+  supported. The documentation has been updated to reflect this
+  change.
+
+  This fixes issue #283. Note that this reverses some of the changes
+  introduced to fix issue #265.
+
 - Drop support for Python 3.3.
 
 3.5 (2018-10-17)
