@@ -26,6 +26,7 @@ from ..loader import TemplateLoader
 from ..astutil import Builtin
 from ..utils import decode_string
 from ..utils import string_type
+from ..utils import unicode_string
 
 from .program import MacroProgram
 
@@ -310,7 +311,9 @@ class PageTemplate(BaseTemplate):
 
     def digest(self, body, names):
         hex = super(PageTemplate, self).digest(body, names)
-        digest = md5(hex.encode('ascii'))
+        if isinstance(hex, unicode_string):
+            hex = hex.encode('utf-8')
+        digest = md5(hex)
         digest.update(';'.join(names).encode('utf-8'))
 
         for attr in (
