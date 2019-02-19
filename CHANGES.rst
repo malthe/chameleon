@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.6 (2019-02-19)
+----------------
 
 - Exclude `RuntimeError` (or `RecursionError` when available) from
   exception wrapping.
