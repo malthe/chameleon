@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Exclude `RuntimeError` (or `RecursionError` when available) from
+  exception wrapping.
+
 - Fix double dollar '$$' escaping such that a double dollar is always
   resolved, either as an interpolation expression, or as an escape
   where it is substituted by a single dollar symbol. This is now
