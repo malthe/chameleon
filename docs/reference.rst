@@ -774,7 +774,8 @@ string can contain variable substitutions of the form ``$name`` or
 ``${expression}``, where ``name`` is a variable name, and ``expression`` is a TALES-expression. The escaped string value of the expression is inserted into the string.
 
 .. note:: To prevent a ``$`` from being interpreted this
-   way, it must be escaped as ``$$``.
+   way, it must be escaped as ``$$``. Using a backslash-escape
+   is not supported.
 
 Examples
 ~~~~~~~~
