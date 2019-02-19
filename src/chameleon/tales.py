@@ -390,7 +390,7 @@ class StringExpr(object):
     In previous versions, it was possible to escape using a regular
     backslash coding, but this is no longer supported.
 
-    >>> test(StringExpr('\${name}'), name='Hello world!')
+    >>> test(StringExpr(r'\${name}'), name='Hello world!')
     '\\\\Hello world!'
 
     Multiple interpolations in one:
