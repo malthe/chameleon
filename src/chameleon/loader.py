@@ -1,5 +1,4 @@
 import functools
-import imp
 import logging
 import os
 import py_compile
@@ -8,6 +7,30 @@ import sys
 import tempfile
 import warnings
 import pkg_resources
+
+try:
+    from importlib.machinery import SourceFileLoader
+    from threading import RLock
+    lock = RLock()
+    acquire_lock = lock.acquire
+    release_lock = lock.release
+    del lock
+except ImportError:
+    from imp import acquire_lock, release_lock, load_source
+
+    class SourceFileLoader:
+        def __init__(self, base, filename):
+            self.base = base
+            self.filename = filename
+
+        def load_module(self):
+            try:
+                acquire_lock()
+                assert self.base not in sys.modules
+                with open(self.filename, 'rb') as f:
+                    return load_source(self.base, self.filename, f)
+            finally:
+                release_lock()
 
 log = logging.getLogger('chameleon.loader')
 
@@ -124,7 +147,7 @@ class ModuleLoader(object):
             log.debug('cache miss: %s' % filename)
 
     def build(self, source, filename):
-        imp.acquire_lock()
+        acquire_lock()
         try:
             d = self.get(filename)
             if d is not None:
@@ -155,20 +178,15 @@ class ModuleLoader(object):
 
             return self._load(base, name)
         finally:
-            imp.release_lock()
+            release_lock()
 
     def _load(self, base, filename):
-        imp.acquire_lock()
+        acquire_lock()
         try:
             module = sys.modules.get(base)
             if module is None:
-                f = open(filename, 'rb')
-                try:
-                    assert base not in sys.modules
-                    module = imp.load_source(base, filename, f)
-                finally:
-                    f.close()
+                module = SourceFileLoader(base, filename).load_module()
         finally:
-            imp.release_lock()
+            release_lock()
 
         return module.__dict__
