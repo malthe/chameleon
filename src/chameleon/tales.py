@@ -381,16 +381,17 @@ class StringExpr(object):
     >>> test(StringExpr('Hello $name!', True))
     'Hello $name!'
 
-    We can escape interpolation using the standard escaping
-    syntax:
-
-    >>> test(StringExpr(r'\\${name}'))
-    '${name}'
-
-    Alternatively, escaping may be done with double dollar symbols.
+    To avoid interpolation, use two dollar symbols. Note that only a
+    single symbol will appear in the output.
 
     >>> test(StringExpr('$${name}'))
     '${name}'
+
+    In previous versions, it was possible to escape using a regular
+    backslash coding, but this is no longer supported.
+
+    >>> test(StringExpr('\${name}'), name='Hello world!')
+    '\\\\Hello world!'
 
     Multiple interpolations in one:
 
@@ -408,11 +409,26 @@ class StringExpr(object):
     >>> 'source: source' in result
     True
 
-    The double-dollar escape does not affect non-interpolation
-    expressions.
+    As noted previously, the double-dollar escape also affects
+    non-interpolation expressions.
 
-    >>> 'function($$, oid)' in result
+    >>> 'function($, oid)' in result
     True
+
+    >>> test(StringExpr('test ${1}${2}'))
+    'test 12'
+
+    >>> test(StringExpr('test $${1}${2}'))
+    'test ${1}2'
+
+    >>> test(StringExpr('test $$'))
+    'test $'
+
+    >>> test(StringExpr('$$.ajax(...)'))
+    '$.ajax(...)'
+
+    >>> test(StringExpr('test $$ ${1}'))
+    'test $ 1'
 
     In the above examples, the expression is evaluated using the
     dummy engine which just returns the input as a string.
@@ -444,8 +460,7 @@ class StringExpr(object):
     We evaluate the expression using the new engine:
 
     >>> test(expr, engine)
-    'There are 11 characters in \"hello world\
-"'
+    'There are 11 characters in \"hello world\"'
     """
 
     def __init__(self, expression, braces_required=False):
