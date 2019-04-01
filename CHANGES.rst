@@ -1,8 +1,11 @@
 Changes
 =======
 
-In next release ...
+3.7 (unreleased)
+----------------
 
+- Fix limited search expression for illegal double hyphens in HTML comments
+  to fix issue #289
 
 3.6 (2019-02-19)
 ----------------
