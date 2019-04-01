@@ -10,6 +10,17 @@ from ..namespaces import PY_NS
 
 
 class ParserTest(TestCase):
+    def test_comment_double_hyphen_parsing(self):
+        from ..parser import match_double_hyphen
+
+        self.assertFalse(match_double_hyphen.match('->'))
+        self.assertFalse(match_double_hyphen.match('-->'))
+        self.assertFalse(match_double_hyphen.match('--->'))
+        self.assertFalse(match_double_hyphen.match('---->'))
+        self.assertFalse(match_double_hyphen.match('- >'))
+
+        self.assertTrue(match_double_hyphen.match('-- >'))
+
     def test_sample_files(self):
         import os
         import traceback
