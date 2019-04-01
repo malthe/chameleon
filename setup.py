@@ -1,4 +1,4 @@
-__version__ = '3.7-dev'
+__version__ = '3.6.1'
 
 import os
 
