@@ -216,8 +216,8 @@ emit_translate = template(is_func=True,
                           'default'),
                           func_defaults=(None,),
                           source=r"""
-    target = translate(msgid, default=default, domain=__i18n_domain, 
-                       context=__i18n_context, 
+    target = translate(msgid, default=default, domain=__i18n_domain,
+                       context=__i18n_context,
                        target_language=target_language)""")
 
 
@@ -949,7 +949,7 @@ class Compiler(object):
             module = ast.Module([])
             module.body += self.visit(node)
             ast.fix_missing_locations(module)
-            prelude = "__filename = %r" % filename
+            prelude = "__filename = %r\n__default = object()" % filename
             generator = TemplateCodeGenerator(module, source)
             tokens = [
                 Token(source[pos:pos + length], pos, source)

@@ -4,7 +4,8 @@ Changes
 3.7 (unreleased)
 ----------------
 
-...
+- Fix SyntaxWarnings in Python 3.8 resulting from comparing literals with 'is'.
+  See https://github.com/plone/Products.CMFPlone/issues/2890.
 
 3.6.1 (2019-04-01)
 ------------------

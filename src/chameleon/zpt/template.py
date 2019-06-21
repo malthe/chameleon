@@ -209,7 +209,7 @@ class PageTemplate(BaseTemplate):
     @property
     def engine(self):
         if self.literal_false:
-            default_marker = ast.Str(s="__default__")
+            default_marker = Builtin("__default")
         else:
             default_marker = Builtin("False")
 
@@ -225,7 +225,7 @@ class PageTemplate(BaseTemplate):
 
     def parse(self, body):
         if self.literal_false:
-            default_marker = ast.Str(s="__default__")
+            default_marker = Builtin("__default")
         else:
             default_marker = Builtin("False")
 
