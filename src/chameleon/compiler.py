@@ -147,7 +147,7 @@ emit_node_if_non_trivial = template(is_func=True, func_args=('node',),
 emit_bool = template(is_func=True,
                      func_args=('target', 's', 'default_marker', 'default'),
                      func_defaults=(None, None), source=r"""
-    if target is default_marker:
+    if target == default_marker:
         target = default
     elif target:
         target = s
@@ -163,7 +163,7 @@ emit_convert = template(is_func=True,
                         source=r"""
     if target is None:
         pass
-    elif target is default_marker:
+    elif target == default_marker:
         target = default
     else:
         __tt = type(target)
@@ -216,8 +216,8 @@ emit_translate = template(is_func=True,
                           'default'),
                           func_defaults=(None,),
                           source=r"""
-    target = translate(msgid, default=default, domain=__i18n_domain, 
-                       context=__i18n_context, 
+    target = translate(msgid, default=default, domain=__i18n_domain,
+                       context=__i18n_context,
                        target_language=target_language)""")
 
 
@@ -230,7 +230,7 @@ emit_func_convert_and_escape = template(
         if target is None:
             return
 
-        if target is default_marker:
+        if target == default_marker:
             return default
 
         __tt = type(target)
