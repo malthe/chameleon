@@ -147,7 +147,7 @@ emit_node_if_non_trivial = template(is_func=True, func_args=('node',),
 emit_bool = template(is_func=True,
                      func_args=('target', 's', 'default_marker', 'default'),
                      func_defaults=(None, None), source=r"""
-    if target == default_marker:
+    if target is default_marker:
         target = default
     elif target:
         target = s
@@ -163,7 +163,7 @@ emit_convert = template(is_func=True,
                         source=r"""
     if target is None:
         pass
-    elif target == default_marker:
+    elif target is default_marker:
         target = default
     else:
         __tt = type(target)
@@ -230,7 +230,7 @@ emit_func_convert_and_escape = template(
         if target is None:
             return
 
-        if target == default_marker:
+        if target is default_marker:
             return default
 
         __tt = type(target)
@@ -949,7 +949,7 @@ class Compiler(object):
             module = ast.Module([])
             module.body += self.visit(node)
             ast.fix_missing_locations(module)
-            prelude = "__filename = %r" % filename
+            prelude = "__filename = %r\n__default = object()" % filename
             generator = TemplateCodeGenerator(module, source)
             tokens = [
                 Token(source[pos:pos + length], pos, source)
