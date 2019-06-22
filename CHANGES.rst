@@ -1,7 +1,7 @@
 Changes
 =======
 
-3.7 (unreleased)
+3.6.2 (2019-06-22)
 ----------------
 
 - Fix SyntaxWarnings in Python 3.8 resulting from comparing literals with 'is'.
