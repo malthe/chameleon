@@ -565,9 +565,9 @@ or ``repeat.item.start``.
 
 .. note:: For legacy compatibility, the attributes ``odd``, ``even``, ``number``, ``letter``, ``Letter``, ``roman``, and ``Roman`` are callable (returning ``self``).
 
-.. note:: Earlier versions of this document, and the `Zope 2 Page
+.. note:: Earlier versions of this document, and the `Zope Page
           Templates Reference
-          <https://docs.zope.org/zope2/zope2book/AppendixC.html#repeat-variables>`_,
+          <https://zope.readthedocs.io/en/latest/zopebook/AppendixC.html#repeat-variables>`_,
           referred to ``first`` and ``last`` attributes for use with
           sorted sequences. These are not implemented in Chameleon or
           the Zope reference implementation zope.tales. Instead, you
