@@ -35,10 +35,7 @@ using setuptools or the newer `distribute
 .. _no-dependencies:
 
 There are no required library dependencies on Python 2.7 and up
-[2]_. On 2.5 and 2.6, the `ordereddict
-<http://pypi.python.org/pypi/ordereddict>`_ and `unittest2
-<http://pypi.python.org/pypi/unittest2>`_ packages are set as
-dependencies.
+[2]_.
 
 The project is hosted in a `GitHub repository
 <http://github.com/malthe/chameleon>`_. Code contributions are
