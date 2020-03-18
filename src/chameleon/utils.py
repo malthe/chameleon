@@ -420,7 +420,7 @@ class Scope(dict):
 
     __slots__ = "_root",
 
-    set_local = setLocal = dict.__setitem__
+    set_local = dict.__setitem__
 
     def __getitem__(self, key):
         value = dict.get(self, key, marker)
@@ -449,6 +449,9 @@ class Scope(dict):
     def set_global(self, name, value):
         root = getattr(self, "_root", self)
         root[name] = value
+
+    setLocal = set_local
+    setGlobal = set_global
 
 
 class ListDictProxy(object):
