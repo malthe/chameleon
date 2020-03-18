@@ -28,8 +28,8 @@ class ASTProxy(object):
 
 
 ast = ASTProxy()
-
 log = logging.getLogger('chameleon.utils')
+marker = object()
 
 # Python 2
 if version < (3, 0, 0):
@@ -391,20 +391,53 @@ class DebuggingOutputStream(list):
 
 
 class Scope(dict):
-    set_local = setLocal = dict.__setitem__
+    """
+    >>> scope = Scope()
+    >>> scope['a'] = 1
+    >>> copy = scope.copy()
 
-    __slots__ = "set_global",
+    Setting a local value and then a global value, we expect the local value
+    to take precedence.
 
-    def __new__(cls, *args):
-        inst = dict.__new__(cls, *args)
-        inst.set_global = inst.__setitem__
-        return inst
+    >>> copy['a'] = 2
+    >>> copy.set_global('a', 3)
+    >>> assert copy['a'] == 2
+
+    However, setting a new global value should be immediately visible.
+
+    >>> copy.set_global('b', 1)
+    >>> assert copy['b'] == 1
+
+    Make sure the objects are reference-counted, not requiring a full
+    collection to be disposed of.
+
+    >>> import gc
+    >>> _ = gc.collect()
+    >>> del copy
+    >>> del scope
+    >>> import platform
+    >>> assert gc.collect() == (
+    ...     0 if platform.python_implementation() == 'CPython' else None
+    ... )
+    """
+
+    __slots__ = "_root",
+
+    set_local = dict.__setitem__
 
     def __getitem__(self, key):
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            raise NameError(key)
+        value = dict.get(self, key, marker)
+        if value is not marker:
+            return value
+
+        root = getattr(self, "_root", marker)
+        if root is not marker:
+            value = dict.get(root, key, marker)
+
+            if value is not marker:
+                return value
+
+        raise NameError(key)
 
     @property
     def vars(self):
@@ -412,8 +445,16 @@ class Scope(dict):
 
     def copy(self):
         inst = Scope(self)
-        inst.set_global = self.set_global
+        root = getattr(self, "_root", self)
+        inst._root = root
         return inst
+
+    def set_global(self, name, value):
+        root = getattr(self, "_root", self)
+        root[name] = value
+
+    setLocal = set_local
+    setGlobal = set_global
 
 
 class ListDictProxy(object):

@@ -3,7 +3,11 @@ Changes
 
 In next release ...
 
--
+- Fixed garbage collection issue with variable scope objects (issue #301).
+
+- Fixed issue where setting a global variable would not be available
+  locally.
+
 
 3.6.2 (2019-06-22)
 ------------------
