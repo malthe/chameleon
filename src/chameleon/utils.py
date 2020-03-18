@@ -415,7 +415,10 @@ class Scope(dict):
     >>> _ = gc.collect()
     >>> del copy
     >>> del scope
-    >>> assert gc.collect() == 0
+    >>> import platform
+    >>> assert gc.collect() == (
+    ...     0 if platform.python_implementation() == 'CPython' else None
+    ... )
     """
 
     __slots__ = "_root",
