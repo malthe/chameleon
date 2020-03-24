@@ -189,6 +189,8 @@ class PageTemplate(BaseTemplate):
 
     enable_data_attributes = False
 
+    enable_comment_interpolation = True
+
     on_error_handler = None
 
     restricted_namespace = True
@@ -238,6 +240,7 @@ class PageTemplate(BaseTemplate):
             implicit_i18n_attributes=self.implicit_i18n_attributes,
             trim_attribute_space=self.trim_attribute_space,
             enable_data_attributes=self.enable_data_attributes,
+            enable_comment_interpolation=self.enable_comment_interpolation,
             restricted_namespace=self.restricted_namespace,
             tokenizer=self.tokenizer
         )

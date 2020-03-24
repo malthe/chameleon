@@ -11,6 +11,10 @@ In next release ...
 - A `RepeatDict` no longer inherits from `dict` since it does not
   actually provide that interface in a meaningful way.
 
+- Added feature gate `enable_comment_interpolation` which controls
+  whether expression interpolation is enabled inside HTML comments
+  (default is enabled).
+
 3.6.2 (2019-06-22)
 ------------------
 

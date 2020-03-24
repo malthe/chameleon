@@ -536,6 +536,13 @@ class ZopePageTemplatesTest(RenderTestCase):
             "<div tal:define=\"__dummy 'foo'\">${__dummy}</div>",
             )
 
+    def test_disable_comment_interpolation(self):
+        template = self.from_string(
+            '<!-- ${"Hello world"} -->',
+            enable_comment_interpolation=False
+        )
+        self.assertEqual(template(), '<!-- ${"Hello world"} -->')
+
     def test_compiler_internals_are_disallowed(self):
         from chameleon.compiler import COMPILER_INTERNALS_OR_DISALLOWED
         from chameleon.exc import TranslationError

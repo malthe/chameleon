@@ -140,6 +140,9 @@ class MacroProgram(ElementProgram):
     # defined and used by the page template language.
     restricted_namespace = True
 
+    # If set, expression interpolation is enabled in comments.
+    enable_comment_interpolation = True
+
     def __init__(self, *args, **kwargs):
         # Internal array for switch statements
         self._switches = []
@@ -163,6 +166,7 @@ class MacroProgram(ElementProgram):
             'implicit_i18n_attributes',
             'trim_attribute_space',
             'enable_data_attributes',
+            'enable_comment_interpolation',
             'restricted_namespace',
             )
 
@@ -653,6 +657,9 @@ class MacroProgram(ElementProgram):
     def visit_comment(self, node):
         if node.startswith('<!--!'):
             return
+
+        if not self.enable_comment_interpolation:
+            return nodes.Text(node)
 
         if node.startswith('<!--?'):
             return nodes.Text('<!--' + node.lstrip('<!-?'))
