@@ -425,7 +425,7 @@ if interfaces is not None:
     zope.interface.classImplements(RepeatItem, interfaces.ITALESIterator)
 
 
-class RepeatDict(dict):
+class RepeatDict(object):
     """Repeat dictionary implementation.
 
     >>> repeat = RepeatDict({})
