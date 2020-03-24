@@ -8,6 +8,8 @@ In next release ...
 - Fixed issue where setting a global variable would not be available
   locally.
 
+- A `RepeatDict` no longer inherits from `dict` since it does not
+  actually provide that interface in a meaningful way.
 
 3.6.2 (2019-06-22)
 ------------------
