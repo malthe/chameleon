@@ -15,6 +15,8 @@ In next release ...
   whether expression interpolation is enabled inside HTML comments
   (default is enabled).
 
+- Added support for Python 3.6+ f-strings (issue #294).
+
 3.6.2 (2019-06-22)
 ------------------
 

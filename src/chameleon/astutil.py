@@ -393,6 +393,32 @@ class ASTCodeGenerator(object):
         self._write(' ' + self.binary_operators[node.op.__class__] + '= ')
         self.visit(node.value)
 
+    # JoinedStr(expr* values)
+    def visit_JoinedStr(self, node):
+        if node.values:
+            self._write('"".join((')
+            for value in node.values:
+                self.visit(value)
+                self._write(',')
+            self._write('))')
+        else:
+            self._write('""')
+
+    # FormattedValue(expr value)
+    def visit_FormattedValue(self, node):
+        if node.conversion == ord('r'):
+            self._write('repr')
+        elif node.conversion == ord('a'):
+            self._write('ascii')
+        else:
+            self._write('str')
+        self._write('(')
+        self.visit(node.value)
+        if node.format_spec is not None:
+            self._write(').__format__(')
+            self.visit(node.format_spec)
+        self._write(')')
+
     # Print(expr? dest, expr* values, bool nl)
     def visit_Print(self, node):
         self._new_line()

@@ -656,6 +656,14 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("Expected error.")
 
+    if tuple(sys.version_info) >= (3, 6, 0):
+        def test_f_strings(self):
+            from math import pi
+            from math import sin
+            template = self.from_string('${f"sin({a}) is {sin(a):.3}"}')
+            rendered = template(sin=sin, a=pi)
+            self.assertEqual('sin(3.141592653589793) is 1.2', rendered)
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
