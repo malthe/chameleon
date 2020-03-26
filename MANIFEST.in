@@ -1,3 +1,5 @@
-recursive-include src/chameleon/tests/inputs *
-recursive-include src/chameleon/tests/outputs *
+global-exclude tests/*.py
+recursive-exclude src/chameleon/tests
+exclude MANIFEST.in
+exclude *.rst
 include LICENSE.txt
