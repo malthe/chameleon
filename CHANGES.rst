@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.7.0 (2020-03-26)
+------------------
 
 - Fixed garbage collection issue with variable scope objects (issue #301).
 
