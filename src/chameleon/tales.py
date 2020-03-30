@@ -115,11 +115,11 @@ class TalesExpr(object):
     42
     """
 
-    exceptions = NameError, \
-                 ValueError, \
-                 AttributeError, \
+    exceptions = AttributeError, \
+                 NameError, \
                  LookupError, \
-                 TypeError
+                 TypeError, \
+                 ValueError
 
     ignore_prefix = True
 
@@ -517,7 +517,7 @@ class ExistsExpr(object):
 
     """
 
-    exceptions = AttributeError, LookupError, TypeError, NameError, KeyError
+    exceptions = AttributeError, LookupError, TypeError, NameError
 
     def __init__(self, expression):
         self.expression = expression
