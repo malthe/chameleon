@@ -1,4 +1,4 @@
-__version__ = '3.7.0'
+__version__ = '3.7.1'
 
 import os
 
@@ -51,6 +51,7 @@ setup(
        "Programming Language :: Python :: 3.6",
        "Programming Language :: Python :: 3.7",
        "Programming Language :: Python :: 3.8",
+       "Programming Language :: Python :: 3.9",
        "Programming Language :: Python :: Implementation :: CPython",
        "Programming Language :: Python :: Implementation :: PyPy",
       ],

@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.7.1 (2020-05-10)
+------------------
 
 - Fix compatiblity issue with Python 3.9.
 
