@@ -1,6 +1,11 @@
 Changes
 =======
 
+In next release ...
+
+- Fix compatiblity issue with Python 3.9.
+
+
 3.7.0 (2020-03-26)
 ------------------
 

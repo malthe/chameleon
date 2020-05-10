@@ -123,7 +123,8 @@ def copy(source, target):
     target.__dict__ = source.__dict__
 
 
-def swap(root, replacement, name):
+def swap(body, replacement, name):
+    root = ast.Expression(body=body)
     for node in ast.walk(root):
         if (isinstance(node, ast.Name) and
             isinstance(node.ctx, ast.Load) and
