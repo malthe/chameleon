@@ -1306,8 +1306,8 @@ class Compiler(object):
 
         # Visit body to generate the message body
         code = self.visit(node.node)
-        swap(ast.Suite(body=code), load(append), "__append")
-        swap(ast.Suite(body=code), load(stream), "__stream")
+        swap(code, load(append), "__append")
+        swap(code, load(stream), "__stream")
         body += code
 
         # Reduce white space and assign as message id
@@ -1545,7 +1545,7 @@ class Compiler(object):
 
         # generate code
         code = self.visit(node.node)
-        swap(ast.Suite(body=code), load(append), "__append")
+        swap(code, load(append), "__append")
         body += code
 
         # output msgid
