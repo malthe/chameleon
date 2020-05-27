@@ -56,6 +56,7 @@ from .utils import create_formatted_exception
 from .utils import read_bytes
 from .utils import raise_with_traceback
 from .utils import byte_string
+from .utils import value_repr
 
 
 log = logging.getLogger('chameleon.template')
@@ -124,6 +125,10 @@ class BaseTemplate(object):
     # When ``strict`` is set, expressions must be valid at compile
     # time. When not set, this is only required at evaluation time.
     strict = True
+
+    # This should return a value string representation for exception
+    # formatting.
+    value_repr = staticmethod(value_repr)
 
     def __init__(self, body=None, **config):
         self.__dict__.update(config)
@@ -197,7 +202,7 @@ class BaseTemplate(object):
                         formatter._errors.extend(errors)
                     raise
 
-                formatter = ExceptionFormatter(errors, econtext, rcontext)
+                formatter = ExceptionFormatter(errors, econtext, rcontext, self.value_repr)
 
                 try:
                     exc = create_formatted_exception(

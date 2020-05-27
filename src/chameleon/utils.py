@@ -325,24 +325,21 @@ def limit_string(s, max_length=53):
     return s
 
 
-def format_kwargs(kwargs):
-    items = []
-    for name, value in kwargs.items():
-        if isinstance(value, string_type):
-            short = limit_string(value)
-            items.append((name, short.replace('\n', '\\n')))
-        elif isinstance(value, (int, float)):
-            items.append((name, value))
-        elif isinstance(value, dict):
-            items.append((name, '{...} (%d)' % len(value)))
-        else:
-            items.append((name,
-                "<%s %s at %s>" % (
-                    type(value).__name__,
-                    getattr(value, '__name__', "-"),
-                    hex(abs(id(value))))))
+def value_repr(value):
+    if isinstance(value, string_type):
+        short = limit_string(value)
+        return short.replace('\n', '\\n')
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, dict):
+        return '{...} (%d)' % len(value)
 
-    return ["%s: %s" % item for item in items]
+    try:
+        name = str(getattr(value, '__name__', None)),
+    except:
+        name = '-'
+
+    return '<%s %s at %s>' % (type(value).__name__, name, hex(abs(id(value))))
 
 
 class callablestr(str):

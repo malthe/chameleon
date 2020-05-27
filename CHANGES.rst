@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Allow setting a custom value representation function, allowing
+  custom formatting of variables during exception formatting.
 
 3.7.1 (2020-05-10)
 ------------------

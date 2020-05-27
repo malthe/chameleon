@@ -3,7 +3,6 @@
 import traceback
 
 from .utils import create_formatted_exception
-from .utils import format_kwargs
 from .utils import safe_native
 from .tokenize import Token
 from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
@@ -256,7 +255,7 @@ class ExpressionError(LanguageError):
 
 
 class ExceptionFormatter(object):
-    def __init__(self, errors, econtext, rcontext):
+    def __init__(self, errors, econtext, rcontext, value_repr):
         kwargs = rcontext.copy()
         kwargs.update(econtext)
 
@@ -266,18 +265,15 @@ class ExceptionFormatter(object):
 
         self._errors = errors
         self._kwargs = kwargs
+        self._value_repr = value_repr
 
     def __call__(self):
         # Format keyword arguments; consecutive arguments are indented
         # for readability
-        try:
-            formatted = format_kwargs(self._kwargs)
-        except:
-            # the ``pprint.pformat`` method calls the representation
-            # method of the arguments; this may fail and since we're
-            # already in an exception handler, there's no point in
-            # pursuing this further
-            formatted = ()
+        formatted = [
+            "%s: %s" % (name, self._value_repr(value))
+            for name, value in self._kwargs.items()
+        ]
 
         for index, string in enumerate(formatted[1:]):
             formatted[index + 1] = " " * 15 + string
