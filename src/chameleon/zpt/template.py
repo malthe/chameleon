@@ -160,7 +160,8 @@ class PageTemplate(BaseTemplate):
 
         This can be used to override the default value representation
         function which is used to format values when formatting an
-        exception output.
+        exception output. The function must not raise an exception (it
+        should be safe to call with any value).
 
     Output is unicode on Python 2 and string on Python 3.
 
