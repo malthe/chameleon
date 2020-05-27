@@ -334,11 +334,12 @@ def value_repr(value):
     if isinstance(value, dict):
         return '{...} (%d)' % len(value)
 
-    return "<%s %s at %s>" % (
-        type(value).__name__,
-        getattr(value, '__name__', "-"),
-        hex(abs(id(value)))
-    )
+    try:
+        name = str(getattr(value, '__name__', None)),
+    except:
+        name = '-'
+
+    return '<%s %s at %s>' % (type(value).__name__, name, hex(abs(id(value))))
 
 
 class callablestr(str):
