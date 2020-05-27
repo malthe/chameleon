@@ -156,6 +156,12 @@ class PageTemplate(BaseTemplate):
         None by default. If provided, this tokenizer is used instead of the default
         (which is selected based on the template mode parameter.)
 
+      ``value_repr``
+
+        This can be used to override the default value representation
+        function which is used to format values when formatting an
+        exception output.
+
     Output is unicode on Python 2 and string on Python 3.
 
     """
