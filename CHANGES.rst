@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.7.2 (2020-05-31)
+------------------
 
 - Allow setting a custom value representation function, allowing
   custom formatting of variables during exception formatting.
