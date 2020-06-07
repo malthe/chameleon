@@ -949,7 +949,6 @@ class Compiler(object):
             module = ast.Module([])
             module.body += self.visit(node)
             ast.fix_missing_locations(module)
-            prelude = "__filename = %r\n__default = object()" % filename
             generator = TemplateCodeGenerator(module, source)
             tokens = [
                 Token(source[pos:pos + length], pos, source)
@@ -966,7 +965,8 @@ class Compiler(object):
                 self.lock.release()
 
         self.code = "\n".join((
-            prelude,
+            "__filename = %r\n"
+            "__default = intern('__default__')" % filename,
             token_map_def,
             generator.code
         ))
