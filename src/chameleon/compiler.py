@@ -965,8 +965,7 @@ class Compiler(object):
                 self.lock.release()
 
         self.code = "\n".join((
-            "__filename = %r\n"
-            "__default = intern('__default__')" % filename,
+            "__filename = %r\n" % filename,
             token_map_def,
             generator.code
         ))
@@ -1003,6 +1002,9 @@ class Compiler(object):
         body += template("from itertools import chain as __chain")
         if version < (3, 0, 0):
             body += template("from sys import exc_clear as __exc_clear")
+        else:
+            body += template("from sys import intern")
+        body += template("__default = intern('__default__')")
         body += template("__marker = object()")
         body += template(
             r"g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
