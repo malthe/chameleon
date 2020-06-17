@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+- Fix regression introduced in 3.6.2 where the default marker would
+  incorrectly change its value between templates, causing issues in
+  software which depends on the value being treated as a global
+  object.
+
 3.7.2 (2020-05-31)
 ------------------
 
