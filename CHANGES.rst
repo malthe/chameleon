@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.7.3 (2020-06-17)
+------------------
 
 - Fix regression introduced in 3.6.2 where the default marker would
   incorrectly change its value between templates, causing issues in
