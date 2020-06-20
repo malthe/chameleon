@@ -112,6 +112,12 @@ class MacroProgram(ElementProgram):
     # means that the attribute is dropped.
     default_marker = None
 
+    # If ``literal_false`` has a false value, then an attribute value
+    # ``False`` is treated like ``None``, i.e. the attribute is dropped
+    # If ``literal_false`` has a true value, ``False`` is not treated
+    # specially.
+    literal_false = False
+
     # Escape mode (true value means XML-escape)
     escape = True
 
@@ -161,6 +167,7 @@ class MacroProgram(ElementProgram):
             kwargs,
             'boolean_attributes',
             'default_marker',
+            'literal_false',
             'escape',
             'implicit_i18n_translate',
             'implicit_i18n_attributes',
@@ -790,7 +797,8 @@ class MacroProgram(ElementProgram):
             if expr is None and text is not None and '${' in text:
                 expr = nodes.Substitution(text, char_escape)
                 translation = implicit_i18n and msgid is missing
-                value = nodes.Interpolation(expr, True, translation)
+                value = nodes.Interpolation(
+                    expr, True, translation, literal_false=self.literal_false)
                 default_marker = self.default_marker
 
             # If the expression is non-trivial, the attribute is
@@ -816,7 +824,8 @@ class MacroProgram(ElementProgram):
                     value = nodes.Substitution(
                         decode_htmlentities(expr),
                         char_escape,
-                        default
+                        default,
+                        self.literal_false
                     )
 
             # Otherwise, it's a static attribute. We don't include it

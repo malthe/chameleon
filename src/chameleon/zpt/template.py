@@ -217,10 +217,7 @@ class PageTemplate(BaseTemplate):
 
     @property
     def engine(self):
-        if self.literal_false:
-            default_marker = Builtin("__default")
-        else:
-            default_marker = Builtin("False")
+        default_marker = Builtin("__default")
 
         return partial(
             ExpressionEngine,
@@ -233,15 +230,13 @@ class PageTemplate(BaseTemplate):
         return ExpressionParser(self.expression_types, self.default_expression)
 
     def parse(self, body):
-        if self.literal_false:
-            default_marker = Builtin("__default")
-        else:
-            default_marker = Builtin("False")
+        default_marker = Builtin("__default")
 
         return MacroProgram(
             body, self.mode, self.filename,
             escape=True if self.mode == "xml" else False,
             default_marker=default_marker,
+            literal_false=self.literal_false,
             boolean_attributes=self.boolean_attributes,
             implicit_i18n_translate=self.implicit_i18n_translate,
             implicit_i18n_attributes=self.implicit_i18n_attributes,

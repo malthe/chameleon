@@ -6,7 +6,7 @@
       <span tal:case="True">ok</span>
       <span tal:case="default">bad</span>
       <span tal:case="True">bad</span>
-      ${default|string:ok}
+      ${undefined|string:ok}
     </div>
     <div tal:switch="True">
       <span tal:case="False">bad</span>

@@ -322,7 +322,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             os.path.join(self.root, 'inputs', 'greeting.pt')
             )
 
-        string = native = "the artist formerly known as ƤŗíƞĆě"
+        string = native = "the artist formerly known as ?ŗí?Ćě"
         try:
             string = string.decode('utf-8')
         except AttributeError:
@@ -759,6 +759,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             params.update({
                 'translate': translate,
                 'target_language': language,
+                'default': intern('__default__'),
                 })
 
             template.cook_check()

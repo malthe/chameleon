@@ -564,6 +564,8 @@ class ExpressionEngine(object):
         entity = char2entity(quote or '\0')
 
         return template(
+            ("" if getattr(self, "literal_false", True)
+            else "if TARGET is False: TARGET = None\n") +
             "TARGET = __quote(TARGET, QUOTE, Q_ENTITY, DEFAULT, MARKER)",
             TARGET=target,
             QUOTE=ast.Str(s=quote),
@@ -818,6 +820,7 @@ class ExpressionTransform(object):
 
     def visit_Substitution(self, node, target):
         engine = self.engine_factory(default=node.default)
+        engine.literal_false = node.literal_false
         compiler = engine.parse(node.value, char_escape=node.char_escape)
         return compiler.assign_text(target)
 
@@ -862,6 +865,7 @@ class ExpressionTransform(object):
             decode_htmlentities=True
         )
 
+        engine.literal_false = node.literal_false
         compiler = engine.get_compiler(
             interpolator, expr.value, True, ()
         )

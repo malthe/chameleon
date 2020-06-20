@@ -51,9 +51,10 @@ class Value(Node):
 class Substitution(Value):
     """Expression value for text substitution."""
 
-    _fields = "value", "char_escape", "default"
+    _fields = "value", "char_escape", "default", "literal_false"
 
     default = None
+    literal_false = True
 
 
 class Boolean(Value):
@@ -184,7 +185,9 @@ class Text(Node):
 class Interpolation(Node):
     """String interpolation output."""
 
-    _fields = "value", "braces_required", "translation"
+    _fields = "value", "braces_required", "translation", "literal_false"
+
+    literal_false = True
 
 
 class Translate(Node):
