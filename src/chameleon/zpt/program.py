@@ -749,7 +749,7 @@ class MacroProgram(ElementProgram):
 
         if default is not None:
             content = nodes.Condition(
-                nodes.Identity(value, marker("default")),
+                nodes.Identity(value, self.default_marker),
                 default,
                 content,
                 )
@@ -757,11 +757,6 @@ class MacroProgram(ElementProgram):
             # Cache expression to avoid duplicate evaluation
             content = nodes.Cache([value], content)
 
-            # Define local marker "default"
-            content = nodes.Define(
-                [nodes.Alias(["default"], marker("default"))],
-                content
-                )
 
         return content
 
