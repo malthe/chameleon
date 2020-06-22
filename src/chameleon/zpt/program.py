@@ -749,7 +749,7 @@ class MacroProgram(ElementProgram):
 
         if default is not None:
             content = nodes.Condition(
-                nodes.Identity(value, marker("default")),
+                nodes.Identity(value, self.default_marker),
                 default,
                 content,
                 )
@@ -759,7 +759,7 @@ class MacroProgram(ElementProgram):
 
             # Define local marker "default"
             content = nodes.Define(
-                [nodes.Alias(["default"], marker("default"))],
+                [nodes.Alias(["default"], self.default_marker)],
                 content
                 )
 

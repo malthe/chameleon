@@ -1,7 +1,7 @@
 <html>
   <body>
     <input type="input" checked="True" />
-    <input type="input" />
+    <input type="input" checked="False" />
     <input type="input" />
     <input type="input" checked="checked" />
     <input type="input" checked />

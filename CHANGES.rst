@@ -3,7 +3,11 @@ Changes
 
 In next release ...
 
--
+- Expose default marker as importable symbol
+  `chameleon.tales.DEFAULT_MARKER`.
+
+- Removed legacy flag `literal_false`. To get a similar behavior, use
+  `boolean_attributes`.
 
 3.7.4 (2020-06-17)
 ------------------

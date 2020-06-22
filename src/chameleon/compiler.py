@@ -882,6 +882,10 @@ class ExpressionTransform(object):
         value = annotated(node)
         return [ast.Assign(targets=[target], value=value)]
 
+    def visit_Symbol(self, node, target):
+        value = annotated(node)
+        return template("TARGET = SYMBOL", TARGET=target, SYMBOL=node)
+
 
 class Compiler(object):
     """Generic compiler class.

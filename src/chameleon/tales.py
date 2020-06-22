@@ -24,6 +24,13 @@ except SyntaxError:
     from .py25 import lookup_attr
 
 
+class DEFAULT_MARKER(object):
+    """Represents a default marker.
+
+    This must be an importable symbol.
+    """
+
+
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
 re_continuation = re.compile(r'\\\s*$', re.MULTILINE)
