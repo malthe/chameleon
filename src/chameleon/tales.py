@@ -1,5 +1,6 @@
 import re
 import sys
+import types
 
 from .astutil import parse
 from .astutil import store
@@ -24,12 +25,7 @@ except SyntaxError:
     from .py25 import lookup_attr
 
 
-class DEFAULT_MARKER(object):
-    """Represents a default marker.
-
-    This must be an importable symbol.
-    """
-
+DEFAULT_MARKER = types.ModuleType(__name__)
 
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
