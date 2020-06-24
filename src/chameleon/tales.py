@@ -19,13 +19,15 @@ from .tokenize import Token
 from .parser import substitute
 from .compiler import Interpolator
 
+# We're using a module as the default marker value by virtue of it being
+# importable and not callable.
+from . import tales as DEFAULT_MARKER
+
 try:
     from .py26 import lookup_attr
 except SyntaxError:
     from .py25 import lookup_attr
 
-
-DEFAULT_MARKER = types.ModuleType(__name__)
 
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
