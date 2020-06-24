@@ -573,24 +573,6 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertTrue('foo' in result)
         self.assertTrue('foo' in result)
 
-    def test_literal_false(self):
-        template = self.from_string(
-            '<input type="input" tal:attributes="checked False" />'
-            '<input type="input" tal:attributes="checked True" />'
-            '<input type="input" tal:attributes="checked None" />'
-            '<input type="input" tal:attributes="checked default" />',
-            literal_false=True,
-            )
-
-        self.assertEqual(
-            template(),
-            '<input type="input" checked="False" />'
-            '<input type="input" checked="True" />'
-            '<input type="input" />'
-            '<input type="input" />',
-            template.source
-            )
-
     def test_boolean_attributes(self):
         template = self.from_string(
             '<input type="input" tal:attributes="checked False" />'
