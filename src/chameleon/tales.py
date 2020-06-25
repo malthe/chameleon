@@ -1,5 +1,7 @@
 import re
 import sys
+import types
+import importlib
 
 from .astutil import parse
 from .astutil import store
@@ -17,6 +19,10 @@ from .utils import ast
 from .tokenize import Token
 from .parser import substitute
 from .compiler import Interpolator
+
+# We're using a module as the default marker value by virtue of it being
+# importable and not callable.
+DEFAULT_MARKER = importlib.import_module(__name__)
 
 try:
     from .py26 import lookup_attr

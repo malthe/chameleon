@@ -22,12 +22,6 @@ class Content(Node):
     _fields = "expression", "char_escape", "translate"
 
 
-class Default(Node):
-    """Represents a default value."""
-
-    _fields = "marker",
-
-
 class CodeBlock(Node):
     _fields = "source",
 

@@ -812,10 +812,6 @@ class ExpressionTransform(object):
     def visit_Copy(self, node, target):
         return self.translate(node.expression, target)
 
-    def visit_Default(self, node, target):
-        value = annotated(node.marker)
-        return [ast.Assign(targets=[target], value=value)]
-
     def visit_Substitution(self, node, target):
         engine = self.engine_factory(default=node.default)
         compiler = engine.parse(node.value, char_escape=node.char_escape)
@@ -885,6 +881,10 @@ class ExpressionTransform(object):
     def visit_Builtin(self, node, target):
         value = annotated(node)
         return [ast.Assign(targets=[target], value=value)]
+
+    def visit_Symbol(self, node, target):
+        value = annotated(node)
+        return template("TARGET = SYMBOL", TARGET=target, SYMBOL=node)
 
 
 class Compiler(object):

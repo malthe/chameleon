@@ -16,6 +16,7 @@ from ..tales import ImportExpr
 from ..tales import ProxyExpr
 from ..tales import StructureExpr
 from ..tales import ExpressionParser
+from ..tales import DEFAULT_MARKER
 
 from ..tal import RepeatDict
 
@@ -23,7 +24,7 @@ from ..template import BaseTemplate
 from ..template import BaseTemplateFile
 from ..compiler import ExpressionEngine
 from ..loader import TemplateLoader
-from ..astutil import Builtin
+from ..astutil import Symbol
 from ..utils import decode_string
 from ..utils import string_type
 from ..utils import unicode_string
@@ -63,14 +64,6 @@ class PageTemplate(BaseTemplate):
 
         Pass an encoding to allow encoded byte string input
         (e.g. UTF-8).
-
-      ``literal_false``
-
-        Attributes are not dropped for a value of ``False``. Instead,
-        the value is coerced to a string.
-
-        This setting exists to provide compatibility with the
-        reference implementation.
 
       ``boolean_attributes``
 
@@ -184,8 +177,6 @@ class PageTemplate(BaseTemplate):
 
     boolean_attributes = set()
 
-    literal_false = False
-
     mode = "xml"
 
     implicit_i18n_translate = False
@@ -204,6 +195,8 @@ class PageTemplate(BaseTemplate):
 
     tokenizer = None
 
+    default_marker = Symbol(DEFAULT_MARKER)
+
     def __init__(self, body, **config):
         self.macros = Macros(self)
         super(PageTemplate, self).__init__(body, **config)
@@ -217,15 +210,10 @@ class PageTemplate(BaseTemplate):
 
     @property
     def engine(self):
-        if self.literal_false:
-            default_marker = Builtin("__default")
-        else:
-            default_marker = Builtin("False")
-
         return partial(
             ExpressionEngine,
             self.expression_parser,
-            default_marker=default_marker,
+            default_marker=self.default_marker,
             )
 
     @property
@@ -233,15 +221,10 @@ class PageTemplate(BaseTemplate):
         return ExpressionParser(self.expression_types, self.default_expression)
 
     def parse(self, body):
-        if self.literal_false:
-            default_marker = Builtin("__default")
-        else:
-            default_marker = Builtin("False")
-
         return MacroProgram(
             body, self.mode, self.filename,
             escape=True if self.mode == "xml" else False,
-            default_marker=default_marker,
+            default_marker=self.default_marker,
             boolean_attributes=self.boolean_attributes,
             implicit_i18n_translate=self.implicit_i18n_translate,
             implicit_i18n_attributes=self.implicit_i18n_attributes,
@@ -329,7 +312,6 @@ class PageTemplate(BaseTemplate):
         for attr in (
             'trim_attribute_space',
             'implicit_i18n_translate',
-            'literal_false',
             'strict'
         ):
             v = getattr(self, attr)

@@ -23,6 +23,7 @@ except NameError:
 
 from chameleon.utils import byte_string
 from chameleon.exc import RenderError
+from chameleon.tales import DEFAULT_MARKER
 
 
 class Message(object):
@@ -573,23 +574,13 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertTrue('foo' in result)
         self.assertTrue('foo' in result)
 
-    def test_literal_false(self):
-        template = self.from_string(
-            '<input type="input" tal:attributes="checked False" />'
-            '<input type="input" tal:attributes="checked True" />'
-            '<input type="input" tal:attributes="checked None" />'
-            '<input type="input" tal:attributes="checked default" />',
-            literal_false=True,
-            )
-
+    def test_default_marker(self):
+        template = self.from_string('<span tal:replace="id(default)" />')
         self.assertEqual(
             template(),
-            '<input type="input" checked="False" />'
-            '<input type="input" checked="True" />'
-            '<input type="input" />'
-            '<input type="input" />',
+            str(id(DEFAULT_MARKER)),
             template.source
-            )
+        )
 
     def test_boolean_attributes(self):
         template = self.from_string(
