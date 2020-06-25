@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.8.0 (2020-06-25)
+------------------
 
 - Expose default marker as importable symbol
   `chameleon.tales.DEFAULT_MARKER`.
