@@ -23,6 +23,9 @@ import logging
 import weakref
 import collections
 
+
+AST_NONE = ast.Name(id='None', ctx=ast.Load())
+
 node_annotations = weakref.WeakKeyDictionary()
 
 try:
@@ -925,20 +928,31 @@ class ASTCodeGenerator(object):
                 for dim in node.slice.elts[1:]:
                     self._write(', ')
                     self.visit(dim)
+        elif isinstance(node.slice, ast.Slice):
+            self.visit_Slice(node.slice, True)
         else:
             self.visit(node.slice)
         self._write(']')
 
     # Slice(expr? lower, expr? upper, expr? step)
-    def visit_Slice(self, node):
-        if getattr(node, 'lower', None) is not None:
-            self.visit(node.lower)
-        self._write(':')
-        if getattr(node, 'upper', None) is not None:
-            self.visit(node.upper)
-        if getattr(node, 'step', None) is not None:
+    def visit_Slice(self, node, subscription=False):
+        if subscription:
+            if getattr(node, 'lower', None) is not None:
+                self.visit(node.lower)
             self._write(':')
-            self.visit(node.step)
+            if getattr(node, 'upper', None) is not None:
+                self.visit(node.upper)
+            if getattr(node, 'step', None) is not None:
+                self._write(':')
+                self.visit(node.step)
+        else:
+            self._write('slice(')
+            self.visit(getattr(node, "lower", None) or AST_NONE)
+            self._write(', ')
+            self.visit(getattr(node, "upper", None) or AST_NONE)
+            self._write(', ')
+            self.visit(getattr(node, "step", None) or AST_NONE)
+            self._write(')')
 
     # Index(expr value)
     def visit_Index(self, node):

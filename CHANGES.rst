@@ -3,7 +3,7 @@ Changes
 
 In next release ...
 
-- 
+- Fix slice code generation compatibility issue on Python 3.9.
 
 3.8.0 (2020-06-25)
 ------------------
