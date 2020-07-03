@@ -5,6 +5,9 @@
     <div class="dynamic">
       static
     </div>
+    <div class="static">{'class': 'static'}</div>
+    {'class': 'static'}
+    <div class="static">{'class': 'static'}</div>
     <div>
       nothing
     </div>

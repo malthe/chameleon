@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- The built-in `attrs` dictionary of static element attributes now
+  correctly works with `tal:define`, etc.
+
 - Fix slice code generation compatibility issue on Python 3.9.
 
 3.8.0 (2020-06-25)

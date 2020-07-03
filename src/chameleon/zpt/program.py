@@ -252,6 +252,7 @@ class MacroProgram(ElementProgram):
                 [nodes.Assignment(["macroname"], Static(ast.Str(macro_name)), True)],
                 inner,
             )
+            STATIC_ATTRIBUTES = None
         # -or- include tag
         else:
             content = nodes.Sequence(body)
@@ -363,12 +364,6 @@ class MacroProgram(ElementProgram):
                     content,
                     )
 
-                # Assign static attributes dictionary to "attrs" value
-                inner = nodes.Define(
-                    [nodes.Alias(["attrs"], STATIC_ATTRIBUTES or EMPTY_DICT)],
-                    inner,
-                    )
-
                 if omit is not False:
                     inner = nodes.Cache([omit], inner)
 
@@ -419,15 +414,15 @@ class MacroProgram(ElementProgram):
                 ('local', ("target_language", ), target_language)
             )
 
-        if defines:
-            DEFINE = partial(
-                nodes.Define,
-                [nodes.Assignment(
-                    names, nodes.Value(expr), context == "local")
-                 for (context, names, expr) in defines],
-                )
-        else:
-            DEFINE = skip
+        assignments = [
+            nodes.Assignment(
+                names, nodes.Value(expr), context == "local")
+            for (context, names, expr) in defines
+        ]
+
+        # Assign static attributes dictionary to "attrs" value
+        assignments.insert(0, nodes.Alias(["attrs"], STATIC_ATTRIBUTES or EMPTY_DICT))
+        DEFINE = partial(nodes.Define, assignments)
 
         # tal:case
         try:
