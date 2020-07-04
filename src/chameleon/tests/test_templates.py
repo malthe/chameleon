@@ -796,6 +796,9 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 example = Example(input_path, want)
                 diff = checker.output_difference(
                     example, got, 0)
+                source = template.source
+                if sys.version_info < (3, ):
+                    source = source.encode("utf-8")
                 self.fail("(%s) - \n%s\n\nCode:\n%s" % (
                     input_path, diff.rstrip('\n'),
-                    template.source.encode('utf-8')))
+                    source))
