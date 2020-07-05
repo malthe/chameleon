@@ -1,6 +1,6 @@
 <div xmlns="http://www.w3.org/1999/xhtml">
   <span id="test"
-        class="defabcdummy"
+        class="dummy"
         onClick="alert();" style="hij">abcghi</span>
   Hello World!
   Hello World!

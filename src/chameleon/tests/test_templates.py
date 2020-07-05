@@ -112,6 +112,7 @@ class TemplateFileTestCase(TestCase):
 
 class RenderTestCase(TestCase):
     root = os.path.dirname(__file__)
+    maxDiff = 4096
 
     def find_files(self, ext):
         inputs = os.path.join(self.root, "inputs")

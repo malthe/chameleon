@@ -5,9 +5,9 @@
     <div tal:attributes="class string:dynamic" class="static">
       ${attrs['class']}
     </div>
-    <div class="static" tal:content="attrs" />
-    <div class="static" tal:replace="attrs" />
-    <div class="static" tal:define="x attrs">${x}</div>
+    <div class="static" tal:content="attrs['class']" />
+    <div class="static" tal:replace="attrs['class']" />
+    <div class="static" tal:define="x attrs">${x['class']}</div>
     <div tal:define="nothing string:nothing">
       ${nothing}
     </div>

@@ -13,16 +13,15 @@ from .codegen import reverse_builtin_map
 from .astutil import Builtin
 from .astutil import Symbol
 from .exc import ExpressionError
-from .utils import resolve_dotted
-from .utils import Markup
 from .utils import ast
+from .utils import resolve_dotted
+from .utils import ImportableMarker
+from .utils import Markup
 from .tokenize import Token
 from .parser import substitute
 from .compiler import Interpolator
 
-# We're using a module as the default marker value by virtue of it being
-# importable and not callable.
-DEFAULT_MARKER = importlib.import_module(__name__)
+DEFAULT_MARKER = ImportableMarker(__name__, "DEFAULT")
 
 try:
     from .py26 import lookup_attr

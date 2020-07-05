@@ -35,6 +35,11 @@ from .nodes import Substitution
 from .nodes import Assignment
 from .nodes import Module
 from .nodes import Context
+from .nodes import Is
+from .nodes import IsNot
+from .nodes import Equals
+from .nodes import Logical
+from .nodes import And
 
 from .tokenize import Token
 from .config import DEBUG_MODE
@@ -805,7 +810,10 @@ class ExpressionTransform(object):
         return stmts
 
     def visit_Value(self, node, target):
-        engine = self.engine_factory()
+        engine = self.engine_factory(
+            default=node.default,
+            default_marker=node.default_marker
+        )
         compiler = engine.parse(node.value)
         return compiler.assign_value(target)
 
@@ -813,7 +821,10 @@ class ExpressionTransform(object):
         return self.translate(node.expression, target)
 
     def visit_Substitution(self, node, target):
-        engine = self.engine_factory(default=node.default)
+        engine = self.engine_factory(
+            default=node.default,
+            default_marker=node.default_marker
+        )
         compiler = engine.parse(node.value, char_escape=node.char_escape)
         return compiler.assign_text(target)
 
@@ -821,22 +832,23 @@ class ExpressionTransform(object):
         return self.translate(node.value, target) + \
                template("TARGET = not TARGET", TARGET=target)
 
-    def visit_Identity(self, node, target):
-        expression = self.translate(node.expression, "__expression")
-        value = self.translate(node.value, "__value")
+    def visit_BinOp(self, node, target):
+        expression = self.translate(node.left, "__expression")
+        value = self.translate(node.right, "__value")
 
+        op = {
+            Is: "is",
+            IsNot: "is not",
+            Equals: "==",
+        }[node.op]
         return expression + value + \
-               template("TARGET = __expression is __value", TARGET=target)
-
-    def visit_Equality(self, node, target):
-        expression = self.translate(node.expression, "__expression")
-        value = self.translate(node.value, "__value")
-
-        return expression + value + \
-               template("TARGET = __expression == __value", TARGET=target)
+               template("TARGET = __expression %s __value" % op, TARGET=target)
 
     def visit_Boolean(self, node, target):
-        engine = self.engine_factory()
+        engine = self.engine_factory(
+            default=node.default,
+            default_marker=node.default_marker,
+        )
         compiler = engine.parse(node.value)
         return compiler.assign_bool(target, node.s)
 
@@ -846,9 +858,13 @@ class ExpressionTransform(object):
             engine = self.engine_factory(
                 char_escape=expr.char_escape,
                 default=expr.default,
-                )
+                default_marker=expr.default_marker
+            )
         elif isinstance(expr, Value):
-            engine = self.engine_factory()
+            engine = self.engine_factory(
+                default=expr.default,
+                default_marker=expr.default_marker
+            )
         else:
             raise RuntimeError("Bad value: %r." % node.value)
 
@@ -1269,22 +1285,44 @@ class Compiler(object):
 
     def visit_Condition(self, node):
         target = "__condition"
-        assignment = self._engine(node.expression, target)
 
-        assert assignment
+        def step(expressions, body, condition):
+            for i, expression in enumerate(reversed(expressions)):
+                stmts = evaluate(expression, body)
+                if i > 0:
+                    stmts.append(
+                        ast.If(
+                            ast.Compare(
+                                left=load(target),
+                                ops=[ast.Is()],
+                                comparators=[load(str(condition))]
+                            ),
+                            body,
+                            None
+                        )
+                    )
+                body = stmts
+            return body
 
-        for stmt in assignment:
-            yield stmt
+        def evaluate(node, body=None):
+            if isinstance(node, Logical):
+                condition = isinstance(node, And)
+                return step(node.expressions, body, condition)
 
-        body = self.visit(node.node) or [ast.Pass()]
+            return self._engine(node, target)
 
+        body = evaluate(node.expression)
         orelse = getattr(node, "orelse", None)
-        if orelse is not None:
-            orelse = self.visit(orelse)
 
-        test = load(target)
+        body.append(
+            ast.If(
+                test=load(target),
+                body=self.visit(node.node) or [ast.Pass()],
+                orelse=self.visit(orelse) if orelse else None,
+            )
+        )
 
-        yield ast.If(test=test, body=body, orelse=orelse)
+        return body
 
     def visit_Translate(self, node):
         """Translation.
@@ -1466,12 +1504,12 @@ class Compiler(object):
         body = []
 
         for expression in node.expressions:
-            name = identifier("cache", id(expression))
-            target = store(name)
-
             # Skip re-evaluation
             if self._expression_cache.get(expression):
                 continue
+
+            name = identifier("cache", id(expression))
+            target = store(name)
 
             body += self._engine(expression, target)
             self._expression_cache[expression] = target
@@ -1484,13 +1522,10 @@ class Compiler(object):
         body = []
 
         for expression in node.expressions:
+            assert self._expression_cache.get(expression) is not None
             name = identifier("cache", id(expression))
             target = store(name)
-
-            if not self._expression_cache.get(expression):
-               continue
-
-            body.append(ast.Assign([target], load("None")))
+            body += self._engine(node.value, target)
 
         body += self.visit(node.node)
 

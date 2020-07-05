@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+- The `default` symbol in dynamic attributes is now
+  symbolic. Previously, it was assigned the string value of the
+  default attribute text. A similar change has been made for
+  switch/case expressions.
+
 - The built-in `attrs` dictionary of static element attributes now
   correctly works with `tal:define`, etc.
 

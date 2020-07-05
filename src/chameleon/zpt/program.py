@@ -23,10 +23,12 @@ from ..namespaces import METAL_NS as METAL
 from ..namespaces import META_NS as META
 
 from ..astutil import Static
+from ..astutil import Symbol
 from ..astutil import parse
 from ..astutil import marker
 
 from .. import tal
+from .. import tales
 from .. import metal
 from .. import i18n
 from .. import nodes
@@ -36,6 +38,7 @@ from ..exc import ParseError
 from ..exc import CompilationError
 
 from ..utils import decode_htmlentities
+from ..utils import ImportableMarker
 
 try:
     str = unicode
@@ -48,6 +51,7 @@ missing = object()
 re_trim = re.compile(r'($\s+|\s+^)', re.MULTILINE)
 
 EMPTY_DICT = Static(ast.Dict(keys=[], values=[]))
+CANCEL_MARKER = ImportableMarker(__name__, "CANCEL")
 
 
 def skip(node):
@@ -102,6 +106,7 @@ class MacroProgram(ElementProgram):
     _interpolation_enabled = True
     _whitespace = "\n"
     _last = ""
+    _cancel_marker = Symbol(CANCEL_MARKER)
 
     # Macro name (always trivial for a macro program)
     name = None
@@ -168,7 +173,7 @@ class MacroProgram(ElementProgram):
             'enable_data_attributes',
             'enable_comment_interpolation',
             'restricted_namespace',
-            )
+        )
 
         super(MacroProgram, self).__init__(*args, **kwargs)
 
@@ -219,7 +224,7 @@ class MacroProgram(ElementProgram):
             switch = None
         else:
             value = nodes.Value(clause)
-            switch = value, nodes.Copy(value)
+            switch = value
 
         self._switches.append(switch)
 
@@ -440,10 +445,16 @@ class MacroProgram(ElementProgram):
                     )
 
             CASE = lambda node: nodes.Define(
-                [nodes.Alias(["default"], switch[1], False)],
+                [nodes.Alias(["default"], self.default_marker)],
                 nodes.Condition(
-                    nodes.Equality(switch[0], value),
-                    nodes.Cancel([switch[0]], node),
+                    nodes.And([
+                        nodes.BinOp(switch, nodes.IsNot, self._cancel_marker),
+                        nodes.Or([
+                            nodes.BinOp(value, nodes.Equals, switch),
+                            nodes.BinOp(value, nodes.Equals, self.default_marker)
+                        ])
+                    ]),
+                    nodes.Cancel([switch], node, self._cancel_marker),
                 ))
 
         # tal:repeat
@@ -484,7 +495,7 @@ class MacroProgram(ElementProgram):
         if switch is None:
             SWITCH = skip
         else:
-            SWITCH = partial(nodes.Cache, list(switch))
+            SWITCH = partial(nodes.Cache, [switch])
 
         # i18n:domain
         try:
@@ -707,9 +718,9 @@ class MacroProgram(ElementProgram):
 
     def _pop_defaults(self, kwargs, *attributes):
         for attribute in attributes:
-            default = getattr(self, attribute)
-            value = kwargs.pop(attribute, default)
-            setattr(self, attribute, value)
+            value = kwargs.pop(attribute, None)
+            if value is not None:
+                setattr(self, attribute, value)
 
     def _check_attributes(self, namespace, ns):
         if namespace in self.DROP_NS and ns.get((TAL, 'attributes')):
@@ -744,7 +755,7 @@ class MacroProgram(ElementProgram):
 
         if default is not None:
             content = nodes.Condition(
-                nodes.Identity(value, self.default_marker),
+                nodes.BinOp(value, nodes.Is, self.default_marker),
                 default,
                 content,
                 )
@@ -773,59 +784,52 @@ class MacroProgram(ElementProgram):
             )
 
             char_escape = ('&', '<', '>', quote)
-
-            # Use a provided default text as the default marker
-            # (aliased to the name ``default``), otherwise use the
-            # program's default marker value.
-            if text is not None:
-                default_marker = ast.Str(s=text)
-            else:
-                default_marker = self.default_marker
-
             msgid = I18N_ATTRIBUTES.get(name, missing)
 
             # If (by heuristic) ``text`` contains one or more
             # interpolation expressions, apply interpolation
-            # substitution to the text
+            # substitution to the text.
             if expr is None and text is not None and '${' in text:
-                expr = nodes.Substitution(text, char_escape)
+                default = None
+                expr = nodes.Substitution(text, char_escape, default, self.default_marker)
                 translation = implicit_i18n and msgid is missing
                 value = nodes.Interpolation(expr, True, translation)
-                default_marker = self.default_marker
-
-            # If the expression is non-trivial, the attribute is
-            # dynamic (computed).
-            elif expr is not None:
-                if name is None:
-                    expression = nodes.Value(decode_htmlentities(expr))
-                    value = nodes.DictAttributes(
-                        expression, ('&', '<', '>', '"'), '"',
-                        set(filter(None, names[i:]))
-                    )
-                    for fs in filtering:
-                        fs.append(expression)
-                    filtering.append([])
-                elif name in self.boolean_attributes:
-                    value = nodes.Boolean(expr, name)
-                else:
-                    if text is not None:
-                        default = default_marker
-                    else:
-                        default = None
-
-                    value = nodes.Substitution(
-                        decode_htmlentities(expr),
-                        char_escape,
-                        default
-                    )
-
-            # Otherwise, it's a static attribute. We don't include it
-            # here if there's one or more "computed" attributes
-            # (dynamic, from one or more dict values).
             else:
-                value = ast.Str(s=text)
-                if msgid is missing and implicit_i18n:
-                    msgid = text
+                default = ast.Str(s=text) if text is not None else None
+
+                # If the expression is non-trivial, the attribute is
+                # dynamic (computed).
+                if expr is not None:
+                    if name is None:
+                        expression = nodes.Value(
+                            decode_htmlentities(expr),
+                            default,
+                            self.default_marker
+                        )
+                        value = nodes.DictAttributes(
+                            expression, ('&', '<', '>', '"'), '"',
+                            set(filter(None, names[i:]))
+                        )
+                        for fs in filtering:
+                            fs.append(expression)
+                        filtering.append([])
+                    elif name in self.boolean_attributes:
+                        value = nodes.Boolean(expr, name, default, self.default_marker)
+                    else:
+                        value = nodes.Substitution(
+                            decode_htmlentities(expr),
+                            char_escape,
+                            default,
+                            self.default_marker,
+                        )
+
+                # Otherwise, it's a static attribute. We don't include it
+                # here if there's one or more "computed" attributes
+                # (dynamic, from one or more dict values).
+                else:
+                    value = ast.Str(s=text)
+                    if msgid is missing and implicit_i18n:
+                        msgid = text
 
             if name is not None:
                 # If translation is required, wrap in a translation
@@ -834,16 +838,24 @@ class MacroProgram(ElementProgram):
                     value = nodes.Translate(msgid, value)
 
                 space = self._maybe_trim(space)
-                fs = filtering[-1]
-                attribute = nodes.Attribute(name, value, quote, eq, space, fs)
+
+                attribute = nodes.Attribute(
+                    name,
+                    value,
+                    quote,
+                    eq,
+                    space,
+                    default,
+                    filtering[-1],
+                )
 
                 if not isinstance(value, ast.Str):
                     # Always define a ``default`` alias for non-static
                     # expressions.
                     attribute = nodes.Define(
-                        [nodes.Alias(["default"], default_marker)],
+                        [nodes.Alias(["default"], self.default_marker)],
                         attribute,
-                        )
+                    )
 
                 value = attribute
 
@@ -851,9 +863,12 @@ class MacroProgram(ElementProgram):
 
         result = nodes.Sequence(attributes)
 
-        fs = filtering[0]
-        if fs:
-            return nodes.Cache(fs, result)
+        # We're caching all expressions found during attribute processing to
+        # enable the filtering functionality which exists to allow later
+        # definitions to override previous ones.
+        expressions = filtering[0]
+        if expressions:
+            return nodes.Cache(expressions, result)
 
         return result
 

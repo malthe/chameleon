@@ -4,7 +4,7 @@
         class="dummy"
         onClick=""
         tal:define="a 'abc'"
-        tal:attributes="class 'def' + a + default; style 'hij'; onClick 'alert();;'"
+        tal:attributes="class default; style 'hij'; onClick 'alert();;'"
         tal:content="a + 'ghi'" />
   <span tal:replace="'Hello World!'">Hello <b>Universe</b>!</span>
   <span tal:replace="'Hello World!'"><b>Hello Universe!</b></span>

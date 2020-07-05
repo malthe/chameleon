@@ -29,7 +29,11 @@ class CodeBlock(Node):
 class Value(Node):
     """Expression object value."""
 
-    _fields = "value",
+    _fields = "value", "default", "default_marker"
+
+    default = None
+
+    default_marker = None
 
     def __repr__(self):
         try:
@@ -45,13 +49,13 @@ class Value(Node):
 class Substitution(Value):
     """Expression value for text substitution."""
 
-    _fields = "value", "char_escape", "default"
+    _fields = "value", "char_escape", "default", "default_marker"
 
     default = None
 
 
 class Boolean(Value):
-    _fields = "value", "s"
+    _fields = "value", "s", "default", "default_marker"
 
 
 class Negate(Node):
@@ -75,7 +79,7 @@ class DictAttributes(Node):
 class Attribute(Node):
     """Element attribute."""
 
-    _fields = "name", "expression", "quote", "eq", "space", "filters"
+    _fields = "name", "expression", "quote", "eq", "space", "default", "filters"
 
 
 class Start(Node):
@@ -91,21 +95,45 @@ class End(Node):
 
 
 class Condition(Node):
-    """Node visited only if some condition holds."""
+    """Node visited only if one of the condition holds."""
 
     _fields = "expression", "node", "orelse"
 
 
-class Identity(Node):
-    """Condition expression that is true on identity."""
-
-    _fields = "expression", "value"
+class Op(Node):
+    """An operator node."""
 
 
-class Equality(Node):
-    """Condition expression that is true on equality."""
+class Is(Op):
+    """Object identity."""
 
-    _fields = "expression", "value"
+
+class IsNot(Op):
+    """Object identity."""
+
+
+class Equals(Op):
+    """Object equality."""
+
+
+class Logical(Node):
+    """Logical operator."""
+
+    _fields = "expressions",
+
+
+class And(Logical):
+    """All terms must be met."""
+
+
+class Or(Logical):
+    """At least one term must be met."""
+
+
+class BinOp(Node):
+    """Binary comparison."""
+
+    _fields = "left", "op", "right"
 
 
 class Cache(Node):
@@ -117,7 +145,7 @@ class Cache(Node):
 
 
 class Cancel(Cache):
-    pass
+    _fields = "expressions", "node", "value"
 
 
 class Copy(Node):
@@ -178,7 +206,9 @@ class Text(Node):
 class Interpolation(Node):
     """String interpolation output."""
 
-    _fields = "value", "braces_required", "translation"
+    _fields = "value", "braces_required", "translation", "default", "default_marker"
+
+
 
 
 class Translate(Node):

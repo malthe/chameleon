@@ -17,17 +17,16 @@ from ..tales import ProxyExpr
 from ..tales import StructureExpr
 from ..tales import ExpressionParser
 from ..tales import DEFAULT_MARKER
-
 from ..tal import RepeatDict
 
 from ..template import BaseTemplate
 from ..template import BaseTemplateFile
 from ..compiler import ExpressionEngine
 from ..loader import TemplateLoader
-from ..astutil import Symbol
 from ..utils import decode_string
 from ..utils import string_type
 from ..utils import unicode_string
+from ..astutil import Symbol
 
 from .program import MacroProgram
 
@@ -155,6 +154,15 @@ class PageTemplate(BaseTemplate):
         function which is used to format values when formatting an
         exception output. The function must not raise an exception (it
         should be safe to call with any value).
+
+      ``default_marker``
+
+        This default marker is used as the marker object bound to the `default`
+        name available to any expression. The semantics is such that if an
+        expression evaluates to the marker object, the default action is used;
+        for an attribute expression, this is the static attribute text; for an
+        element this is the static element text. If there is no static text
+        then the default action is similar to an expression result of `None`.
 
     Output is unicode on Python 2 and string on Python 3.
 
