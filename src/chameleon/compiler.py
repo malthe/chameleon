@@ -21,6 +21,7 @@ from .astutil import Symbol
 from .astutil import Builtin
 from .astutil import Static
 from .astutil import TokenRef
+from .astutil import Node
 
 from .codegen import TemplateCodeGenerator
 from .codegen import template
@@ -59,6 +60,7 @@ from .utils import ast
 from .utils import safe_native
 from .utils import builtins
 from .utils import decode_htmlentities
+from .utils import join
 
 if version >= (3, 0, 0):
     long = int
@@ -136,10 +138,6 @@ def eval_token(token):
         col=ast.Num(n=column),
         mode="eval"
     )
-
-
-emit_node = template(is_func=True, func_args=('node',), source=r"""
-    __append(node)""")
 
 
 emit_node_if_non_trivial = template(is_func=True, func_args=('node',),
@@ -273,6 +271,22 @@ emit_func_convert_and_escape = template(
                             target = target.replace(quote, quote_entity)
 
         return target""")
+
+
+class EmitText(Node):
+    """Append text to output."""
+
+    _fields = "s",
+
+
+class Scope(Node):
+    """"Set a local output scope."""
+
+    _fields = "body", "append", "stream"
+
+    body = None
+    append = None
+    stream = None
 
 
 class Interpolator(object):
@@ -965,7 +979,26 @@ class Compiler(object):
             module = ast.Module([])
             module.body += self.visit(node)
             ast.fix_missing_locations(module)
-            generator = TemplateCodeGenerator(module, source)
+
+            class Generator(TemplateCodeGenerator):
+                scopes = [Scope()]
+
+                def visit_EmitText(self, node):
+                    append = load(self.scopes[-1].append or "__append")
+                    for node in template("append(s)", append=append, s=ast.Str(s=node.s)):
+                        self.visit(node)
+
+                def visit_Scope(self, node):
+                    self.scopes.append(node)
+                    body = list(node.body)
+                    swap(body, load(node.append), "__append")
+                    if node.stream:
+                        swap(body, load(node.stream), "__stream")
+                    for node in body:
+                        self.visit(node)
+                    self.scopes.pop()
+
+            generator = Generator(module, source)
             tokens = [
                 Token(source[pos:pos + length], pos, source)
                 for pos, length in generator.tokens
@@ -992,7 +1025,15 @@ class Compiler(object):
         kind = type(node).__name__
         visitor = getattr(self, "visit_%s" % kind)
         iterator = visitor(node)
-        return list(iterator)
+        result = []
+        for key, group in itertools.groupby(iterator, lambda node: node.__class__):
+            nodes = list(group)
+            if key is EmitText:
+                text = join(node.s for node in nodes)
+                nodes = [EmitText(text)]
+            result.extend(nodes)
+        return result
+
 
     def visit_Sequence(self, node):
         for item in node.items:
@@ -1143,7 +1184,7 @@ class Compiler(object):
         yield function
 
     def visit_Text(self, node):
-        return emit_node(ast.Str(s=node.value))
+        yield EmitText(node.value)
 
     def visit_Domain(self, node):
         backup = "__previous_i18n_domain_%s" % mangle(id(node))
@@ -1346,9 +1387,7 @@ class Compiler(object):
 
         # Visit body to generate the message body
         code = self.visit(node.node)
-        swap(code, load(append), "__append")
-        swap(code, load(stream), "__stream")
-        body += code
+        body.append(Scope(code, append, stream))
 
         # Reduce white space and assign as message id
         msgid = identifier("msgid", id(node))
@@ -1409,23 +1448,16 @@ class Compiler(object):
                 node.prefix, node.name, line, column))
 
         if node.attributes:
-            for stmt in emit_node(ast.Str(s=node.prefix + node.name)):
-                yield stmt
-
+            yield EmitText(node.prefix + node.name)
             for stmt in self.visit(node.attributes):
                 yield stmt
 
-            for stmt in emit_node(ast.Str(s=node.suffix)):
-                yield stmt
+            yield EmitText(node.suffix)
         else:
-            for stmt in emit_node(
-                ast.Str(s=node.prefix + node.name + node.suffix)):
-                yield stmt
+            yield EmitText(node.prefix + node.name + node.suffix)
 
     def visit_End(self, node):
-        for stmt in emit_node(ast.Str(
-            s=node.prefix + node.name + node.space + node.suffix)):
-            yield stmt
+        yield EmitText(node.prefix + node.name + node.space + node.suffix)
 
     def visit_Attribute(self, node):
         attr_format = (node.space + node.name + node.eq +
@@ -1454,7 +1486,7 @@ class Compiler(object):
                     "if C: __append(S)", C=filter_condition, S=ast.Str(s=s)
                 )
             else:
-                return template("__append(S)", S=ast.Str(s=s))
+                return [EmitText(s)]
 
         target = identifier("attr", node.name)
         body = self._engine(node.expression, store(target))
@@ -1582,8 +1614,7 @@ class Compiler(object):
 
         # generate code
         code = self.visit(node.node)
-        swap(code, load(append), "__append")
-        body += code
+        body.append(Scope(code, append))
 
         # output msgid
         text = Text('${%s}' % node.name)
