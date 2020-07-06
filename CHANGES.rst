@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.8.1 (2020-07-06)
+------------------
 
 - Added code optimization to reduce sequential appends of static text.
 
