@@ -474,3 +474,17 @@ class Markup(unicode_string):
 
     def __repr__(self):
         return "s'%s'" % self
+
+
+class ImportableMarker(object):
+    def __init__(self, module, name):
+        self.__module__ = module
+        self.name = name
+
+    @property
+    def __name__(self):
+        return "%s_MARKER" % self.name
+
+    def __repr__(self):
+        return '<%s>' % self.name
+
