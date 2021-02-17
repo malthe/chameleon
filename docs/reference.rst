@@ -1,5 +1,3 @@
-:tocdepth: 4
-
 .. _language-reference:
 
 .. highlight:: xml
@@ -14,7 +12,7 @@ It's split into parts that correspond to each of the main language
 features.
 
 Syntax
-######
+------
 
 You can safely :ref:`skip this section <tal>` if you're familiar with
 how template languages work or just want to learn by example.
@@ -68,14 +66,14 @@ attributes.
 .. _tal:
 
 Basics (TAL)
-############
+------------
 
 The *template attribute language* is used to create dynamic XML-like
 content.  It allows elements of a document to be replaced, repeated,
 or omitted.
 
 Statements
-----------
+~~~~~~~~~~
 
 These are the available statements:
 
@@ -148,7 +146,7 @@ Removes, updates or inserts element attributes.
   tal:attributes="href request.url"
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:attributes`` syntax::
 
@@ -159,7 +157,7 @@ Syntax
 
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``tal:attributes`` statement replaces the value of an attribute
 (or drops, or creates an attribute) with a dynamic value.  The value
@@ -194,7 +192,7 @@ and the replacement expression is evaluated fresh for each repetition.
           ("$$").
 
 Examples
-~~~~~~~~
+++++++++
 
 Replacing a link::
 
@@ -224,14 +222,14 @@ Conditionally includes or omits an element::
   </div>
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:condition`` syntax::
 
     argument ::= expression
 
 Description
-~~~~~~~~~~~
++++++++++++
 
  The ``tal:condition`` statement includes the statement element in the
  template only if the condition is met, and omits it otherwise.  If
@@ -248,7 +246,7 @@ Description
 
 
 Examples
-~~~~~~~~
+++++++++
 
 Test a variable before inserting it::
 
@@ -267,14 +265,14 @@ Testing for odd/even in a repeat-loop::
 Replaces the content of an element.
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:content`` syntax::
 
         argument ::= (['text'] | 'structure') expression
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 Rather than replacing an entire element, you can insert text or
 structure in place of its children with the ``tal:content`` statement.
@@ -298,7 +296,7 @@ form), which is the reason that it is not the default.
 
 
 Examples
-~~~~~~~~
+++++++++
 
 Inserting the user name::
 
@@ -316,7 +314,7 @@ Inserting HTML/XML::
 Defines local variables.
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:define`` syntax::
 
@@ -327,7 +325,7 @@ Syntax
 
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``tal:define`` statement defines variables.  When you define a
 local variable in a statement element, you can use that variable in
@@ -379,7 +377,7 @@ or ``global`` in front of the assignment. The default setting is
           must be escaped by doubling it (";;").
 
 Examples
-~~~~~~~~
+++++++++
 
 Defining a variable::
 
@@ -411,14 +409,14 @@ Defines a switch clause.
   </ul>
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:case`` and ``tal:switch`` syntax::
 
     argument ::= expression
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The *switch* and *case* construct is a short-hand syntax for matching
 a set of expressions against a single parent.
@@ -434,7 +432,7 @@ previous case has been successful. It should therefore be placed last.
           part of the ZPT specification.
 
 Examples
-~~~~~~~~
+++++++++
 
 ::
 
@@ -457,14 +455,14 @@ Examples
 Removes an element, leaving its contents.
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:omit-tag`` syntax::
 
         argument ::= [ expression ]
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``tal:omit-tag`` statement leaves the contents of an element in
 place while omitting the surrounding start and end tags.
@@ -481,7 +479,7 @@ the statement element is replaced with its contents.
 
 
 Examples
-~~~~~~~~
+++++++++
 
 Unconditionally omitting a tag::
 
@@ -510,7 +508,7 @@ Creating ten paragraph tags, with no enclosing tag::
 Repeats an element.
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:repeat`` syntax::
 
@@ -518,7 +516,7 @@ Syntax
         variable_name ::= Name
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``tal:repeat`` statement replicates a sub-tree of your document
 once for each item in a sequence. The expression should evaluate to a
@@ -533,7 +531,7 @@ current sequence element, and the repeat variable is set to an
 iteration object.
 
 Repeat variables
-~~~~~~~~~~~~~~~~~
++++++++++++++++++
 
 You use repeat variables to access information about the current
 repetition (such as the repeat index).  The repeat variable has the
@@ -574,7 +572,7 @@ or ``repeat.item.start``.
           can use :func:`itertools.groupby`, as in the example below.
 
 Examples
-~~~~~~~~
+++++++++
 
 Iterating over a sequence of strings::
 
@@ -634,14 +632,14 @@ types::
 Replaces an element.
 
 Syntax
-~~~~~~
+++++++
 
 ``tal:replace`` syntax::
 
         argument ::= ['structure'] expression
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 
 The ``tal:replace`` statement replaces an element with dynamic
@@ -656,7 +654,7 @@ is converted into an escaped string unless you provide the 'structure' prefix. E
 If the expression evaluates to ``None``, the element is simply removed.  If the value is ``default``, then the element is left unchanged.
 
 Examples
-~~~~~~~~
+++++++++
 
 Inserting a title::
 
@@ -669,7 +667,7 @@ Inserting HTML/XML::
 .. _tales:
 
 Expressions (TALES)
-###################
+-------------------
 
 The *Template Attribute Language Expression Syntax* (TALES) standard
 describes expressions that supply :ref:`tal` and
@@ -698,7 +696,7 @@ like. It also determines which expression type is indicated by
 omitting the prefix.
 
 Types
------
+~~~~~
 
 These are the available TALES expression types:
 
@@ -740,14 +738,14 @@ derivation ``string``.
 Evaluates a Python expression.
 
 Syntax
-~~~~~~
+++++++
 
 Python expression syntax::
 
         Any valid Python language expression
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 Python expressions are executed natively within the translated
 template source code. There is no built-in security apparatus.
@@ -756,7 +754,7 @@ template source code. There is no built-in security apparatus.
 ^^^^^^^^^^
 
 Syntax
-~~~~~~
+++++++
 
 String expression syntax::
 
@@ -766,7 +764,7 @@ String expression syntax::
         non_dollar        ::= any character except '$'
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 String expressions interpret the expression string as text. If no
 expression string is supplied the resulting string is *empty*. The
@@ -778,7 +776,7 @@ string can contain variable substitutions of the form ``$name`` or
    is not supported.
 
 Examples
-~~~~~~~~
+++++++++
 
 Basic string formatting::
 
@@ -822,20 +820,20 @@ the reason that it is not the default.
 Loads a template instance.
 
 Syntax
-~~~~~~
+++++++
 
 Load expression syntax::
 
          Relative or absolute file path
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The template will be loaded using the same template class as the
 calling template.
 
 Examples
-~~~~~~~~
+++++++++
 
 Loading a template and using it as a macro::
 
@@ -843,7 +841,7 @@ Loading a template and using it as a macro::
 
 
 Built-in names
---------------
+~~~~~~~~~~~~~~
 
 These are the names always available in the TALES expression namespace:
 
@@ -860,7 +858,7 @@ These are the names always available in the TALES expression namespace:
 .. _metal:
 
 Macros (METAL)
-##############
+--------------
 
 The *Macro Expansion Template Attribute Language* (METAL) standard is
 a facility for HTML/XML macro preprocessing. It can be used in
@@ -876,7 +874,7 @@ rendering.
 A single Page Template can accomodate multiple macros.
 
 Namespace
----------
+~~~~~~~~~
 
 The METAL namespace URI and recommended alias are currently defined
 as::
@@ -900,7 +898,7 @@ used to the same effect as long as it is qualified with the METAL
 namespace.
 
 Statements
-----------
+~~~~~~~~~~
 
 METAL defines a number of statements:
 
@@ -920,21 +918,21 @@ for use in METAL arguments is described in TALES Specification.
 Defines a macro.
 
 Syntax
-~~~~~~
+++++++
 
 ``metal:define-macro`` syntax::
 
         argument ::= Name
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``metal:define-macro`` statement defines a macro. The macro is named
 by the statement expression, and is defined as the element and its
 sub-tree.
 
 Examples
-~~~~~~~~
+++++++++
 
 Simple macro definition::
 
@@ -948,14 +946,14 @@ Simple macro definition::
 Defines a macro customization point.
 
 Syntax
-~~~~~~
+++++++
 
 ``metal:define-slot`` syntax::
 
         argument ::= Name
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``metal:define-slot`` statement defines a macro customization
 point or *slot*. When a macro is used, its slots can be replaced, in
@@ -969,7 +967,7 @@ The ``metal:define-slot`` statement must be used inside a
 Slot names must be unique within a macro.
 
 Examples
-~~~~~~~~
+++++++++
 
 Simple macro with slot::
 
@@ -987,14 +985,14 @@ slot.
 Customize a macro.
 
 Syntax
-~~~~~~
+++++++
 
 ``metal:fill-slot`` syntax::
 
         argument ::= Name
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``metal:fill-slot`` statement customizes a macro by replacing a
 *slot* in the macro with the statement element (and its content).
@@ -1008,7 +1006,7 @@ If the named slot does not exist within the macro, the slot
 contents will be silently dropped.
 
 Examples
-~~~~~~~~
+++++++++
 
 Given this macro::
 
@@ -1028,14 +1026,14 @@ You can fill the ``name`` slot like so::
 Use a macro.
 
 Syntax
-~~~~~~
+++++++
 
 ``metal:use-macro`` syntax::
 
         argument ::= expression
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 The ``metal:use-macro`` statement replaces the statement element with
 a macro. The statement expression describes a macro definition. The
@@ -1050,14 +1048,14 @@ being used.
 Extends a macro.
 
 Syntax
-~~~~~~
+++++++
 
 ``metal:extend-macro`` syntax::
 
         argument ::= expression
 
 Description
-~~~~~~~~~~~
++++++++++++
 
 To extend an existing macro, choose a name for the macro and add a
 define-macro attribute to a document element with the name as the
@@ -1068,7 +1066,7 @@ not be used with use-macro. The element's subtree is the macro
 body.
 
 Examples
-~~~~~~~~
+++++++++
 
 ::
 
@@ -1084,13 +1082,13 @@ Examples
 .. _i18n:
 
 Translation (I18N)
-##################
+------------------
 
 Translation of template contents and attributes is supported via the
 ``i18n`` namespace and message objects.
 
 Messages
---------
+~~~~~~~~
 
 The translation machinery defines a message as *any object* which is
 not a string or a number and which does not provide an ``__html__``
@@ -1102,7 +1100,7 @@ is always coerced to a native string before it's inserted into the
 template.
 
 Translation function
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 The simplest way to hook into the translation machinery is to provide
 a translation function to the template constructor or at
@@ -1137,7 +1135,7 @@ messages must have attributes ``domain``, ``mapping`` and
 There's currently no further support for other translation frameworks.
 
 Using Zope's translation framework
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The translation function from ``zope.i18n`` relies on *translation
 domains* to provide translations.
@@ -1193,7 +1191,7 @@ It may be necessary to compile the message catalog using the
 ``msgfmt`` utility. This will produce a ``.mo`` file.
 
 Translation domains without gettext
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example demonstrates how to manually set up and
 configure a translation domain for which messages are provided
@@ -1228,7 +1226,7 @@ implementations.
 .. highlight:: xml
 
 Namespace
----------
+~~~~~~~~~
 
 The ``i18n`` namespace URI and recommended prefix are currently
 defined as::
@@ -1239,7 +1237,7 @@ This is not a URL, but merely a unique identifier.  Do not expect a
 browser to resolve it successfully.
 
 Statements
-----------
+~~~~~~~~~~
 
 The allowable ``i18n`` statements are:
 
@@ -1417,7 +1415,7 @@ An example:
 
 
 Relation with TAL processing
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The attributes defined in the ``i18n`` namespace modify the behavior
 of the TAL interpreter for the ``tal:attributes``, ``tal:content``,
@@ -1433,7 +1431,7 @@ only difference is that translations will not be performed in a legacy
 processor.
 
 Relation with METAL processing
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using translation with METAL macros, the internationalization
 context is considered part of the specific documents that page
@@ -1489,7 +1487,7 @@ need to be re-established in the slot-filler.
 
 
 Extracting translatable message
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Translators use `PO files
 <http://www.gnu.org/software/hello/manual/gettext/PO-Files.html>`_
@@ -1560,7 +1558,7 @@ You can now use the Babel commands directly::
 
 
 ${...} operator
-###############
+---------------
 
 The ``${...}`` notation is short-hand for text insertion. The
 Python-expression inside the braces is evaluated and the result
@@ -1579,7 +1577,7 @@ Note that if an object implements the ``__html__`` method, the result
 of this method will be inserted as-is (without XML escaping).
 
 Code blocks
-###########
+-----------
 
 The ``<?python ... ?>`` notation allows you to embed Python code in
 templates:
@@ -1613,7 +1611,7 @@ You can use this to debug templates:
 
 
 Markup comments
-###############
+---------------
 
 You can apply the "!" and "?" modifiers to change how comments are
 processed:
@@ -1633,7 +1631,7 @@ Verbatim
 .. _new-features:
 
 Language extensions
-###################
+-------------------
 
 Chameleon extends the *page template* language with a new expression
 types and language features. Some take inspiration from `Genshi
@@ -1739,7 +1737,7 @@ types and language features. Some take inspiration from `Genshi
 
 
 Incompatibilities and differences
-#################################
+---------------------------------
 
 There are a number of incompatibilities and differences between the
 Chameleon language implementation and the Zope reference
