@@ -3,6 +3,7 @@
     <img class="default" tal:attributes="class default" />
     <img tal:attributes="class default" />
     <span tal:define="foo string:" tal:content="foo or default">Default</span>
+    <span tal:content="unknownvar|default">Default</span>
     <span tal:content="True">Default</span>
     <span tal:content="False">Default</span>
     <span tal:content="default">
