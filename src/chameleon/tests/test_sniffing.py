@@ -115,10 +115,3 @@ class TypeSniffingTestCase(unittest.TestCase):
 
         template = self.get_template(body)
         self.assertEqual(template.body, body.decode('windows-1251'))
-
-
-def test_suite():
-    return unittest.makeSuite(TypeSniffingTestCase)
-
-if __name__ == "__main__":
-    unittest.main(defaultTest="test_suite")
