@@ -1,4 +1,4 @@
-__version__ = '3.8.2-dev'
+__version__ = '3.8.2.dev0'
 
 import os
 
@@ -46,7 +46,6 @@ setup(
        "Programming Language :: Python :: 2",
        "Programming Language :: Python :: 3",
        "Programming Language :: Python :: 2.7",
-       "Programming Language :: Python :: 3.4",
        "Programming Language :: Python :: 3.5",
        "Programming Language :: Python :: 3.6",
        "Programming Language :: Python :: 3.7",
@@ -58,15 +57,19 @@ setup(
     author="Malthe Borch",
     author_email="mborch@gmail.com",
     url="https://chameleon.readthedocs.io",
+    project_urls={
+       'Documentation': 'https://chameleon.readthedocs.io',
+       'Issue Tracker': 'https://github.com/malthe/chameleon/issues',
+       'Sources': 'https://github.com/malthe/chameleon',
+    },
     license='BSD-like (http://repoze.org/license.html)',
     packages=find_packages('src'),
     package_dir = {'': 'src'},
     include_package_data=True,
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
     install_requires=install_requires,
     zip_safe=False,
-    test_suite="chameleon.tests",
     cmdclass={
         'benchmark': Benchmark,
         }
     )
-

@@ -3,7 +3,7 @@ Changes
 
 In next release ...
 
--
+- Dropped support for obsolete Python 3.4
 
 3.8.1 (2020-07-06)
 ------------------

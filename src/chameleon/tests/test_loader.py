@@ -103,8 +103,3 @@ class ZPTLoadTests(unittest.TestCase):
         template = loader["hello_world.pt"]
         from chameleon.zpt.template import PageTemplateFile
         self.assertTrue(isinstance(template, PageTemplateFile))
-
-
-def test_suite():
-    import sys
-    return unittest.findTestCases(sys.modules[__name__])

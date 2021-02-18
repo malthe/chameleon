@@ -4,10 +4,16 @@
 .coverage
 .tox/
 coverage.xml
+default.profraw
 nosetests.xml
+pyvenv.cfg
 *.tar.gz
+.eggs/
+bin/
 env25/
 env26/
 env27/
 env32/
 docs/_build/
+htmlcov/
+lib/
