@@ -1724,10 +1724,6 @@ types and language features. Some take inspiration from `Genshi
 
        The result of the method will be inserted as *structure*.
 
-       This is particularly useful for content which is substituted
-       using the expression operator: ``"${...}"`` since the
-       ``structure`` keyword is not allowed here.
-
     *Switch statement*
 
        Two new attributes have been added: ``tal:switch`` and
