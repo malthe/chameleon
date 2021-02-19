@@ -1313,7 +1313,7 @@ class Compiler(object):
         for stmt in self.visit(node.node):
             yield stmt
 
-        for assignment in node.assignments:
+        for assignment in reversed(node.assignments):
             if assignment.local:
                 for stmt in self._leave_assignment(assignment.names):
                     yield stmt

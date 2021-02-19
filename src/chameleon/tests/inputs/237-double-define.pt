@@ -1,0 +1,5 @@
+<p tal:define="local_value python: 35;
+               local_value python: local_value - 2">
+  ${local_value}
+</p>
+<p tal:content="local_value|default">OUTSIDE: No value</p>
