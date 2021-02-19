@@ -3,7 +3,6 @@ try:
 except NameError:
     long = int
 
-from .exc import ParseError
 from .tokenize import iter_xml
 from .tokenize import iter_text
 from .parser import ElementParser
@@ -36,14 +35,6 @@ class ElementProgram(object):
             node = self.visit(kind, args)
             if node is not None:
                 self.body.append(node)
-
-        if parser.index:
-            # The ``index`` attribute contains a sequence of open HTML tags
-            # which get consumed as their closing tags are found. If the
-            # sequence contains any values after parsing then the template has
-            # unclosed tags.
-            name, pos = parser.index.pop()
-            raise ParseError('No closing tag.', name)
 
     def visit(self, kind, args):
         visitor = getattr(self, "visit_%s" % kind)

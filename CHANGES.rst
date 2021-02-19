@@ -5,9 +5,6 @@ In next release ...
 
 - Dropped support for obsolete Python 3.4
 
-- Do not silently ignore unclosed tags
-  (`#327 <https://github.com/malthe/chameleon/issues/327>`_)
-
 3.8.1 (2020-07-06)
 ------------------
 
