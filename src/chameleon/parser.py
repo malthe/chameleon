@@ -244,6 +244,8 @@ class ElementParser(object):
                 children = self.queue[pos:]
                 del self.queue[pos:]
                 break
+            else:
+                raise ParseError('No closing tag.', name)
         else:
             raise ParseError("Unexpected end tag.", token)
 
