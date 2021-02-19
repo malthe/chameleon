@@ -656,6 +656,14 @@ class ZopePageTemplatesTest(RenderTestCase):
             rendered = template(sin=sin, a=pi)
             self.assertEqual('sin(3.141592653589793) is 1.2', rendered)
 
+    def test_windows_line_endings(self):
+        template = self.from_string('<span id="span_id"\r\n'
+                                    '      class="foo"\r\n'
+                                    '      tal:content="string:bar"/>')
+        self.assertEqual(template(),
+                         '<span id="span_id"\r\n'
+                         '      class="foo">bar</span>')
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
