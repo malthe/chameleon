@@ -8,6 +8,9 @@ In next release ...
 - Do not silently ignore unclosed tags
   (`#327 <https://github.com/malthe/chameleon/issues/327>`_)
 
+- Fixed namespace handling when redefining a variable in the same ``tal:define``
+  (`#237 <https://github.com/malthe/chameleon/issues/237>`_)
+
 3.8.1 (2020-07-06)
 ------------------
 
