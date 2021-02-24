@@ -10,6 +10,14 @@ from .exc import ParseError
 from .namespaces import XML_NS
 from .tokenize import Token
 
+
+# List of HTML tags with an empty content model; these are
+# rendered in minimized form, e.g. ``<img />``.
+# From http://www.w3.org/TR/xhtml1/#dtds
+EMPTY_HTML_TAGS = frozenset([
+    "base", "meta", "link", "hr", "br", "param", "img", "area",
+    "input", "col", "basefont", "isindex", "frame",
+    ])
 match_double_hyphen = re.compile(r'--(?!(-)*>)')
 match_tag_prefix_and_name = re.compile(
     r'^(?P<prefix></?)(?P<name>([^:\n\r ]+:)?[^ \n\t\r>/]+)'
@@ -226,7 +234,8 @@ class ElementParser(object):
         namespace = self.namespaces[-1].copy()
         self.namespaces.append(namespace)
         node = parse_tag(token, namespace, self.restricted_namespace)
-        self.index.append((node['name'], len(self.queue)))
+        if node['name'].lower() not in EMPTY_HTML_TAGS:
+            self.index.append((node['name'], len(self.queue)))
         return kind, (node, )
 
     def visit_end_tag(self, kind, token):

@@ -656,6 +656,28 @@ class ZopePageTemplatesTest(RenderTestCase):
             rendered = template(sin=sin, a=pi)
             self.assertEqual('sin(3.141592653589793) is 1.2', rendered)
 
+    def test_windows_line_endings(self):
+        template = self.from_string('<span id="span_id"\r\n'
+                                    '      class="foo"\r\n'
+                                    '      tal:content="string:bar"/>')
+        self.assertEqual(template(),
+                         '<span id="span_id"\r\n'
+                         '      class="foo">bar</span>')
+
+    def test_unclosed_tags(self):
+        from chameleon.exc import ParseError
+
+        data = '<tal:define define="x 1"><span tal:content="x"/>'
+        self.assertRaises(ParseError, self.from_string, data)
+
+        data = ('<p tal:define="x 1"><BR clear="all"><hr>'
+                '<span tal:replace="x"/></p>')
+        template = self.from_string(data)
+        self.assertEqual(template(), '<p><BR clear="all"><hr>1</p>')
+
+        data = '<a href="foo"><p tal:define="x 1"><span tal:replace="x"/></p>'
+        self.assertRaises(ParseError, self.from_string, data)
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
