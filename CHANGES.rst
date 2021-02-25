@@ -10,6 +10,9 @@ In next release ...
 - Fixed namespace handling when redefining a variable in the same ``tal:define``
   (`#237 <https://github.com/malthe/chameleon/issues/237>`_)
 
+- Fixed failure computing a template's digest if ``template.filename`` is None
+  (`#254 <https://github.com/malthe/chameleon/issues/254>`_)
+
 3.8.1 (2020-07-06)
 ------------------
 

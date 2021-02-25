@@ -665,6 +665,17 @@ class ZopePageTemplatesTest(RenderTestCase):
                          '<span id="span_id"\r\n'
                          '      class="foo">bar</span>')
 
+    def test_digest(self):
+        # Make sure ``digest`` doesn't error out when ``filename`` is something
+        # other than a simple string
+        data = '<html></html>'
+        template = self.from_string(data)
+        template.filename = None
+        self.assertTrue(template.digest(data, []))
+
+        template.filename = ''
+        self.assertTrue(template.digest(data, []))
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
