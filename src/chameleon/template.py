@@ -265,7 +265,7 @@ class BaseTemplate(object):
         sha.update(class_name)
         digest = sha.hexdigest()
 
-        if self.filename is not BaseTemplate.filename:
+        if self.filename and self.filename is not BaseTemplate.filename:
             digest = os.path.splitext(self.filename)[0] + '-' + digest
 
         return digest
