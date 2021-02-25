@@ -1,7 +1,12 @@
+import ast
 import re
 import sys
 import types
 import importlib
+try:
+    from ast import TryExcept
+except ImportError:  # Python 3
+    from ast import Try as TryExcept
 
 from .astutil import parse
 from .astutil import store
@@ -13,7 +18,7 @@ from .codegen import reverse_builtin_map
 from .astutil import Builtin
 from .astutil import Symbol
 from .exc import ExpressionError
-from .utils import ast
+from .utils import lookup_attr
 from .utils import resolve_dotted
 from .utils import ImportableMarker
 from .utils import Markup
@@ -22,12 +27,6 @@ from .parser import substitute
 from .compiler import Interpolator
 
 DEFAULT_MARKER = ImportableMarker(__name__, "DEFAULT")
-
-try:
-    from .py26 import lookup_attr
-except SyntaxError:
-    from .py25 import lookup_attr
-
 
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
@@ -161,7 +160,7 @@ class TalesExpr(object):
             if i == 0:
                 body = assignment
             else:
-                body = [ast.TryExcept(
+                body = [TryExcept(
                     body=assignment,
                     handlers=[ast.ExceptHandler(
                         type=ast.Tuple(
@@ -532,7 +531,7 @@ class ExistsExpr(object):
         classes = map(resolve_global, self.exceptions)
 
         return [
-            ast.TryExcept(
+            TryExcept(
                 body=body,
                 handlers=[ast.ExceptHandler(
                     type=ast.Tuple(elts=classes, ctx=ast.Load()),

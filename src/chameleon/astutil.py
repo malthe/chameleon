@@ -13,16 +13,11 @@
 
 """Support classes for generating code from abstract syntax trees."""
 
-try:
-    import ast
-except ImportError:
-    from chameleon import ast25 as ast
-
+import ast
 import sys
 import logging
 import weakref
 import collections
-
 
 AST_NONE = ast.Name(id='None', ctx=ast.Load())
 
@@ -588,11 +583,9 @@ class ASTCodeGenerator(object):
             self._write(' ')
             self.visit(node.type)
         if getattr(node, 'name', None):
-            if sys.version_info[0] == 2:
+            if sys.version_info < (3,):
                 assert getattr(node, 'type', None)
-                self._write(', ')
-            else:
-                self._write(' as ')
+            self._write(' as ')
             self.visit(node.name)
         self._write(':')
         self._change_indent(1)
