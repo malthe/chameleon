@@ -678,6 +678,11 @@ class ZopePageTemplatesTest(RenderTestCase):
         data = '<a href="foo"><p tal:define="x 1"><span tal:replace="x"/></p>'
         self.assertRaises(ParseError, self.from_string, data)
 
+        data = ('<a href="foo">'
+                '<p tal:define="x 1"><span tal:replace="x"/></p></a>')
+        template = self.from_string(data)
+        self.assertEqual(template(), '<a href="foo"><p>1</p></a>')
+
 
 class ZopeTemplatesTestSuite(RenderTestCase):
     def setUp(self):
