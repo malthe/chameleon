@@ -1,3 +1,4 @@
+import ast
 import re
 import sys
 import itertools
@@ -7,6 +8,10 @@ import functools
 import collections
 import pickle
 import textwrap
+try:
+    from ast import TryExcept
+except ImportError:  # Python 3
+    from ast import Try as TryExcept
 
 from .astutil import load
 from .astutil import store
@@ -55,14 +60,12 @@ from .utils import native_string
 from .utils import byte_string
 from .utils import string_type
 from .utils import unicode_string
-from .utils import version
-from .utils import ast
 from .utils import safe_native
 from .utils import builtins
 from .utils import decode_htmlentities
 from .utils import join
 
-if version >= (3, 0, 0):
+if sys.version_info >= (3,):
     long = int
 
 log = logging.getLogger('chameleon.compiler')
@@ -1057,7 +1060,7 @@ class Compiler(object):
         body += template("import re")
         body += template("import functools")
         body += template("from itertools import chain as __chain")
-        if version < (3, 0, 0):
+        if sys.version_info < (3,):
             body += template("from sys import exc_clear as __exc_clear")
         else:
             body += template("from sys import intern")
@@ -1158,7 +1161,7 @@ class Compiler(object):
 
         # Wrap visited nodes in try-except error handler.
         body += [
-            ast.TryExcept(
+            TryExcept(
                 body=nodes,
                 handlers=[ast.ExceptHandler(body=exc_handler)]
             )
@@ -1218,7 +1221,7 @@ class Compiler(object):
             key=ast.Str(s=node.name),
             )
 
-        body += [ast.TryExcept(
+        body += [TryExcept(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
                 type=ast.Tuple(elts=[Builtin("Exception")], ctx=ast.Load()),
@@ -1675,7 +1678,7 @@ class Compiler(object):
             if node.extend:
                 append = template("_slots.appendleft(NAME)", NAME=fun)
 
-                assignment = [ast.TryExcept(
+                assignment = [TryExcept(
                     body=template("_slots = getitem(KEY)", KEY=key),
                     handlers=[ast.ExceptHandler(body=assignment)],
                     orelse=append,

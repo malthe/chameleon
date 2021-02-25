@@ -1,8 +1,4 @@
-try:
-    import ast
-except ImportError:
-    from chameleon import ast25 as ast
-
+import ast
 import inspect
 import textwrap
 import types

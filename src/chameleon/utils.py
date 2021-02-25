@@ -6,37 +6,15 @@ import logging
 
 from copy import copy
 
-version = sys.version_info[:3]
-
-try:
-    import ast as _ast
-except ImportError:
-    from chameleon import ast25 as _ast
-
-
-class ASTProxy(object):
-    aliases = {
-        # Python 3.3
-        'TryExcept': 'Try',
-        'TryFinally': 'Try',
-        }
-
-    def __getattr__(self, name):
-        if name.startswith('__'):
-            raise AttributeError(name)
-        return _ast.__dict__.get(name) or getattr(_ast, self.aliases[name])
-
-
-ast = ASTProxy()
 log = logging.getLogger('chameleon.utils')
 marker = object()
 
 # Python 2
-if version < (3, 0, 0):
+if sys.version_info < (3,):
     import htmlentitydefs
     import __builtin__ as builtins
 
-    from .py25 import raise_with_traceback
+    from .compat import raise_with_traceback
 
     chr = unichr
     native_string = str
@@ -488,3 +466,17 @@ class ImportableMarker(object):
     def __repr__(self):
         return '<%s>' % self.name
 
+
+def lookup_attr(obj, key):
+    try:
+        return getattr(obj, key)
+    except AttributeError:
+        exc = sys.exc_info()[1]
+        try:
+            get = obj.__getitem__
+        except AttributeError:
+            raise exc
+        try:
+            return get(key)
+        except KeyError:
+            raise exc

@@ -7,6 +7,7 @@ import os
 import sys
 import shutil
 import tempfile
+import unittest
 
 from functools import wraps
 from functools import partial
@@ -648,13 +649,13 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("Expected error.")
 
-    if tuple(sys.version_info) >= (3, 6, 0):
-        def test_f_strings(self):
-            from math import pi
-            from math import sin
-            template = self.from_string('${f"sin({a}) is {sin(a):.3}"}')
-            rendered = template(sin=sin, a=pi)
-            self.assertEqual('sin(3.141592653589793) is 1.2', rendered)
+    @unittest.skipIf(sys.version_info < (3, 6), 'Only works on Python 3.6+')
+    def test_f_strings(self):
+        from math import pi
+        from math import sin
+        template = self.from_string('${f"sin({a}) is {sin(a):.3}"}')
+        rendered = template(sin=sin, a=pi)
+        self.assertEqual('sin(3.141592653589793) is 1.2', rendered)
 
     def test_windows_line_endings(self):
         template = self.from_string('<span id="span_id"\r\n'

@@ -1,15 +1,11 @@
 import re
 
 try:
-    import ast
-except ImportError:
-    from chameleon import ast25 as ast
-
-try:
     str = unicode
 except NameError:
     long = int
 
+import ast
 from functools import partial
 from copy import copy
 

@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Removed compatibility code for unsupported Python versions
+
 - Dropped support for obsolete Python 3.4
 
 - Fixed namespace handling when redefining a variable in the same ``tal:define``

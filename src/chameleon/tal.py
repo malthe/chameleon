@@ -21,12 +21,6 @@ from .utils import descriptorstr
 from .namespaces import XMLNS_NS
 from .parser import groups
 
-
-try:
-    next
-except NameError:
-    from chameleon.py25 import next
-
 try:
     # optional library: `zope.interface`
     from chameleon import interfaces
