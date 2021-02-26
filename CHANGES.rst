@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.9.0 (2021-02-26)
+------------------
 
 - Removed compatibility code for unsupported Python versions
 
