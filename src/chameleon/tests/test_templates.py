@@ -125,7 +125,7 @@ class RenderTestCase(TestCase):
             path = os.path.join(inputs, filename)
 
             # if there's no output file, treat document as static and
-            # expect intput equal to output
+            # expect input equal to output
             import glob
             globbed = tuple(glob.iglob(os.path.join(
                 outputs, "%s*%s" % (name.split('-', 1)[0], ext))))
