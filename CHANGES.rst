@@ -1,7 +1,7 @@
 Changes
 =======
 
-3.9.1 (unreleased)
+3.9.1 (2021-05-14)
 ------------------
 
 - Avoid various traceback reference cycles.
