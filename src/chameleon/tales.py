@@ -267,8 +267,7 @@ class PythonExpr(TalesExpr):
 
         try:
             value = self.parse(string)
-        except SyntaxError:
-            exc = sys.exc_info()[1]
+        except SyntaxError as exc:
             raise ExpressionError(exc.msg, string)
 
         # Transform attribute lookups to allow fallback to item lookup
@@ -558,8 +557,7 @@ class ExpressionParser(object):
 
         try:
             factory = self.factories[prefix]
-        except KeyError:
-            exc = sys.exc_info()[1]
+        except KeyError as exc:
             raise LookupError(
                 "Unknown expression type: %s." % str(exc)
                 )

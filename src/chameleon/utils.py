@@ -470,8 +470,7 @@ class ImportableMarker(object):
 def lookup_attr(obj, key):
     try:
         return getattr(obj, key)
-    except AttributeError:
-        exc = sys.exc_info()[1]
+    except AttributeError as exc:
         try:
             get = obj.__getitem__
         except AttributeError:

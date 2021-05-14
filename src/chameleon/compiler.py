@@ -780,11 +780,10 @@ class ExpressionTransform(object):
 
         try:
             stmts = self.translate(expression, target)
-        except ExpressionError:
+        except ExpressionError as exc:
             if self.strict:
                 raise
 
-            exc = sys.exc_info()[1]
             p = pickle.dumps(exc, -1)
 
             stmts = template(

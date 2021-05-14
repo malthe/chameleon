@@ -194,26 +194,29 @@ class BaseTemplate(object):
             raise
         except:
             cls, exc, tb = sys.exc_info()
-            errors = rcontext.get('__error__')
-            if errors:
-                formatter = exc.__str__
-                if isinstance(formatter, ExceptionFormatter):
-                    if errors is not formatter._errors:
-                        formatter._errors.extend(errors)
-                    raise
+            try:
+                errors = rcontext.get('__error__')
+                if errors:
+                    formatter = exc.__str__
+                    if isinstance(formatter, ExceptionFormatter):
+                        if errors is not formatter._errors:
+                            formatter._errors.extend(errors)
+                        raise
 
-                formatter = ExceptionFormatter(errors, econtext, rcontext, self.value_repr)
+                    formatter = ExceptionFormatter(errors, econtext, rcontext, self.value_repr)
 
-                try:
-                    exc = create_formatted_exception(
-                        exc, cls, formatter, RenderError
-                    )
-                except TypeError:
-                    pass
+                    try:
+                        exc = create_formatted_exception(
+                            exc, cls, formatter, RenderError
+                        )
+                    except TypeError:
+                        pass
 
-                raise_with_traceback(exc, tb)
+                    raise_with_traceback(exc, tb)
 
-            raise
+                raise
+            finally:
+                del exc, tb
 
         return join(stream)
 
@@ -246,8 +249,7 @@ class BaseTemplate(object):
                 if self.keep_source:
                     self.source = source
                 cooked = self.loader.build(source, filename)
-            except TemplateError:
-                exc = sys.exc_info()[1]
+            except TemplateError as exc:
                 exc.token.filename = self.filename
                 raise
         elif self.keep_source:

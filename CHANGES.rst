@@ -4,6 +4,8 @@ Changes
 3.9.1 (unreleased)
 ------------------
 
+- Avoid various traceback reference cycles.
+
 3.9.0 (2021-02-26)
 ------------------
 
