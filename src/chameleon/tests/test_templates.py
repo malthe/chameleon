@@ -101,8 +101,7 @@ class TemplateFileTestCase(TestCase):
         template = self._class("___does_not_exist___")
         try:
             template.cook_check()
-        except IOError:
-            exc = sys.exc_info()[1]
+        except IOError as exc:
             self.assertEqual(
                 os.getcwd(),
                 os.path.dirname(exc.filename)
@@ -172,8 +171,7 @@ class ZopePageTemplatesTest(RenderTestCase):
                 from chameleon.exc import TemplateError
                 try:
                     template = self.from_string(body)
-                except TemplateError:
-                    exc = sys.exc_info()[1]
+                except TemplateError as exc:
                     return func(self, body, exc)
                 else:
                     self.fail("Expected exception.")
@@ -199,8 +197,7 @@ class ZopePageTemplatesTest(RenderTestCase):
 
         try:
             template()
-        except ExpressionError:
-            exc = sys.exc_info()[1]
+        except ExpressionError as exc:
             self.assertTrue(body[exc.offset:].startswith('bad ///'))
         else:
             self.fail("Expected exception")
@@ -215,8 +212,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         template = self.from_string(body, strict=False)
         try:
             template()
-        except RenderError:
-            exc = sys.exc_info()[1]
+        except RenderError as exc:
             self.assertNotIn('var_does_not_exists', str(exc))
         else:
             self.fail("Expected exception")
@@ -240,8 +236,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             ''')
         try:
             result = template(macro=macro_wrap, macro_inner=macro_inner)
-        except RenderError:
-            exc = sys.exc_info()[1]
+        except RenderError as exc:
             self.assertTrue(isinstance(exc, KeyError))
             self.assertIn(''''key-does-not-exist'
 
@@ -264,8 +259,7 @@ class ZopePageTemplatesTest(RenderTestCase):
 
         try:
             template()
-        except RenderError:
-            exc = sys.exc_info()[1]
+        except RenderError as exc:
             self.assertTrue(isinstance(exc, AttributeError))
             self.assertIn('bad', str(exc))
         else:
@@ -341,8 +335,7 @@ class ZopePageTemplatesTest(RenderTestCase):
 
         try:
             template(name=name)
-        except UnicodeDecodeError:
-            exc = sys.exc_info()[1]
+        except UnicodeDecodeError as exc:
             formatted = str(exc)
 
             # There's a marker under the expression that has the
@@ -467,7 +460,6 @@ class ZopePageTemplatesTest(RenderTestCase):
             template()
         except Exception as exc:
             self.assertIn(RenderError, type(exc).__bases__)
-            exc = sys.exc_info()[1]
             formatted = str(exc)
             self.assertFalse('NameError:' in formatted)
             self.assertTrue('foo' in formatted)
@@ -522,9 +514,8 @@ class ZopePageTemplatesTest(RenderTestCase):
         template._render = _render
         try:
             template()
-        except TestException:
+        except TestException as exc:
             self.assertEqual(calls, [(('foo', ), {'bar': 'baz'})])
-            exc = sys.exc_info()[1]
             formatted = str(exc)
             self.assertTrue('TestException' in formatted)
             self.assertTrue('"expression"' in formatted)
@@ -643,8 +634,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             <div metal:fill-slot="name"></dav>
             </div>
             """)
-        except ParseError:
-            exc = sys.exc_info()[1]
+        except ParseError as exc:
             self.assertTrue("</dav>" in str(exc))
         else:
             self.fail("Expected error.")

@@ -1,7 +1,5 @@
 from __future__ import with_statement
 
-import sys
-
 from unittest import TestCase
 
 from ..namespaces import XML_NS
@@ -35,8 +33,7 @@ class ParserTest(TestCase):
             from ..utils import read_encoded
             try:
                 want = read_encoded(source)
-            except UnicodeDecodeError:
-                exc = sys.exc_info()[1]
+            except UnicodeDecodeError as exc:
                 self.fail("%s - %s" % (exc, filename))
 
             from ..tokenize import iter_xml
