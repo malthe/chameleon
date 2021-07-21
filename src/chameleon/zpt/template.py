@@ -1,6 +1,6 @@
 from functools import partial
 from os.path import dirname
-from hashlib import md5 as md5_original
+from hashlib import sha1
 
 from ..i18n import simple_translate
 from ..tales import PythonExpr
@@ -29,12 +29,6 @@ try:
     bytes
 except NameError:
     bytes = str
-
-try:
-    hashed = md5_original(b'test')
-    md5 = md5_original
-except ValueError:
-    md5 = partial(md5_original, usedforsecurity=False)
 
 
 class PageTemplate(BaseTemplate):
@@ -315,7 +309,7 @@ class PageTemplate(BaseTemplate):
         hex = super(PageTemplate, self).digest(body, names)
         if isinstance(hex, unicode_string):
             hex = hex.encode('utf-8')
-        digest = md5(hex)
+        digest = sha1(hex)
         digest.update(';'.join(names).encode('utf-8'))
 
         for attr in (
