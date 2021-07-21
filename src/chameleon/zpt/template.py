@@ -1,6 +1,6 @@
 from functools import partial
 from os.path import dirname
-from hashlib import md5
+from hashlib import md5 as md5_original
 
 from ..i18n import simple_translate
 from ..tales import PythonExpr
@@ -29,6 +29,12 @@ try:
     bytes
 except NameError:
     bytes = str
+
+try:
+    hashed = md5_original(b'test')
+    md5 = md5_original
+except ValueError:
+    md5 = partial(md5_original, usedforsecurity=False)
 
 
 class PageTemplate(BaseTemplate):
