@@ -4,7 +4,8 @@ Changes
 3.9.2 (unreleased)
 ------------------
 
-...
+- Work in FIPS enabled environments
+  (`#345 <https://github.com/malthe/chameleon/issues/345>`_)
 
 3.9.1 (2021-05-14)
 ------------------
