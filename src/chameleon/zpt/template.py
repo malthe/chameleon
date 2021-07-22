@@ -1,6 +1,6 @@
 from functools import partial
 from os.path import dirname
-from hashlib import md5
+from hashlib import sha256
 
 from ..i18n import simple_translate
 from ..tales import PythonExpr
@@ -309,7 +309,7 @@ class PageTemplate(BaseTemplate):
         hex = super(PageTemplate, self).digest(body, names)
         if isinstance(hex, unicode_string):
             hex = hex.encode('utf-8')
-        digest = md5(hex)
+        digest = sha256(hex)
         digest.update(';'.join(names).encode('utf-8'))
 
         for attr in (
@@ -322,7 +322,7 @@ class PageTemplate(BaseTemplate):
                 (";%s=%s" % (attr, str(v))).encode('ascii')
             )
 
-        return digest.hexdigest()
+            return digest.hexdigest()[:32]
 
     def _builtins(self):
         return {
