@@ -212,6 +212,14 @@ A checkbox input::
 
     <input type="checkbox" tal:attributes="checked True" />
 
+This requires ``boolean_attributes`` to be activated, see :py:class:`PageTemplate configuration options<chameleon.PageTemplate>`::
+
+  template = PageTemplate("<input type="checkbox" tal:attributes="checked True" />",
+                          boolean_attributes={"selected", "checked"})
+  // or
+
+  templates = PageTemplateLoader(path, boolean_attributes={"selected", "checked"})
+
 ``tal:condition``
 ^^^^^^^^^^^^^^^^^
 
