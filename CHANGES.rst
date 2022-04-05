@@ -7,7 +7,7 @@ Changes
 - Work in FIPS enabled environments
   (`#345 <https://github.com/malthe/chameleon/issues/345>`_)
   
-- Fix tab handling isssue
+- Fix tab handling issue
   (`#350 <https://github.com/malthe/chameleon/issues/350>`_)
 
 3.9.1 (2021-05-14)
