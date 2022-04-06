@@ -1,7 +1,7 @@
 Changes
 =======
 
-3.10.0 (unreleased)
+3.10.0 (2022-04-06)
 -------------------
 
 - Make scope class dict-like
