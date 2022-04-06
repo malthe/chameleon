@@ -1,12 +1,15 @@
 Changes
 =======
 
-3.9.2 (unreleased)
-------------------
+3.10.0 (unreleased)
+-------------------
+
+- Make scope class dict-like
+  (`#305 <https://github.com/malthe/chameleon/issues/305>`_)
 
 - Work in FIPS enabled environments
   (`#345 <https://github.com/malthe/chameleon/issues/345>`_)
-  
+
 - Fix tab handling issue
   (`#350 <https://github.com/malthe/chameleon/issues/350>`_)
 
