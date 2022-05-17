@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+3.10.1 (2022-05-17)
+-------------------
 
 - Fix __str__ method of chameleon.exc.TemplateError
   (`#356 <https://github.com/malthe/chameleon/issues/356>`_)
