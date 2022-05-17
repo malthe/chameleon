@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Fix __str__ method of chameleon.exc.TemplateError
+  (`#356 <https://github.com/malthe/chameleon/issues/356>`_)
+
 3.10.0 (2022-04-06)
 -------------------
 

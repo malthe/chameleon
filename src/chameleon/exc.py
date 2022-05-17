@@ -189,7 +189,7 @@ class TemplateError(Exception):
 
             # Prepend newlines.
             for line in lines:
-                text += "\n" + line
+                text += "\n" + safe_native(line)
 
         return text
 
