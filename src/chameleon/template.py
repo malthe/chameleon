@@ -5,6 +5,13 @@ import os
 import sys
 import tempfile
 
+
+try:
+    # we need to try the backport first, as we rely on ``files`` added in 3.9
+    import importlib_resources
+except ImportError:
+    import importlib.resources as importlib_resources
+
 from .compiler import Compiler
 from .config import AUTO_RELOAD
 from .config import CACHE_DIRECTORY
@@ -36,20 +43,14 @@ except NameError:
 
 def get_package_versions():
     try:
-        import pkg_resources
+        # try backport first as packages_distributions was added in Python 3.10
+        import importlib_metadata
     except ImportError:
-        logging.info("Setuptools not installed. Unable to determine version.")
-        return []
+        import importlib.metadata as importlib_metadata
 
-    versions = dict()
-    for path in sys.path:
-        for distribution in pkg_resources.find_distributions(path):
-            if distribution.has_version():
-                versions.setdefault(
-                    distribution.project_name,
-                    distribution.version,
-                )
-
+    versions = {
+        x: importlib_metadata.version(x)
+        for x in sum(importlib_metadata.packages_distributions().values(), [])}
     return sorted(versions.items())
 
 
@@ -93,8 +94,8 @@ class BaseTemplate:
 
     # This attribute is strictly informational in this template class
     # and is used in exception formatting. It may be set on
-    # initialization using the optional ``filename`` keyword argument.
-    filename = '<string>'
+    # initialization using the optional ``spec`` keyword argument.
+    spec = '<string>'
 
     _cooked = False
 
@@ -146,7 +147,7 @@ class BaseTemplate:
         return self.render(**kwargs)
 
     def __repr__(self):
-        return "<{} {}>".format(self.__class__.__name__, self.filename)
+        return "<{} {}>".format(self.__class__.__name__, self.spec)
 
     @property
     def keep_body(self):
@@ -251,12 +252,12 @@ class BaseTemplate:
                 source = self._compile(body, builtins)
                 if self.debug:
                     source = "# template: {}\n#\n{}".format(
-                        self.filename, source)
+                        self.spec, source)
                 if self.keep_source:
                     self.source = source
                 cooked = self.loader.build(source, filename)
             except TemplateError as exc:
-                exc.token.filename = self.filename
+                exc.token.filename = self.spec
                 raise
         elif self.keep_source:
             module = sys.modules.get(cooked.get('__name__'))
@@ -273,8 +274,8 @@ class BaseTemplate:
         sha.update(class_name)
         digest = sha.hexdigest()
 
-        if self.filename and self.filename is not BaseTemplate.filename:
-            digest = os.path.splitext(self.filename)[0] + '-' + digest
+        if self.spec and self.spec is not BaseTemplate.spec:
+            digest = os.path.splitext(self.spec.filename)[0] + '-' + digest
 
         return digest
 
@@ -282,10 +283,25 @@ class BaseTemplate:
         program = self.parse(body)
         module = Module("initialize", program)
         compiler = Compiler(
-            self.engine, module, self.filename, body,
+            self.engine, module, self.spec, body,
             builtins, strict=self.strict
         )
         return compiler.code
+
+
+class Spec(object):
+    __slots__ = ('filename', 'pname', 'spec')
+
+    def __init__(self, spec):
+        self.spec = spec
+        if ':' in spec:
+            (self.pname, self.filename) = spec.split(':', 1)
+        else:
+            self.pname = None
+            self.filename = spec
+
+    def __repr__(self):
+        return repr(self.spec)
 
 
 class BaseTemplateFile(BaseTemplate):
@@ -301,16 +317,17 @@ class BaseTemplateFile(BaseTemplate):
 
     def __init__(
             self,
-            filename,
+            spec,
             auto_reload=None,
             post_init_hook=None,
             **config):
-        # Normalize filename
-        filename = os.path.abspath(
-            os.path.normpath(os.path.expanduser(filename))
-        )
+        if ':' not in spec:
+            # Normalize filename
+            spec = os.path.abspath(
+                os.path.normpath(os.path.expanduser(spec))
+            )
 
-        self.filename = filename
+        self.spec = Spec(spec)
 
         # Override reload setting only if value is provided explicitly
         if auto_reload is not None:
@@ -334,18 +351,25 @@ class BaseTemplateFile(BaseTemplate):
 
         if self._cooked is False:
             body = self.read()
-            log.debug("cooking %r (%d bytes)..." % (self.filename, len(body)))
+            log.debug("cooking %r (%d bytes)..." % (self.spec, len(body)))
             self.cook(body)
 
     def mtime(self):
-        try:
-            return os.path.getmtime(self.filename)
-        except OSError:
+        if self.spec.pname is not None:
             return 0
+        else:
+            try:
+                return os.path.getmtime(self.spec.filename)
+            except OSError:
+                return 0
 
     def read(self):
-        with open(self.filename, "rb") as f:
-            data = f.read()
+        if self.spec.pname is not None:
+            files = importlib_resources.files(self.spec.pname)
+            data = files.joinpath(self.spec.filename).read_bytes()
+        else:
+            with open(self.spec.filename, "rb") as f:
+                data = f.read()
 
         body, encoding, content_type = read_bytes(
             data, self.default_encoding
@@ -357,16 +381,16 @@ class BaseTemplateFile(BaseTemplate):
         return body
 
     def _get_module_name(self, name):
-        filename = os.path.basename(self.filename)
+        filename = os.path.basename(self.spec.filename)
         mangled = mangle(filename)
         return "{}_{}.py".format(mangled, name)
 
-    def _get_filename(self):
-        return self.__dict__.get('filename')
+    def _get_spec(self):
+        return self.__dict__.get('spec')
 
-    def _set_filename(self, filename):
-        self.__dict__['filename'] = filename
+    def _set_spec(self, spec):
+        self.__dict__['spec'] = spec
         self._v_last_read = None
         self._cooked = False
 
-    filename = property(_get_filename, _set_filename)
+    spec = property(_get_spec, _set_spec)

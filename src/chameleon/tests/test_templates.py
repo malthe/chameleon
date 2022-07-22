@@ -414,7 +414,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt')
         )
-        self.assertTrue(template.filename in repr(template))
+        self.assertTrue(template.spec.filename in repr(template))
 
     def test_underscore_variable(self):
         template = self.from_string(

@@ -9,8 +9,6 @@ import warnings
 from importlib.machinery import SourceFileLoader
 from threading import RLock
 
-import pkg_resources
-
 from .utils import encode_string
 
 
@@ -29,18 +27,6 @@ def cache(func):
             self.registry[args] = template = func(self, *args, **kwargs)
         return template
     return load
-
-
-def abspath_from_asset_spec(spec):
-    pname, filename = spec.split(':', 1)
-    return pkg_resources.resource_filename(pname, filename)
-
-
-if os.name == "nt":
-    def abspath_from_asset_spec(spec, f=abspath_from_asset_spec):
-        if spec[1] == ":":
-            return spec
-        return f(spec)
 
 
 class TemplateLoader:
@@ -80,10 +66,7 @@ class TemplateLoader:
         if self.default_extension is not None and '.' not in spec:
             spec += self.default_extension
 
-        if ':' in spec:
-            spec = abspath_from_asset_spec(spec)
-
-        if not os.path.isabs(spec):
+        if ':' not in spec and not os.path.isabs(spec):
             for path in self.search_path:
                 path = os.path.join(path, spec)
                 if os.path.exists(path):
