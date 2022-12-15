@@ -1,6 +1,10 @@
 Changes
 =======
 
+In next release ...
+
+- Fix handling of eager compilation with subclassing (e.g. Pyramid integration).
+
 3.10.1 (2022-05-17)
 -------------------
 
