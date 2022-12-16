@@ -293,7 +293,7 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
-    def __init__(self, filename, auto_reload=None, **config):
+    def __init__(self, filename, auto_reload=None, post_init_hook=None, **config):
         # Normalize filename
         filename = os.path.abspath(
             os.path.normpath(os.path.expanduser(filename))
@@ -306,6 +306,9 @@ class BaseTemplateFile(BaseTemplate):
             self.auto_reload = auto_reload
 
         super(BaseTemplateFile, self).__init__(**config)
+
+        if post_init_hook is not None:
+            post_init_hook()
 
         if EAGER_PARSING:
             self.cook_check()

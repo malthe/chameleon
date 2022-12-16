@@ -385,8 +385,6 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
     def __init__(self, filename, search_path=None, loader_class=TemplateLoader,
                  **config):
-        super(PageTemplateFile, self).__init__(filename, **config)
-
         if search_path is None:
             search_path = []
         else:
@@ -395,18 +393,25 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
             else:
                 search_path = list(search_path)
 
-        # If the flag is set (this is the default), prepend the path
-        # relative to the template file to the search path
-        if self.prepend_relative_search_path:
-            path = dirname(self.filename)
-            search_path.insert(0, path)
+        def post_init():
+            # If the flag is set (this is the default), prepend the path
+            # relative to the template file to the search path
+            if self.prepend_relative_search_path:
+                path = dirname(self.filename)
+                search_path.insert(0, path)
 
-        loader = loader_class(search_path=search_path, **config)
-        template_class = type(self)
+            loader = loader_class(search_path=search_path, **config)
+            template_class = type(self)
 
-        # Bind relative template loader instance to the same template
-        # class, providing the same keyword arguments.
-        self._loader = loader.bind(template_class)
+            # Bind relative template loader instance to the same template
+            # class, providing the same keyword arguments.
+            self._loader = loader.bind(template_class)
+
+        super(PageTemplateFile, self).__init__(
+            filename,
+            post_init_hook=post_init,
+            **config
+        )
 
     def _builtins(self):
         d = super(PageTemplateFile, self)._builtins()
