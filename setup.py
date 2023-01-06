@@ -2,8 +2,10 @@ __version__ = '3.10.2'
 
 import os
 
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
 from setuptools.command.test import test
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -70,6 +72,12 @@ setup(
     include_package_data=True,
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
     install_requires=install_requires,
+    extras_require={
+        'docs': {
+            'Sphinx',
+            'sphinx_rtd_theme',
+        },
+    },
     zip_safe=False,
     cmdclass={
         'benchmark': Benchmark,

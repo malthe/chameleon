@@ -1,4 +1,20 @@
-global-exclude tests/*.py
-exclude MANIFEST.in
-exclude *.rst
-include LICENSE.txt
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/pure-python
+include *.md
+include *.rst
+include *.txt
+include buildout.cfg
+include tox.ini
+
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs *.txt
+recursive-include docs Makefile
+
+recursive-include src *.py
+include Makefile
+recursive-include benchmarks *.py
+recursive-include src *.html
+recursive-include src *.pt
+recursive-include src *.txt
+recursive-include src *.xml

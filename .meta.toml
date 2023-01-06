@@ -1,0 +1,32 @@
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/pure-python
+[meta]
+template = "pure-python"
+commit-id = "d03ad585"
+
+[python]
+with-sphinx-doctests = false
+with-docs = true
+with-future-python = false
+with-pypy = true
+with-macos = false
+with-windows = false
+
+[tox]
+use-flake8 = false
+testenv-deps = [
+    "zope.testrunner",
+    ]
+
+[coverage]
+fail-under = 0
+
+[manifest]
+additional-rules = [
+    "include Makefile",
+    "recursive-include benchmarks *.py",
+    "recursive-include src *.html",
+    "recursive-include src *.pt",
+    "recursive-include src *.txt",
+    "recursive-include src *.xml",
+    ]
