@@ -4,6 +4,8 @@ Changes
 3.10.2 (2022-12-16)
 -------------------
 
+- Drop support for Python 2.7, 3.5, 3.6.
+
 - Fix handling of eager compilation with subclassing (e.g. Pyramid integration).
 
 3.10.1 (2022-05-17)
