@@ -1,10 +1,13 @@
 Changes
 =======
 
-3.10.2 (2022-12-16)
--------------------
+4.0.0 (unreleased)
+------------------
 
 - Drop support for Python 2.7, 3.5, 3.6.
+
+3.10.2 (2022-12-16)
+-------------------
 
 - Fix handling of eager compilation with subclassing (e.g. Pyramid integration).
 
