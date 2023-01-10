@@ -6,18 +6,21 @@
 
 import re
 
+
 try:
     str = unicode
 except NameError:
     pass
 
+
 class recollector:
     def __init__(self):
         self.res = {}
 
-    def add(self, name, reg ):
+    def add(self, name, reg):
         re.compile(reg)  # check that it is valid
         self.res[name] = reg % self.res
+
 
 collector = recollector()
 a = collector.add
@@ -27,24 +30,24 @@ a("UntilHyphen", "[^-]*-")
 a("Until2Hyphens", "%(UntilHyphen)s(?:[^-]%(UntilHyphen)s)*-")
 a("CommentCE", "%(Until2Hyphens)s>?")
 a("UntilRSBs", "[^\\]]*](?:[^\\]]+])*]+")
-a("CDATA_CE", "%(UntilRSBs)s(?:[^\\]>]%(UntilRSBs)s)*>" )
+a("CDATA_CE", "%(UntilRSBs)s(?:[^\\]>]%(UntilRSBs)s)*>")
 a("S", "[ \\n\\t\\r]+")
 a("Simple", "[^\"'>/]+")
 a("NameStrt", "[A-Za-z_:@]|[^\\x00-\\x7F]")
 a("NameChar", "[A-Za-z0-9_:.-]|[^\\x00-\\x7F]")
 a("Name", "(?:%(NameStrt)s)(?:%(NameChar)s)*")
 a("QuoteSE", "\"[^\"]*\"|'[^']*'")
-a("DT_IdentSE" , "%(S)s%(Name)s(?:%(S)s(?:%(Name)s|%(QuoteSE)s))*" )
-a("MarkupDeclCE" , "(?:[^\\]\"'><]+|%(QuoteSE)s)*>" )
+a("DT_IdentSE", "%(S)s%(Name)s(?:%(S)s(?:%(Name)s|%(QuoteSE)s))*")
+a("MarkupDeclCE", "(?:[^\\]\"'><]+|%(QuoteSE)s)*>")
 a("S1", "[\\n\\r\\t ]")
 a("UntilQMs", "[^?]*\\?+")
-a("PI_Tail" , "\\?>|%(S1)s%(UntilQMs)s(?:[^>?]%(UntilQMs)s)*>" )
+a("PI_Tail", "\\?>|%(S1)s%(UntilQMs)s(?:[^>?]%(UntilQMs)s)*>")
 a("DT_ItemSE",
   "<(?:!(?:--%(Until2Hyphens)s>|[^-]%(MarkupDeclCE)s)|"
   "\\?%(Name)s(?:%(PI_Tail)s))|%%%(Name)s;|%(S)s"
-)
-a("DocTypeCE" ,
-"%(DT_IdentSE)s(?:%(S)s)?(?:\\[(?:%(DT_ItemSE)s)*](?:%(S)s)?)?>?" )
+  )
+a("DocTypeCE",
+  "%(DT_IdentSE)s(?:%(S)s)?(?:\\[(?:%(DT_ItemSE)s)*](?:%(S)s)?)?>?")
 a("DeclCE",
   "--(?:%(CommentCE)s)?|\\[CDATA\\[(?:%(CDATA_CE)s)?|"
   "DOCTYPE(?:%(DocTypeCE)s)?")
@@ -115,12 +118,12 @@ class Token(str):
         return Token(s, self.pos, self.source, self.filename)
 
     def split(self, *args):
-        l = str.split(self, *args)
+        l_ = str.split(self, *args)
         pos = self.pos
-        for i, s in enumerate(l):
-            l[i] = Token(s, pos, self.source, self.filename)
+        for i, s in enumerate(l_):
+            l_[i] = Token(s, pos, self.source, self.filename)
             pos += len(s)
-        return l
+        return l_
 
     def strip(self, *args):
         return self.lstrip(*args).rstrip(*args)

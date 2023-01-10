@@ -1,76 +1,64 @@
 import ast
-import re
-import sys
+import builtins
+import collections
+import functools
 import itertools
 import logging
-import threading
-import functools
-import collections
 import pickle
+import re
+import sys
 import textwrap
-try:
-    from ast import TryExcept
-except ImportError:  # Python 3
-    from ast import Try as TryExcept
+import threading
+from ast import Try
 
-from .astutil import load
-from .astutil import store
-from .astutil import param
-from .astutil import swap
-from .astutil import subscript
-from .astutil import node_annotations
-from .astutil import annotated
-from .astutil import NameLookupRewriteVisitor
-from .astutil import Comment
-from .astutil import Symbol
 from .astutil import Builtin
-from .astutil import Static
-from .astutil import TokenRef
+from .astutil import Comment
+from .astutil import NameLookupRewriteVisitor
 from .astutil import Node
-
+from .astutil import Static
+from .astutil import Symbol
+from .astutil import TokenRef
+from .astutil import annotated
+from .astutil import load
+from .astutil import node_annotations
+from .astutil import param
+from .astutil import store
+from .astutil import subscript
+from .astutil import swap
 from .codegen import TemplateCodeGenerator
 from .codegen import template
-
-from .tal import ErrorInfo
-from .tal import NAME
+from .config import DEBUG_MODE
+from .exc import ExpressionError
+from .exc import TranslationError
 from .i18n import simple_translate
-
-from .nodes import Text
-from .nodes import Value
-from .nodes import Substitution
+from .nodes import And
 from .nodes import Assignment
-from .nodes import Module
 from .nodes import Context
+from .nodes import Equals
 from .nodes import Is
 from .nodes import IsNot
-from .nodes import Equals
 from .nodes import Logical
-from .nodes import And
-
-from .tokenize import Token
-from .config import DEBUG_MODE
-from .exc import TranslationError
-from .exc import ExpressionError
+from .nodes import Module
+from .nodes import Substitution
+from .nodes import Text
+from .nodes import Value
 from .parser import groupdict
-
+from .tal import NAME
+from .tal import ErrorInfo
+from .tokenize import Token
 from .utils import DebuggingOutputStream
-from .utils import char2entity
 from .utils import ListDictProxy
-from .utils import native_string
-from .utils import byte_string
-from .utils import string_type
-from .utils import unicode_string
-from .utils import safe_native
-from .utils import builtins
+from .utils import char2entity
 from .utils import decode_htmlentities
 from .utils import join
+from .utils import safe_native
 
-if sys.version_info >= (3,):
-    long = int
+
+long = int
 
 log = logging.getLogger('chameleon.compiler')
 
-COMPILER_INTERNALS_OR_DISALLOWED = set([
+COMPILER_INTERNALS_OR_DISALLOWED = {
     "econtext",
     "rcontext",
     "str",
@@ -82,7 +70,7 @@ COMPILER_INTERNALS_OR_DISALLOWED = set([
     "True",
     "False",
     "RuntimeError",
-    ])
+}
 
 
 RE_MANGLE = re.compile(r'[^\w_]')
@@ -95,12 +83,12 @@ else:
 
 
 def identifier(prefix, suffix=None):
-    return "__%s_%s" % (prefix, mangle(suffix or id(prefix)))
+    return "__{}_{}".format(prefix, mangle(suffix or id(prefix)))
 
 
 def mangle(string):
     return RE_MANGLE.sub(
-        '_', unicode_string(string)
+        '_', str(string)
     ).replace('\n', '').replace('-', '_')
 
 
@@ -109,12 +97,12 @@ def load_econtext(name):
 
 
 def store_econtext(name):
-    name = native_string(name)
+    name = str(name)
     return subscript(name, load("econtext"), ast.Store())
 
 
 def store_rcontext(name):
-    name = native_string(name)
+    name = str(name)
     return subscript(name, load("rcontext"), ast.Store())
 
 
@@ -127,10 +115,8 @@ def set_token(stmts, token):
 def eval_token(token):
     try:
         line, column = token.location
-        filename = token.filename
     except AttributeError:
         line, column = 0, 0
-        filename = "<string>"
 
     string = safe_native(token)
 
@@ -164,8 +150,7 @@ emit_bool = template(is_func=True,
 emit_convert = template(is_func=True,
                         func_args=('target', 'encoded', 'str', 'long', 'type',
                                    'default_marker', 'default'),
-                        func_defaults=(byte_string, unicode_string, long, type,
-                                       None),
+                        func_defaults=(bytes, str, long, type, None),
                         source=r"""
     if target is None:
         pass
@@ -188,11 +173,10 @@ emit_convert = template(is_func=True,
                 target = target()""")
 
 
-emit_func_convert = template(is_func=True,
-                             func_args=('func', 'encoded', 'str','long','type'),
-                             func_defaults=(byte_string, unicode_string, long,
-                                            type),
-                             source=r"""
+emit_func_convert = template(
+    is_func=True, func_args=(
+        'func', 'encoded', 'str', 'long', 'type'), func_defaults=(
+            bytes, str, long, type), source=r"""
     def func(target):
         if target is None:
             return
@@ -219,7 +203,7 @@ emit_func_convert = template(is_func=True,
 
 emit_translate = template(is_func=True,
                           func_args=('target', 'msgid', 'target_language',
-                          'default'),
+                                     'default'),
                           func_defaults=(None,),
                           source=r"""
     target = translate(msgid, default=default, domain=__i18n_domain,
@@ -230,7 +214,7 @@ emit_translate = template(is_func=True,
 emit_func_convert_and_escape = template(
     is_func=True,
     func_args=('func', 'str', 'long', 'type', 'encoded'),
-    func_defaults=(unicode_string, long, type, byte_string,),
+    func_defaults=(str, long, type, bytes,),
     source=r"""
     def func(target, quote, quote_entity, default, default_marker):
         if target is None:
@@ -292,7 +276,7 @@ class Scope(Node):
     stream = None
 
 
-class Interpolator(object):
+class Interpolator:
     braces_required_regex = re.compile(
         r'(\$)?\$({(?P<expression>.*)})',
         re.DOTALL)
@@ -305,7 +289,7 @@ class Interpolator(object):
                  decode_htmlentities=False):
         self.expression = expression
         self.regex = self.braces_required_regex if braces_required else \
-                     self.braces_optional_regex
+            self.braces_optional_regex
         self.translate = translate
         self.decode_htmlentities = decode_htmlentities
 
@@ -415,10 +399,11 @@ class Interpolator(object):
 
             if translate and isinstance(target, ast.Str):
                 target = template(
-                    "translate(msgid, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",
-                    msgid=target, mode="eval",
+                    "translate(msgid, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",  # noqa:  E501 line too long
+                    msgid=target,
+                    mode="eval",
                     target_language=load("target_language"),
-                    )
+                )
         else:
             if translate:
                 formatting_string = ""
@@ -435,12 +420,14 @@ class Interpolator(object):
                         values.append(node)
 
                 target = template(
-                    "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",
-                    msgid=ast.Str(s=formatting_string),
+                    "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",   # noqa:  E501 line too long
+                    msgid=ast.Str(
+                        s=formatting_string),
                     target_language=load("target_language"),
-                    mapping=ast.Dict(keys=keys, values=values),
-                    mode="eval"
-                    )
+                    mapping=ast.Dict(
+                        keys=keys,
+                        values=values),
+                    mode="eval")
             else:
                 nodes = [
                     node if isinstance(node, ast.Str) else
@@ -460,7 +447,7 @@ class Interpolator(object):
         return body
 
 
-class ExpressionEngine(object):
+class ExpressionEngine:
     """Expression engine.
 
     This test demonstrates how to configure and invoke the engine.
@@ -501,7 +488,7 @@ class ExpressionEngine(object):
     False
     """
 
-    supported_char_escape_set = set(('&', '<', '>'))
+    supported_char_escape_set = {'&', '<', '>'}
 
     def __init__(self, parser, char_escape=(),
                  default=None, default_marker=None):
@@ -520,12 +507,14 @@ class ExpressionEngine(object):
 
     def parse(self, string, handle_errors=True, char_escape=None):
         expression = self._parser(string)
-        compiler = self.get_compiler(expression, string, handle_errors, char_escape)
+        compiler = self.get_compiler(
+            expression, string, handle_errors, char_escape)
         return ExpressionCompiler(compiler, self)
 
     def get_compiler(self, expression, string, handle_errors, char_escape):
         if char_escape is None:
             char_escape = self._char_escape
+
         def compiler(target, engine, result_type=None, *args):
             stmts = expression(target, engine)
 
@@ -550,7 +539,7 @@ class ExpressionEngine(object):
             target, ast.Str(s=s),
             default=self._default,
             default_marker=self._default_marker
-            )
+        )
 
     def _convert_structure(self, target, char_escape):
         """Converts value given by ``target`` to structure output."""
@@ -559,7 +548,7 @@ class ExpressionEngine(object):
             target,
             default=self._default,
             default_marker=self._default_marker,
-            )
+        )
 
     def _convert_text(self, target, char_escape):
         """Converts value given by ``target`` to text."""
@@ -579,7 +568,7 @@ class ExpressionEngine(object):
             else:
                 raise RuntimeError(
                     "Unsupported escape set: %s." % repr(char_escape)
-                    )
+                )
         else:
             quote = '\0'
 
@@ -592,10 +581,10 @@ class ExpressionEngine(object):
             Q_ENTITY=ast.Str(s=entity),
             DEFAULT=self._default,
             MARKER=self._default_marker,
-            )
+        )
 
 
-class ExpressionCompiler(object):
+class ExpressionCompiler:
     def __init__(self, compiler, engine):
         self.compiler = compiler
         self.engine = engine
@@ -610,7 +599,7 @@ class ExpressionCompiler(object):
         return self.compiler(target, self.engine)
 
 
-class ExpressionEvaluator(object):
+class ExpressionEvaluator:
     """Evaluates dynamic expression.
 
     This is not particularly efficient, but supported for legacy
@@ -661,9 +650,9 @@ class ExpressionEvaluator(object):
         if string is None:
             return functools.partial(
                 self.__call__, econtext, rcontext, expression_type
-                )
+            )
 
-        expression = "%s:%s" % (expression_type, string)
+        expression = "{}:{}".format(expression_type, string)
 
         try:
             evaluate = self._cache[expression]
@@ -684,7 +673,7 @@ class ExpressionEvaluator(object):
         return econtext['_result']
 
 
-class NameTransform(object):
+class NameTransform:
     """
     >>> nt = NameTransform(
     ...     set(('foo', 'bar', )), {'boo': 'boz'},
@@ -755,13 +744,13 @@ class NameTransform(object):
                 mode="eval",
                 key=ast.Str(s=name),
                 name=load(name),
-                )
+            )
 
         # Otherwise, simply acquire it from the dynamic context.
         return load_econtext(name)
 
 
-class ExpressionTransform(object):
+class ExpressionTransform:
     """Internal wrapper to transform expression nodes into assignment
     statements.
 
@@ -781,7 +770,7 @@ class ExpressionTransform(object):
         self.visitor = visitor
 
     def __call__(self, expression, target):
-        if isinstance(target, string_type):
+        if isinstance(target, str):
             target = store(target)
 
         try:
@@ -805,7 +794,7 @@ class ExpressionTransform(object):
         return stmts
 
     def translate(self, expression, target):
-        if isinstance(target, string_type):
+        if isinstance(target, str):
             target = store(target)
 
         cached = self.cache.get(expression)
@@ -817,7 +806,7 @@ class ExpressionTransform(object):
         else:
             # The engine interface supports simple strings, which
             # default to expression nodes
-            if isinstance(expression, string_type):
+            if isinstance(expression, str):
                 expression = Value(expression, True)
 
             kind = type(expression).__name__
@@ -826,7 +815,7 @@ class ExpressionTransform(object):
 
             # Add comment
             target_id = getattr(target, "id", target)
-            comment = Comment(" %r -> %s" % (expression, target_id))
+            comment = Comment(" {!r} -> {}".format(expression, target_id))
             stmts.insert(0, comment)
 
         return stmts
@@ -852,7 +841,7 @@ class ExpressionTransform(object):
 
     def visit_Negate(self, node, target):
         return self.translate(node.value, target) + \
-               template("TARGET = not TARGET", TARGET=target)
+            template("TARGET = not TARGET", TARGET=target)
 
     def visit_BinOp(self, node, target):
         expression = self.translate(node.left, "__expression")
@@ -864,7 +853,7 @@ class ExpressionTransform(object):
             Equals: "==",
         }[node.op]
         return expression + value + \
-               template("TARGET = __expression %s __value" % op, TARGET=target)
+            template("TARGET = __expression %s __value" % op, TARGET=target)
 
     def visit_Boolean(self, node, target):
         engine = self.engine_factory(
@@ -907,10 +896,10 @@ class ExpressionTransform(object):
         else:
             msgid = target
         return self.translate(node.node, target) + \
-               emit_translate(
-                   target, msgid, "target_language",
-                   default=target
-               )
+            emit_translate(
+            target, msgid, "target_language",
+            default=target
+        )
 
     def visit_Static(self, node, target):
         value = annotated(node)
@@ -921,11 +910,11 @@ class ExpressionTransform(object):
         return [ast.Assign(targets=[target], value=value)]
 
     def visit_Symbol(self, node, target):
-        value = annotated(node)
+        annotated(node)
         return template("TARGET = SYMBOL", TARGET=target, SYMBOL=node)
 
 
-class Compiler(object):
+class Compiler:
     """Generic compiler class.
 
     Iterates through nodes and yields Python statements which form a
@@ -937,7 +926,7 @@ class Compiler(object):
         'decode': Builtin("str"),
         'convert': Builtin("str"),
         'on_error_handler': Builtin("str")
-        }
+    }
 
     lock = threading.Lock()
 
@@ -954,13 +943,13 @@ class Compiler(object):
         self._current_slot = []
 
         internals = COMPILER_INTERNALS_OR_DISALLOWED | \
-                    set(self.defaults)
+            set(self.defaults)
 
         transform = NameTransform(
             self.global_builtins | set(builtins),
             ListDictProxy(self._aliases),
             internals,
-            )
+        )
 
         self._visitor = visitor = NameLookupRewriteVisitor(transform)
 
@@ -969,7 +958,7 @@ class Compiler(object):
             self._expression_cache,
             visitor,
             strict=strict,
-            )
+        )
 
         if isinstance(node_annotations, dict):
             self.lock.acquire()
@@ -987,7 +976,9 @@ class Compiler(object):
 
                 def visit_EmitText(self, node):
                     append = load(self.scopes[-1].append or "__append")
-                    for node in template("append(s)", append=append, s=ast.Str(s=node.s)):
+                    for node in template(
+                        "append(s)", append=append, s=ast.Str(
+                            s=node.s)):
                         self.visit(node)
 
                 def visit_Scope(self, node):
@@ -1028,7 +1019,8 @@ class Compiler(object):
         visitor = getattr(self, "visit_%s" % kind)
         iterator = visitor(node)
         result = []
-        for key, group in itertools.groupby(iterator, lambda node: node.__class__):
+        for key, group in itertools.groupby(
+                iterator, lambda node: node.__class__):
             nodes = list(group)
             if key is EmitText:
                 text = join(node.s for node in nodes)
@@ -1036,22 +1028,17 @@ class Compiler(object):
             result.extend(nodes)
         return result
 
-
     def visit_Sequence(self, node):
         for item in node.items:
-            for stmt in self.visit(item):
-                yield stmt
+            yield from self.visit(item)
 
     def visit_Element(self, node):
-        for stmt in self.visit(node.start):
-            yield stmt
+        yield from self.visit(node.start)
 
-        for stmt in self.visit(node.content):
-            yield stmt
+        yield from self.visit(node.content)
 
         if node.end is not None:
-            for stmt in self.visit(node.end):
-                yield stmt
+            yield from self.visit(node.end)
 
     def visit_Module(self, node):
         body = []
@@ -1059,10 +1046,7 @@ class Compiler(object):
         body += template("import re")
         body += template("import functools")
         body += template("from itertools import chain as __chain")
-        if sys.version_info < (3,):
-            body += template("from sys import exc_clear as __exc_clear")
-        else:
-            body += template("from sys import intern")
+        body += template("from sys import intern")
         body += template("__default = intern('__default__')")
         body += template("__marker = object()")
         body += template(
@@ -1083,9 +1067,9 @@ class Compiler(object):
             name=node.name, args=ast.arguments(
                 args=[param(b) for b in self._builtins],
                 defaults=(),
-                ),
+            ),
             body=program
-            )]
+        )]
 
         return body
 
@@ -1105,14 +1089,14 @@ class Compiler(object):
         functions += [ast.Return(value=ast.Dict(
             keys=[ast.Str(s=name) for name in names],
             values=[load(name) for name in names],
-            ))]
+        ))]
 
         return functions
 
     def visit_Context(self, node):
         return template("getname = econtext.get_name") + \
-               template("get = econtext.get") + \
-               self.visit(node.node)
+            template("get = econtext.get") + \
+            self.visit(node.node)
 
     def visit_Macro(self, node):
         body = []
@@ -1160,7 +1144,7 @@ class Compiler(object):
 
         # Wrap visited nodes in try-except error handler.
         body += [
-            TryExcept(
+            Try(
                 body=nodes,
                 handlers=[ast.ExceptHandler(body=exc_handler)]
             )
@@ -1177,11 +1161,11 @@ class Compiler(object):
                     param("rcontext"),
                     param("__i18n_domain"),
                     param("__i18n_context"),
-                    ],
+                ],
                 defaults=[load("None"), load("None")],
             ),
             body=body
-            )
+        )
 
         yield function
 
@@ -1191,16 +1175,16 @@ class Compiler(object):
     def visit_Domain(self, node):
         backup = "__previous_i18n_domain_%s" % mangle(id(node))
         return template("BACKUP = __i18n_domain", BACKUP=backup) + \
-               template("__i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
-               self.visit(node.node) + \
-               template("__i18n_domain = BACKUP", BACKUP=backup)
+            template("__i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
+            self.visit(node.node) + \
+            template("__i18n_domain = BACKUP", BACKUP=backup)
 
     def visit_TxContext(self, node):
         backup = "__previous_i18n_context_%s" % mangle(id(node))
         return template("BACKUP = __i18n_context", BACKUP=backup) + \
-               template("__i18n_context = NAME", NAME=ast.Str(s=node.name)) + \
-               self.visit(node.node) + \
-               template("__i18n_context = BACKUP", BACKUP=backup)
+            template("__i18n_context = NAME", NAME=ast.Str(s=node.name)) + \
+            self.visit(node.node) + \
+            template("__i18n_context = BACKUP", BACKUP=backup)
 
     def visit_OnError(self, node):
         body = []
@@ -1218,19 +1202,19 @@ class Compiler(object):
             cls=ErrorInfo,
             handler=load("on_error_handler"),
             key=ast.Str(s=node.name),
-            )
+        )
 
-        body += [TryExcept(
+        body += [Try(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
                 type=ast.Tuple(elts=[Builtin("Exception")], ctx=ast.Load()),
                 name=store("__exc"),
-                body=(error_assignment + \
-                      template("del __stream[fallback:]", fallback=fallback) + \
+                body=(error_assignment +
+                      template("del __stream[fallback:]", fallback=fallback) +
                       fallback_body
                       ),
-                )]
             )]
+        )]
 
         return body
 
@@ -1247,7 +1231,7 @@ class Compiler(object):
             body += template(
                 "NAME=__quote(NAME, None, '\255', None, None)",
                 NAME=name,
-                )
+            )
         else:
             body += template("NAME = __convert(NAME)", NAME=name)
 
@@ -1258,7 +1242,7 @@ class Compiler(object):
     def visit_Interpolation(self, node):
         name = identifier("content")
         return self._engine(node, name) + \
-               emit_node_if_non_trivial(name)
+            emit_node_if_non_trivial(name)
 
     def visit_Alias(self, node):
         assert len(node.names) == 1
@@ -1271,13 +1255,13 @@ class Compiler(object):
             if name in COMPILER_INTERNALS_OR_DISALLOWED:
                 raise TranslationError(
                     "Name disallowed by compiler.", name
-                    )
+                )
 
             if name.startswith('__'):
                 raise TranslationError(
                     "Name disallowed by compiler (double underscore).",
                     name
-                    )
+                )
 
         assignment = self._engine(node.expression, store("__value"))
 
@@ -1294,8 +1278,8 @@ class Compiler(object):
         for name in node.names:
             if not node.local:
                 assignment += template(
-                    "rcontext[KEY] = __value", KEY=ast.Str(s=native_string(name))
-                    )
+                    "rcontext[KEY] = __value", KEY=ast.Str(
+                        s=str(name)))
 
         return assignment
 
@@ -1306,19 +1290,15 @@ class Compiler(object):
 
         for assignment in node.assignments:
             if assignment.local:
-                for stmt in self._enter_assignment(assignment.names):
-                    yield stmt
+                yield from self._enter_assignment(assignment.names)
 
-            for stmt in self.visit(assignment):
-                yield stmt
+            yield from self.visit(assignment)
 
-        for stmt in self.visit(node.node):
-            yield stmt
+        yield from self.visit(node.node)
 
         for assignment in reversed(node.assignments):
             if assignment.local:
-                for stmt in self._leave_assignment(assignment.names):
-                    yield stmt
+                yield from self._leave_assignment(assignment.names)
 
         self._scopes.pop()
         self._aliases.pop()
@@ -1385,7 +1365,7 @@ class Compiler(object):
         append = identifier("append", id(node))
         stream = identifier("stream", id(node))
         body += template("s = new_list", s=stream, new_list=LIST) + \
-                template("a = s.append", a=append, s=stream)
+            template("a = s.append", a=append, s=stream)
 
         # Visit body to generate the message body
         code = self.visit(node.node)
@@ -1415,7 +1395,7 @@ class Compiler(object):
                 body.insert(
                     0, ast.Assign(
                         targets=[store(stream)],
-                        value=ast.Str(s=native_string(""))))
+                        value=ast.Str(s="")))
 
             mapping = ast.Dict(keys=keys, values=values)
         else:
@@ -1428,10 +1408,11 @@ class Compiler(object):
         # emit the translation expression
         body += template(
             "if msgid: __append(translate("
-            "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=__i18n_context, target_language=target_language))",
-            msgid=msgid, default=default, mapping=mapping,
-            target_language=load_econtext("target_language")
-        )
+            "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=__i18n_context, target_language=target_language))",  # noqa:  E501 line too long
+            msgid=msgid,
+            default=default,
+            mapping=mapping,
+            target_language=load_econtext("target_language"))
 
         # pop away translation block reference
         self._translations.pop()
@@ -1451,8 +1432,7 @@ class Compiler(object):
 
         if node.attributes:
             yield EmitText(node.prefix + node.name)
-            for stmt in self.visit(node.attributes):
-                yield stmt
+            yield from self.visit(node.attributes)
 
             yield EmitText(node.suffix)
         else:
@@ -1530,7 +1510,7 @@ class Compiler(object):
             QUOTE_FUNC="__quote",
             QUOTE=ast.Str(s=node.quote),
             QUOTE_ENTITY=ast.Str(s=char2entity(node.quote or '\0')),
-            )
+        )
 
         return body
 
@@ -1589,11 +1569,11 @@ class Compiler(object):
             left=load(name),
             ops=[ast.Is()],
             comparators=[load("None")]
-            )
+        )
 
         return [
             ast.If(test=test, body=body or [ast.Pass()], orelse=orelse)
-            ]
+        ]
 
     def visit_Name(self, node):
         """Translation name."""
@@ -1612,7 +1592,7 @@ class Compiler(object):
         # prepare new stream
         stream, append = self._get_translation_identifiers(node.name)
         body += template("s = new_list", s=stream, new_list=LIST) + \
-                template("a = s.append", a=append, s=stream)
+            template("a = s.append", a=append, s=stream)
 
         # generate code
         code = self.visit(node.node)
@@ -1659,10 +1639,13 @@ class Compiler(object):
                             param("rcontext"),
                             param("__i18n_domain"),
                             param("__i18n_context"),
-                            ],
-                        defaults=[load("__i18n_domain"), load("__i18n_context")],
-                        ),
-                    body=body or [ast.Pass()],
+                        ],
+                        defaults=[
+                            load("__i18n_domain"),
+                            load("__i18n_context")],
+                    ),
+                    body=body or [
+                        ast.Pass()],
                 ))
 
             key = ast.Str(s=key)
@@ -1670,16 +1653,16 @@ class Compiler(object):
             assignment = template(
                 "_slots = econtext[KEY] = DEQUE((NAME,))",
                 KEY=key, NAME=fun, DEQUE=Symbol(collections.deque),
-                )
+            )
 
             if node.extend:
                 append = template("_slots.appendleft(NAME)", NAME=fun)
 
-                assignment = [TryExcept(
+                assignment = [Try(
                     body=template("_slots = getname(KEY)", KEY=key),
                     handlers=[ast.ExceptHandler(body=assignment)],
                     orelse=append,
-                    )]
+                )]
 
             callbacks.extend(assignment)
 
@@ -1699,7 +1682,7 @@ class Compiler(object):
                 "rcontext, __i18n_domain)"
             ) +
             template("econtext.update(rcontext)")
-            )
+        )
 
     def visit_Repeat(self, node):
         # Used for loop variable definition and restore
@@ -1716,15 +1699,15 @@ class Compiler(object):
             if name in COMPILER_INTERNALS_OR_DISALLOWED:
                 raise TranslationError(
                     "Name disallowed by compiler.", name
-                    )
+                )
 
         if len(node.names) > 1:
             targets = [
                 ast.Tuple(elts=[
-                    subscript(native_string(name), load(context), ast.Store())
+                    subscript(str(name), load(context), ast.Store())
                     for name in node.names], ctx=ast.Store())
                 for context in contexts
-                ]
+            ]
 
             key = ast.Tuple(
                 elts=[ast.Str(s=name) for name in node.names],
@@ -1732,9 +1715,9 @@ class Compiler(object):
         else:
             name = node.names[0]
             targets = [
-                subscript(native_string(name), load(context), ast.Store())
+                subscript(str(name), load(context), ast.Store())
                 for context in contexts
-                ]
+            ]
 
             key = ast.Str(s=node.names[0])
 
@@ -1753,7 +1736,7 @@ class Compiler(object):
         outer += template(
             "__iterator, INDEX = getname('repeat')(key, __iterator)",
             key=key, INDEX=index
-            )
+        )
 
         # Set a trivial default value for each name assigned to make
         # sure we assign a value even if the iteration is empty
@@ -1761,7 +1744,7 @@ class Compiler(object):
             targets=[store_econtext(name)
                      for name in node.names],
             value=load("None"))
-              ]
+        ]
 
         # Compute inner body
         inner = self.visit(node.node)
@@ -1773,14 +1756,14 @@ class Compiler(object):
         inner += template(
             "if INDEX > 0: __append(WHITESPACE)",
             INDEX=index, WHITESPACE=ast.Str(s=node.whitespace)
-            )
+        )
 
         # Main repeat loop
         outer += [ast.For(
             target=store("__item"),
             iter=load("__iterator"),
             body=assignment + inner,
-            )]
+        )]
 
         # Finally, clean up assignment if it's local
         if outer:
@@ -1799,19 +1782,17 @@ class Compiler(object):
 
     def _enter_assignment(self, names):
         for name in names:
-            for stmt in template(
+            yield from template(
                 "BACKUP = get(KEY, __marker)",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(s=native_string(name)),
-                ):
-                yield stmt
+                KEY=ast.Str(s=str(name)),
+            )
 
     def _leave_assignment(self, names):
         for name in names:
-            for stmt in template(
+            yield from template(
                 "if BACKUP is __marker: del econtext[KEY]\n"
                 "else:                 econtext[KEY] = BACKUP",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(s=native_string(name)),
-                ):
-                yield stmt
+                KEY=ast.Str(s=str(name)),
+            )

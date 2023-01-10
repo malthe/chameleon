@@ -1,5 +1,6 @@
-import unittest
 import doctest
+import unittest
+
 
 OPTIONFLAGS = (doctest.ELLIPSIS |
                doctest.REPORT_ONLY_FIRST_FAILURE)

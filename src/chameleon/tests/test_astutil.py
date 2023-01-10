@@ -1,5 +1,4 @@
 import ast
-import sys
 import unittest
 
 
@@ -10,8 +9,6 @@ class ASTCodeGeneratorTestCase(unittest.TestCase):
         code = compile(source, '<string>', 'exec')
         exec(code, env)
 
-    @unittest.skipIf(sys.version_info < (3, 7),
-                     'Only applicable on Python 3.7+')
     def test_slice(self):
         tree = ast.Module(
             body=[

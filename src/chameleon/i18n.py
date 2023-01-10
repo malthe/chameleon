@@ -15,7 +15,7 @@
 import re
 
 from .exc import CompilationError
-from .utils import unicode_string
+
 
 NAME_RE = r"[a-zA-Z][-a-zA-Z0-9_]*"
 
@@ -34,10 +34,10 @@ WHITELIST = frozenset([
     "comment",
     "ignore",
     "ignore-attributes",
-    ])
+])
 
 _interp_regex = re.compile(r'(?<!\$)(\$(?:(%(n)s)|{(%(n)s)}))'
-    % ({'n': NAME_RE}))
+                           % ({'n': NAME_RE}))
 
 
 try:  # pragma: no cover
@@ -74,14 +74,14 @@ else:   # pragma: no cover
         if default is None:
             default = str(msgid)
 
-        if not isinstance(default, basestring):
+        if not isinstance(default, str):
             return default
 
         return interpolate(default, mapping)
 
 
 def simple_translate(msgid, domain=None, mapping=None, context=None,
-                   target_language=None, default=None):
+                     target_language=None, default=None):
     if default is None:
         default = getattr(msgid, "default", msgid)
 
@@ -91,7 +91,7 @@ def simple_translate(msgid, domain=None, mapping=None, context=None,
     if mapping:
         def replace(match):
             whole, param1, param2 = match.groups()
-            return unicode_string(mapping.get(param1 or param2, whole))
+            return str(mapping.get(param1 or param2, whole))
         return _interp_regex.sub(replace, default)
 
     return default
@@ -110,7 +110,7 @@ def parse_attributes(attrs, xml=True):
             raise CompilationError(
                 "Attribute must not contain comma. Use semicolon to "
                 "list multiple attributes", spec
-                )
+            )
         parts = spec.split()
         if len(parts) == 2:
             attr, msgid = parts
@@ -125,7 +125,8 @@ def parse_attributes(attrs, xml=True):
         attr = attr.strip()
         if attr in d:
             raise CompilationError(
-                "Attribute may only be specified once in i18n:attributes", attr)
+                "Attribute may only be specified once in i18n:attributes",
+                attr)
         d[attr] = msgid
 
     return d

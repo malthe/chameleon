@@ -1,42 +1,32 @@
 import ast
 import re
 import sys
-import types
-import importlib
-try:
-    from ast import TryExcept
-except ImportError:  # Python 3
-    from ast import Try as TryExcept
+from ast import Try
 
+from .astutil import Builtin
+from .astutil import ItemLookupOnAttributeErrorVisitor
+from .astutil import Symbol
+from .astutil import load
 from .astutil import parse
 from .astutil import store
-from .astutil import load
-from .astutil import ItemLookupOnAttributeErrorVisitor
 from .codegen import TemplateCodeGenerator
-from .codegen import template
 from .codegen import reverse_builtin_map
-from .astutil import Builtin
-from .astutil import Symbol
+from .codegen import template
+from .compiler import Interpolator
 from .exc import ExpressionError
-from .utils import lookup_attr
-from .utils import resolve_dotted
+from .parser import substitute
+from .tokenize import Token
 from .utils import ImportableMarker
 from .utils import Markup
-from .tokenize import Token
-from .parser import substitute
-from .compiler import Interpolator
+from .utils import lookup_attr
+from .utils import resolve_dotted
+
 
 DEFAULT_MARKER = ImportableMarker(__name__, "DEFAULT")
 
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
 re_continuation = re.compile(r'\\\s*$', re.MULTILINE)
-
-try:
-    from __builtin__ import basestring
-except ImportError:
-    basestring = str
-
 exc_clear = getattr(sys, "exc_clear", None)
 
 
@@ -63,7 +53,7 @@ def test(expression, engine=None, **env):
     exec(code, env)
     result = env["result"]
 
-    if isinstance(result, basestring):
+    if isinstance(result, str):
         result = str(result)
 
     return result
@@ -76,10 +66,10 @@ def transform_attribute(node):
         object=node.value,
         name=ast.Str(s=node.attr),
         mode="eval"
-        )
+    )
 
 
-class TalesExpr(object):
+class TalesExpr:
     """Base class.
 
     This class helps implementations for the Template Attribute
@@ -116,10 +106,10 @@ class TalesExpr(object):
     """
 
     exceptions = AttributeError, \
-                 NameError, \
-                 LookupError, \
-                 TypeError, \
-                 ValueError
+        NameError, \
+        LookupError, \
+        TypeError, \
+        ValueError
 
     ignore_prefix = True
 
@@ -154,13 +144,13 @@ class TalesExpr(object):
 
             assignments.append(
                 self.translate_proxy(engine, remaining, target)
-                )
+            )
 
         for i, assignment in enumerate(reversed(assignments)):
             if i == 0:
                 body = assignment
             else:
-                body = [TryExcept(
+                body = [Try(
                     body=assignment,
                     handlers=[ast.ExceptHandler(
                         type=ast.Tuple(
@@ -276,7 +266,7 @@ class PythonExpr(TalesExpr):
         return [ast.Assign(targets=[target], value=value)]
 
 
-class ImportExpr(object):
+class ImportExpr:
     re_dotted = re.compile(r'^[A-Za-z.]+$')
 
     def __init__(self, expression):
@@ -289,11 +279,11 @@ class ImportExpr(object):
             RESOLVE=Symbol(resolve_dotted),
             NAME=ast.Str(s=string),
             mode="eval",
-            )
+        )
         return [ast.Assign(targets=[target], value=value)]
 
 
-class NotExpr(object):
+class NotExpr:
     """Negates the expression.
 
     >>> engine = SimpleEngine(PythonExpr)
@@ -313,7 +303,7 @@ class NotExpr(object):
         return body + template("target = not target", target=target)
 
 
-class StructureExpr(object):
+class StructureExpr:
     """Wraps the expression result as 'structure'.
 
     >>> engine = SimpleEngine(PythonExpr)
@@ -334,10 +324,10 @@ class StructureExpr(object):
             "target = wrapper(target)",
             target=target,
             wrapper=self.wrapper_class
-            )
+        )
 
 
-class IdentityExpr(object):
+class IdentityExpr:
     """Identity expression.
 
     Exists to demonstrate the interface.
@@ -354,7 +344,7 @@ class IdentityExpr(object):
         return compiler.assign_value(target)
 
 
-class StringExpr(object):
+class StringExpr:
     """Similar to the built-in ``string.Template``, but uses an
 
     expression engine to support pluggable string substitution
@@ -481,7 +471,7 @@ class ProxyExpr(TalesExpr):
     braces_required = False
 
     def __init__(self, name, expression, ignore_prefix=True):
-        super(ProxyExpr, self).__init__(expression)
+        super().__init__(expression)
         self.ignore_prefix = ignore_prefix
         self.name = name
 
@@ -500,7 +490,7 @@ class ProxyExpr(TalesExpr):
         ]
 
 
-class ExistsExpr(object):
+class ExistsExpr:
     """Boolean wrapper.
 
     Return 0 if the expression results in an exception, otherwise 1.
@@ -530,19 +520,19 @@ class ExistsExpr(object):
         classes = map(resolve_global, self.exceptions)
 
         return [
-            TryExcept(
+            Try(
                 body=body,
                 handlers=[ast.ExceptHandler(
                     type=ast.Tuple(elts=classes, ctx=ast.Load()),
                     name=None,
                     body=template("target = 0", target=target),
-                    )],
+                )],
                 orelse=template("target = 1", target=target)
             )
         ]
 
 
-class ExpressionParser(object):
+class ExpressionParser:
     def __init__(self, factories, default):
         self.factories = factories
         self.default = default
@@ -560,12 +550,12 @@ class ExpressionParser(object):
         except KeyError as exc:
             raise LookupError(
                 "Unknown expression type: %s." % str(exc)
-                )
+            )
 
         return factory(expression)
 
 
-class SimpleEngine(object):
+class SimpleEngine:
     expression = PythonExpr
 
     def __init__(self, expression=None):
@@ -577,7 +567,7 @@ class SimpleEngine(object):
         return SimpleCompiler(compiler, self)
 
 
-class SimpleCompiler(object):
+class SimpleCompiler:
     def __init__(self, compiler, engine):
         self.compiler = compiler
         self.engine = engine
@@ -597,4 +587,4 @@ class SimpleCompiler(object):
             "target = builtin(target)",
             target=target,
             builtin=builtin
-            )
+        )

@@ -1,11 +1,8 @@
-from __future__ import with_statement
-
 import os
-import unittest
-import tempfile
 import shutil
+import tempfile
+import unittest
 
-from chameleon.utils import unicode_string
 from chameleon.utils import encode_string
 
 
@@ -48,12 +45,8 @@ class TypeSniffingTestCase(unittest.TestCase):
     def test_xml_encoding(self):
         from chameleon.utils import xml_prefixes
 
-        document1 = unicode_string(
-            "<?xml version='1.0' encoding='ascii'?><doc/>"
-            )
-        document2 = unicode_string(
-            "<?xml\tversion='1.0' encoding='ascii'?><doc/>"
-            )
+        document1 = "<?xml version='1.0' encoding='ascii'?><doc/>"
+        document2 = "<?xml\tversion='1.0' encoding='ascii'?><doc/>"
 
         for bom, encoding in xml_prefixes:
             try:
@@ -86,9 +79,9 @@ class TypeSniffingTestCase(unittest.TestCase):
 
     def test_html_default_encoding(self):
         body = encode_string(
-            '<html><head><title>' \
-            '\xc3\x90\xc2\xa2\xc3\x90\xc2\xb5' \
-            '\xc3\x91\xc2\x81\xc3\x91\xc2\x82' \
+            '<html><head><title>'
+            '\xc3\x90\xc2\xa2\xc3\x90\xc2\xb5'
+            '\xc3\x91\xc2\x81\xc3\x91\xc2\x82'
             '</title></head></html>')
 
         template = self.get_template(body)
@@ -96,10 +89,10 @@ class TypeSniffingTestCase(unittest.TestCase):
 
     def test_html_encoding_by_meta(self):
         body = encode_string(
-            '<html><head><title>' \
-            '\xc3\x92\xc3\xa5\xc3\xb1\xc3\xb2' \
-            '</title><meta http-equiv="Content-Type"' \
-            ' content="text/html; charset=windows-1251"/>' \
+            '<html><head><title>'
+            '\xc3\x92\xc3\xa5\xc3\xb1\xc3\xb2'
+            '</title><meta http-equiv="Content-Type"'
+            ' content="text/html; charset=windows-1251"/>'
             "</head></html>")
 
         template = self.get_template(body)
@@ -107,10 +100,10 @@ class TypeSniffingTestCase(unittest.TestCase):
 
     def test_xhtml(self):
         body = encode_string(
-            '<html><head><title>' \
-            '\xc3\x92\xc3\xa5\xc3\xb1\xc3\xb2' \
-            '</title><meta http-equiv="Content-Type"' \
-            ' content="text/html; charset=windows-1251"/>' \
+            '<html><head><title>'
+            '\xc3\x92\xc3\xa5\xc3\xb1\xc3\xb2'
+            '</title><meta http-equiv="Content-Type"'
+            ' content="text/html; charset=windows-1251"/>'
             "</head></html>")
 
         template = self.get_template(body)

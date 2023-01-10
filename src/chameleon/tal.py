@@ -12,27 +12,30 @@
 #
 ##############################################################################
 
-import re
 import copy
+import re
 
 from .exc import LanguageError
-from .utils import descriptorint
-from .utils import descriptorstr
 from .namespaces import XMLNS_NS
 from .parser import groups
+from .utils import descriptorint
+from .utils import descriptorstr
+
 
 try:
     # optional library: `zope.interface`
-    from chameleon import interfaces
     import zope.interface
+
+    from chameleon import interfaces
 except ImportError:
     interfaces = None
 
 
 NAME = r"[a-zA-Z_][-a-zA-Z0-9_]*"
-DEFINE_RE = re.compile(r"(?s)\s*(?:(global|local)\s+)?" +
-                       r"(%s|\(%s(?:,\s*%s)*\))\s+(.*)\Z" % (NAME, NAME, NAME),
-                       re.UNICODE)
+DEFINE_RE = re.compile(
+    r"(?s)\s*(?:(global|local)\s+)?" +
+    r"({}|\({}(?:,\s*{})*\))\s+(.*)\Z".format(NAME, NAME, NAME),
+    re.UNICODE)
 SUBST_RE = re.compile(r"\s*(?:(text|structure)\s+)?(.*)\Z", re.S | re.UNICODE)
 ATTR_RE = re.compile(r"\s*([^\s{}'\"]+)\s+([^\s].*)\Z", re.S | re.UNICODE)
 
@@ -53,7 +56,7 @@ WHITELIST = frozenset([
     "case",
     "xmlns",
     "xml"
-    ])
+])
 
 
 def split_parts(arg):
@@ -138,7 +141,6 @@ def parse_defines(clause):
     ...     s = '\xc2\xa0hello lovely'.decode('utf-8')
     ... except AttributeError:
     ...     s = '\xa0hello lovely'
-    >>> from chameleon.utils import unicode_string
     >>> parse_defines(s) == [
     ...     ('local', ('hello',), 'lovely')
     ... ]
@@ -165,17 +167,14 @@ def parse_defines(clause):
 
 def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
                        ns_attributes, drop_ns):
-    drop = set([attribute['name'] for attribute, (ns, value)
-                in zip(attrs, ns_attributes)
-                if ns in drop_ns or (
-                    ns == XMLNS_NS and
-                    attribute['value'] in drop_ns
-                    )
-                ])
+    drop = {attribute['name']
+            for attribute, (ns, value) in zip(attrs, ns_attributes)
+            if ns in drop_ns or (
+                ns == XMLNS_NS and
+                attribute['value'] in drop_ns)}
 
     attributes = []
     normalized = {}
-    computed = []
 
     for attribute in attrs:
         name = attribute['name']
@@ -190,7 +189,7 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
             attribute['space'],
             attribute['eq'],
             None,
-            ))
+        ))
 
         normalized[name.lower()] = len(attributes) - 1
 
@@ -222,7 +221,7 @@ def prepare_attributes(attrs, dyn_attributes, i18n_attributes,
     return attributes
 
 
-class RepeatItem(object):
+class RepeatItem:
     __slots__ = "length", "_iterator"
 
     __allow_access_to_unprotected_subobjects__ = True
@@ -335,7 +334,7 @@ class RepeatItem(object):
         if index < 0:
             raise TypeError("No iteration position")
         s = ""
-        while 1:
+        while True:
             index, off = divmod(index, radix)
             s = chr(base + off) + s
             if not index:
@@ -366,9 +365,9 @@ class RepeatItem(object):
 
     @descriptorstr
     def Roman(self, rnvalues=(
-                    (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),
-                    (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),
-                    (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I'))):
+        (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),
+        (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),
+            (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I'))):
         """Get the iterator position as an upper-case roman numeral
 
         >>> it = RepeatItem(iter(("apple", "pear", "orange")), 3)
@@ -419,7 +418,7 @@ if interfaces is not None:
     zope.interface.classImplements(RepeatItem, interfaces.ITALESIterator)
 
 
-class RepeatDict(object):
+class RepeatDict:
     """Repeat dictionary implementation.
 
     >>> repeat = RepeatDict({})
@@ -436,14 +435,14 @@ class RepeatDict(object):
     >>> getattr(repeat, 'missing_key', None) is None
     True
 
-	>>> try:
-	...     from chameleon import interfaces
-	...     interfaces.ITALESIterator(repeat,None) is None
-	... except ImportError:
-	...     True
-	...
-	True
-	"""
+    >>> try:
+    ...     from chameleon import interfaces
+    ...     interfaces.ITALESIterator(repeat,None) is None
+    ... except ImportError:
+    ...     True
+    ...
+    True
+    """
 
     __slots__ = "__setitem__", "__getitem__"
 
@@ -451,12 +450,11 @@ class RepeatDict(object):
         self.__setitem__ = d.__setitem__
         self.__getitem__ = d.__getitem__
 
-    def __getattr__(self,key):
+    def __getattr__(self, key):
         try:
             return self[key]
         except KeyError:
             raise AttributeError(key)
-
 
     def __call__(self, key, iterable):
         """We coerce the iterable to a tuple and return an iterator
@@ -473,7 +471,7 @@ class RepeatDict(object):
         return iterator, length
 
 
-class ErrorInfo(object):
+class ErrorInfo:
     """Information about an exception passed to an on-error handler."""
 
     def __init__(self, err, position=(None, None)):
@@ -488,4 +486,5 @@ class ErrorInfo(object):
 
 
 if interfaces is not None:
-    zope.interface.classImplements(ErrorInfo, interfaces.ITALExpressionErrorInfo)
+    zope.interface.classImplements(
+        ErrorInfo, interfaces.ITALExpressionErrorInfo)

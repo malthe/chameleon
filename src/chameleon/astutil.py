@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008-2009 Edgewall Software
 # All rights reserved.
@@ -14,10 +13,10 @@
 """Support classes for generating code from abstract syntax trees."""
 
 import ast
-import sys
+import collections
 import logging
 import weakref
-import collections
+
 
 AST_NONE = ast.Name(id='None', ctx=ast.Load())
 
@@ -27,9 +26,9 @@ try:
     node_annotations[ast.Name()] = None
 except TypeError:
     logging.debug(
-        "Unable to create weak references to AST nodes. " \
+        "Unable to create weak references to AST nodes. "
         "A lock will be used around compilation loop."
-        )
+    )
 
     node_annotations = {}
 
@@ -67,13 +66,13 @@ def subscript(name, value, ctx):
         value=value,
         slice=ast.Index(value=ast.Str(s=name)),
         ctx=ctx,
-        )
+    )
 
 
 def walk_names(target, mode):
     for node in ast.walk(target):
         if isinstance(node, ast.Name) and \
-               isinstance(node.ctx, mode):
+                isinstance(node.ctx, mode):
             yield node.id
 
 
@@ -126,7 +125,7 @@ def swap(body, replacement, name):
     for node in ast.walk(root):
         if (isinstance(node, ast.Name) and
             isinstance(node.ctx, ast.Load) and
-            node.id == name):
+                node.id == name):
             assert hasattr(replacement, '_fields')
             node_annotations.setdefault(node, replacement)
 
@@ -135,7 +134,7 @@ def marker(name):
     return ast.Str(s="__%s" % name)
 
 
-class Node(object):
+class Node:
     """AST baseclass that gives us a convenient initialization
     method. We explicitly declare and use the ``_fields`` attribute."""
 
@@ -151,12 +150,12 @@ class Node(object):
         """Poor man's single-line pretty printer."""
 
         name = type(self).__name__
-        return '<%s%s at %x>' % (
+        return '<{}{} at {:x}>'.format(
             name,
-            "".join(" %s=%r" % (name, getattr(self, name, "\"?\""))
-                        for name in self._fields),
+            "".join(" {}={!r}".format(name, getattr(self, name, "\"?\""))
+                    for name in self._fields),
             id(self)
-            )
+        )
 
     def extract(self, condition):
         result = []
@@ -207,7 +206,7 @@ class TokenRef(Node):
     _fields = "pos", "length"
 
 
-class ASTCodeGenerator(object):
+class ASTCodeGenerator:
     """General purpose base class for AST transformations.
 
     Every visitor method can be overridden to return an AST node that has been
@@ -234,7 +233,7 @@ class ASTCodeGenerator(object):
         self.code = "\n".join(
             line.strip() and line or ""
             for line in self.lines
-            )
+        )
 
     def _change_indent(self, delta):
         self.indent += delta
@@ -271,7 +270,7 @@ class ASTCodeGenerator(object):
     def visit(self, node):
         if node is None:
             return None
-        if type(node) is tuple:
+        if isinstance(node, tuple):
             return tuple([self.visit(n) for n in node])
         try:
             self.blame_stack.append((node.lineno, node.col_offset,))
@@ -280,7 +279,7 @@ class ASTCodeGenerator(object):
             info = False
         visitor = getattr(self, 'visit_%s' % node.__class__.__name__, None)
         if visitor is None:
-            raise Exception('No handler for ``%s`` (%s).' % (
+            raise Exception('No handler for ``{}`` ({}).'.format(
                 node.__class__.__name__, repr(node)))
         ret = visitor(node)
         if info:
@@ -583,8 +582,6 @@ class ASTCodeGenerator(object):
             self._write(' ')
             self.visit(node.type)
         if getattr(node, 'name', None):
-            if sys.version_info < (3,):
-                assert getattr(node, 'type', None)
             self._write(' as ')
             self.visit(node.name)
         self._write(':')
@@ -691,7 +688,7 @@ class ASTCodeGenerator(object):
         self._new_line()
         self._write('continue')
 
-    ### EXPRESSIONS
+    # EXPRESSIONS
     def with_parens(f):
         def _f(self, node):
             self._write('(')
@@ -862,21 +859,7 @@ class ASTCodeGenerator(object):
             else:
                 self._write('**')
             self.visit(keyword.value)
-        # Attribute removed in Python 3.5
-        if getattr(node, 'starargs', None):
-            if not first:
-                self._write(', ')
-            first = False
-            self._write('*')
-            self.visit(node.starargs)
 
-        # Attribute removed in Python 3.5
-        if getattr(node, 'kwargs', None):
-            if not first:
-                self._write(', ')
-            first = False
-            self._write('**')
-            self.visit(node.kwargs)
         self._write(')')
 
     # Repr(expr value)
@@ -990,6 +973,7 @@ class ASTCodeGenerator(object):
     def visit_NameConstant(self, node):
         self._write(str(node.value))
 
+
 class AnnotationAwareVisitor(ast.NodeVisitor):
     def visit(self, node):
         annotation = node_annotations.get(node)
@@ -997,7 +981,7 @@ class AnnotationAwareVisitor(ast.NodeVisitor):
             assert hasattr(annotation, '_fields')
             node = annotation
 
-        super(AnnotationAwareVisitor, self).visit(node)
+        super().visit(node)
 
     def apply_transform(self, node):
         if node not in node_annotations:

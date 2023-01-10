@@ -13,7 +13,7 @@ with-macos = false
 with-windows = false
 
 [tox]
-use-flake8 = false
+use-flake8 = true
 testenv-deps = [
     "zope.testrunner",
     ]
@@ -29,4 +29,11 @@ additional-rules = [
     "recursive-include src *.pt",
     "recursive-include src *.txt",
     "recursive-include src *.xml",
+    ]
+
+[flake8]
+additional-config = [
+    "# F401 imported but unused",
+    "per-file-ignores =",
+    "    src/chameleon/__init__.py: F401",
     ]

@@ -20,4 +20,4 @@ WHITELIST = frozenset([
     "fill-slot",
     "xmlns",
     "xml"
-    ])
+])

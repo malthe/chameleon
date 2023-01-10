@@ -1,29 +1,25 @@
 from functools import partial
-from os.path import dirname
 from hashlib import sha256
+from os.path import dirname
 
+from ..astutil import Symbol
+from ..compiler import ExpressionEngine
 from ..i18n import simple_translate
+from ..loader import TemplateLoader
+from ..tal import RepeatDict
+from ..tales import DEFAULT_MARKER
+from ..tales import ExistsExpr
+from ..tales import ExpressionParser
+from ..tales import ImportExpr
+from ..tales import NotExpr
+from ..tales import ProxyExpr
 from ..tales import PythonExpr
 from ..tales import StringExpr
-from ..tales import NotExpr
-from ..tales import ExistsExpr
-from ..tales import ImportExpr
-from ..tales import ProxyExpr
 from ..tales import StructureExpr
-from ..tales import ExpressionParser
-from ..tales import DEFAULT_MARKER
-from ..tal import RepeatDict
-
 from ..template import BaseTemplate
 from ..template import BaseTemplateFile
-from ..compiler import ExpressionEngine
-from ..loader import TemplateLoader
-from ..utils import decode_string
-from ..utils import string_type
-from ..utils import unicode_string
-from ..astutil import Symbol
-
 from .program import MacroProgram
+
 
 try:
     bytes
@@ -53,8 +49,7 @@ class PageTemplate(BaseTemplate):
 
       ``encoding``
 
-        The default text substitution value is a unicode string on
-        Python 2 or simply string on Python 3.
+        The default text substitution value is a string.
 
         Pass an encoding to allow encoded byte string input
         (e.g. UTF-8).
@@ -84,7 +79,8 @@ class PageTemplate(BaseTemplate):
 
         Example::
 
-          def translate(msgid, domain=None, mapping=None, default=None, context=None):
+          def translate(msgid, domain=None, mapping=None, default=None,
+                        context=None):
               ...
               return translation
 
@@ -130,7 +126,9 @@ class PageTemplate(BaseTemplate):
 
       ``restricted_namespace``
 
-        True by default. If set False, ignored all namespace except chameleon default namespaces. It will be useful working with attributes based javascript template renderer like VueJS.
+        True by default. If set False, ignored all namespace except chameleon
+        default namespaces. It will be useful working with attributes based
+        javascript template renderer like VueJS.
 
         Example:
 
@@ -140,8 +138,8 @@ class PageTemplate(BaseTemplate):
 
       ``tokenizer``
 
-        None by default. If provided, this tokenizer is used instead of the default
-        (which is selected based on the template mode parameter.)
+        None by default. If provided, this tokenizer is used instead of the
+        default (which is selected based on the template mode parameter.)
 
       ``value_repr``
 
@@ -159,7 +157,7 @@ class PageTemplate(BaseTemplate):
         element this is the static element text. If there is no static text
         then the default action is similar to an expression result of `None`.
 
-    Output is unicode on Python 2 and string on Python 3.
+    Output is of type ``str``.
 
     """
 
@@ -170,7 +168,7 @@ class PageTemplate(BaseTemplate):
         'exists': ExistsExpr,
         'import': ImportExpr,
         'structure': StructureExpr,
-        }
+    }
 
     default_expression = 'python'
 
@@ -202,7 +200,7 @@ class PageTemplate(BaseTemplate):
 
     def __init__(self, body, **config):
         self.macros = Macros(self)
-        super(PageTemplate, self).__init__(body, **config)
+        super().__init__(body, **config)
 
     def __getitem__(self, name):
         return self.macros[name]
@@ -217,7 +215,7 @@ class PageTemplate(BaseTemplate):
             ExpressionEngine,
             self.expression_parser,
             default_marker=self.default_marker,
-            )
+        )
 
     @property
     def expression_parser(self):
@@ -263,10 +261,7 @@ class PageTemplate(BaseTemplate):
         """
 
         translate = _kw.get('translate')
-        if translate is not None:
-            has_translate = True
-        else:
-            has_translate = False
+        if translate is None:
             translate = self.translate
 
             # This should not be necessary, but we include it for
@@ -278,13 +273,13 @@ class PageTemplate(BaseTemplate):
         if encoding is not None:
             def translate(msgid, txl=translate, encoding=encoding, **kwargs):
                 if isinstance(msgid, bytes):
-                    msgid = decode_string(msgid, encoding)
+                    msgid = bytes.decode(msgid, encoding)
                 return txl(msgid, **kwargs)
 
             def decode(inst, encoding=encoding):
-                return decode_string(inst, encoding, 'ignore')
+                return bytes.decode(inst, encoding, 'ignore')
         else:
-            decode = decode_string
+            decode = bytes.decode
 
         target_language = _kw.get('target_language')
 
@@ -297,17 +292,18 @@ class PageTemplate(BaseTemplate):
         setdefault("__on_error_handler", self.on_error_handler)
 
         # Make sure we have a repeat dictionary
-        if 'repeat' not in _kw: _kw['repeat'] = RepeatDict({})
+        if 'repeat' not in _kw:
+            _kw['repeat'] = RepeatDict({})
 
-        return super(PageTemplate, self).render(**_kw)
+        return super().render(**_kw)
 
     def include(self, *args, **kwargs):
         self.cook_check()
         self._render(*args, **kwargs)
 
     def digest(self, body, names):
-        hex = super(PageTemplate, self).digest(body, names)
-        if isinstance(hex, unicode_string):
+        hex = super().digest(body, names)
+        if isinstance(hex, str):
             hex = hex.encode('utf-8')
         digest = sha256(hex)
         digest.update(';'.join(names).encode('utf-8'))
@@ -319,7 +315,7 @@ class PageTemplate(BaseTemplate):
         ):
             v = getattr(self, attr)
             digest.update(
-                (";%s=%s" % (attr, str(v))).encode('ascii')
+                (";{}={}".format(attr, str(v))).encode('ascii')
             )
 
             return digest.hexdigest()[:32]
@@ -329,7 +325,7 @@ class PageTemplate(BaseTemplate):
             'template': self,
             'macros': self.macros,
             'nothing': None,
-            }
+        }
 
 
 class PageTemplateFile(PageTemplate, BaseTemplateFile):
@@ -388,7 +384,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
         if search_path is None:
             search_path = []
         else:
-            if isinstance(search_path, string_type):
+            if isinstance(search_path, str):
                 search_path = [search_path]
             else:
                 search_path = list(search_path)
@@ -407,14 +403,14 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
             # class, providing the same keyword arguments.
             self._loader = loader.bind(template_class)
 
-        super(PageTemplateFile, self).__init__(
+        super().__init__(
             filename,
             post_init_hook=post_init,
             **config
         )
 
     def _builtins(self):
-        d = super(PageTemplateFile, self)._builtins()
+        d = super()._builtins()
         d['__loader'] = self._loader
         return d
 
@@ -439,18 +435,18 @@ class PageTextTemplateFile(PageTemplateFile):
     mode = "text"
 
     def render(self, **vars):
-        result = super(PageTextTemplateFile, self).render(**vars)
+        result = super().render(**vars)
         return result.encode(self.encoding or 'utf-8')
 
 
-class Macro(object):
+class Macro:
     __slots__ = "include",
 
     def __init__(self, render):
         self.include = render
 
 
-class Macros(object):
+class Macros:
     __slots__ = "template",
 
     def __init__(self, template):

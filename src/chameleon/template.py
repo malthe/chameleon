@@ -1,16 +1,36 @@
-from __future__ import with_statement
-
+import hashlib
+import inspect
+import logging
 import os
 import sys
-import hashlib
-import logging
 import tempfile
-import inspect
+
+from .compiler import Compiler
+from .config import AUTO_RELOAD
+from .config import CACHE_DIRECTORY
+from .config import DEBUG_MODE
+from .config import EAGER_PARSING
+from .exc import ExceptionFormatter
+from .exc import RenderError
+from .exc import TemplateError
+from .loader import MemoryLoader
+from .loader import ModuleLoader
+from .nodes import Module
+from .utils import DebuggingOutputStream
+from .utils import Scope
+from .utils import create_formatted_exception
+from .utils import join
+from .utils import mangle
+from .utils import raise_with_traceback
+from .utils import read_bytes
+from .utils import value_repr
+
 
 try:
     RecursionError
 except NameError:
     RecursionError = RuntimeError
+
 
 def get_package_versions():
     try:
@@ -37,28 +57,6 @@ for name, version in get_package_versions():
     pkg_digest.update(version.encode('utf-8'))
 
 
-from .exc import RenderError
-from .exc import TemplateError
-from .exc import ExceptionFormatter
-from .compiler import Compiler
-from .config import DEBUG_MODE
-from .config import AUTO_RELOAD
-from .config import EAGER_PARSING
-from .config import CACHE_DIRECTORY
-from .loader import ModuleLoader
-from .loader import MemoryLoader
-from .nodes import Module
-from .utils import DebuggingOutputStream
-from .utils import Scope
-from .utils import join
-from .utils import mangle
-from .utils import create_formatted_exception
-from .utils import read_bytes
-from .utils import raise_with_traceback
-from .utils import byte_string
-from .utils import value_repr
-
-
 log = logging.getLogger('chameleon.template')
 
 
@@ -73,12 +71,12 @@ def _make_module_loader():
     return ModuleLoader(path, remove)
 
 
-class BaseTemplate(object):
+class BaseTemplate:
     """Template base class.
 
     Takes a string input which must be one of the following:
 
-    - a unicode string (or string on Python 3);
+    - a string;
     - a utf-8 encoded byte string;
     - a byte string for an XML document that defines an encoding
       in the document premamble;
@@ -145,7 +143,7 @@ class BaseTemplate(object):
         return self.render(**kwargs)
 
     def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, self.filename)
+        return "<{} {}>".format(self.__class__.__name__, self.filename)
 
     @property
     def keep_body(self):
@@ -192,7 +190,7 @@ class BaseTemplate(object):
             self._render(stream, econtext, rcontext)
         except RecursionError:
             raise
-        except:
+        except BaseException:
             cls, exc, tb = sys.exc_info()
             try:
                 errors = rcontext.get('__error__')
@@ -203,7 +201,8 @@ class BaseTemplate(object):
                             formatter._errors.extend(errors)
                         raise
 
-                    formatter = ExceptionFormatter(errors, econtext, rcontext, self.value_repr)
+                    formatter = ExceptionFormatter(
+                        errors, econtext, rcontext, self.value_repr)
 
                     try:
                         exc = create_formatted_exception(
@@ -221,10 +220,10 @@ class BaseTemplate(object):
         return join(stream)
 
     def write(self, body):
-        if isinstance(body, byte_string):
+        if isinstance(body, bytes):
             body, encoding, content_type = read_bytes(
                 body, self.default_encoding
-                )
+            )
         else:
             content_type = body.startswith('<?xml')
             encoding = None
@@ -244,7 +243,7 @@ class BaseTemplate(object):
             try:
                 source = self._compile(body, builtins)
                 if self.debug:
-                    source = "# template: %s\n#\n%s" % (
+                    source = "# template: {}\n#\n{}".format(
                         self.filename, source)
                 if self.keep_source:
                     self.source = source
@@ -293,11 +292,16 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
-    def __init__(self, filename, auto_reload=None, post_init_hook=None, **config):
+    def __init__(
+            self,
+            filename,
+            auto_reload=None,
+            post_init_hook=None,
+            **config):
         # Normalize filename
         filename = os.path.abspath(
             os.path.normpath(os.path.expanduser(filename))
-            )
+        )
 
         self.filename = filename
 
@@ -305,7 +309,7 @@ class BaseTemplateFile(BaseTemplate):
         if auto_reload is not None:
             self.auto_reload = auto_reload
 
-        super(BaseTemplateFile, self).__init__(**config)
+        super().__init__(**config)
 
         if post_init_hook is not None:
             post_init_hook()
@@ -329,7 +333,7 @@ class BaseTemplateFile(BaseTemplate):
     def mtime(self):
         try:
             return os.path.getmtime(self.filename)
-        except (IOError, OSError):
+        except OSError:
             return 0
 
     def read(self):
@@ -338,7 +342,7 @@ class BaseTemplateFile(BaseTemplate):
 
         body, encoding, content_type = read_bytes(
             data, self.default_encoding
-            )
+        )
 
         # In non-XML mode, we support various platform-specific line
         # endings and convert them to the UNIX newline character
@@ -353,7 +357,7 @@ class BaseTemplateFile(BaseTemplate):
     def _get_module_name(self, name):
         filename = os.path.basename(self.filename)
         mangled = mangle(filename)
-        return "%s_%s.py" % (mangled, name)
+        return "{}_{}.py".format(mangled, name)
 
     def _get_filename(self):
         return self.__dict__.get('filename')

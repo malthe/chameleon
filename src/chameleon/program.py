@@ -3,23 +3,23 @@ try:
 except NameError:
     long = int
 
-from .tokenize import iter_xml
-from .tokenize import iter_text
-from .parser import ElementParser
 from .namespaces import XML_NS
 from .namespaces import XMLNS_NS
+from .parser import ElementParser
+from .tokenize import iter_text
+from .tokenize import iter_xml
 
 
-class ElementProgram(object):
+class ElementProgram:
     DEFAULT_NAMESPACES = {
         'xmlns': XMLNS_NS,
         'xml': XML_NS,
-        }
+    }
 
     tokenizers = {
         'xml': iter_xml,
         'text': iter_text,
-        }
+    }
 
     restricted_namespace = True
 
@@ -27,7 +27,10 @@ class ElementProgram(object):
         if tokenizer is None:
             tokenizer = self.tokenizers[mode]
         tokens = tokenizer(source, filename)
-        parser = ElementParser(tokens, self.DEFAULT_NAMESPACES, self.restricted_namespace)
+        parser = ElementParser(
+            tokens,
+            self.DEFAULT_NAMESPACES,
+            self.restricted_namespace)
 
         self.body = []
 

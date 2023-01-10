@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import traceback
 
+from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
+from .tokenize import Token
 from .utils import create_formatted_exception
 from .utils import safe_native
-from .tokenize import Token
-from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
 
 
 def compute_source_marker(line, column, expression, size):
@@ -56,7 +54,7 @@ def compute_source_marker(line, column, expression, size):
     s = s.rstrip()
 
     try:
-        i  = s[column:].index(expression)
+        i = s[column:].index(expression)
     except ValueError:
         # If we can't find the expression
         # (this shouldn't happen), simply
@@ -173,11 +171,11 @@ class TemplateError(Exception):
                 )
             elif self.filename and not self.filename.startswith('<'):
                 try:
-                    f = open(self.filename, 'r')
-                except IOError:
+                    f = open(self.filename)
+                except OSError:
                     pass
                 else:
-                    it = iter_source_marker_lines(
+                    iter_source_marker_lines(
                         iter(f), self.token, line, column
                     )
                     try:
@@ -195,9 +193,9 @@ class TemplateError(Exception):
 
     def __repr__(self):
         try:
-            return "%s('%s', '%s')" % (
+            return "{}('{}', '{}')".format(
                 self.__class__.__name__, self.args[0], safe_native(self.token)
-                )
+            )
         except AttributeError:
             return object.__repr__(self)
 
@@ -254,7 +252,7 @@ class ExpressionError(LanguageError):
     """
 
 
-class ExceptionFormatter(object):
+class ExceptionFormatter:
     def __init__(self, errors, econtext, rcontext, value_repr):
         kwargs = rcontext.copy()
         kwargs.update(econtext)
@@ -271,7 +269,7 @@ class ExceptionFormatter(object):
         # Format keyword arguments; consecutive arguments are indented
         # for readability
         formatted = [
-            "%s: %s" % (name, self._value_repr(value))
+            "{}: {}".format(name, self._value_repr(value))
             for name, value in self._kwargs.items()
         ]
 
@@ -287,7 +285,7 @@ class ExceptionFormatter(object):
                 string = safe_native(exc.object)
                 s, marker = compute_source_marker(
                     string, exc.start, string[exc.start:exc.end], LENGTH
-                    )
+                )
 
                 out.append(" - Stream:     %s" % s)
                 out.append("               %s" % marker)
@@ -300,8 +298,8 @@ class ExceptionFormatter(object):
 
             if filename and not filename.startswith('<') and line and column:
                 try:
-                    f = open(filename, 'r')
-                except IOError:
+                    f = open(filename)
+                except OSError:
                     pass
                 else:
                     lines = iter_source_marker_lines(
@@ -318,7 +316,8 @@ class ExceptionFormatter(object):
             # This is a nested error that has already been wrapped
             # We must unwrap it before trying to format it to prevent
             # recursion
-            exc = create_formatted_exception(exc, type(exc), exc._original__str__)
+            exc = create_formatted_exception(
+                exc, type(exc), exc._original__str__)
         formatted = traceback.format_exception_only(type(exc), exc)[-1]
         formatted_class = "%s:" % type(exc).__name__
 

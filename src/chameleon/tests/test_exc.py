@@ -1,5 +1,8 @@
 from unittest import TestCase
-from chameleon import exc, tokenize
+
+from chameleon import exc
+from chameleon import tokenize
+
 
 class TestTemplateError(TestCase):
 
@@ -9,15 +12,14 @@ class TestTemplateError(TestCase):
         error = exc.TemplateError('message', token)
         s = str(error)
         self.assertTrue(
-                '- Location:   (line 2: col 0)' in s,
-                'No location data found\n%s' % s)
+            '- Location:   (line 2: col 0)' in s,
+            'No location data found\n%s' % s)
 
     def test_umlaut_exc_to_string(self):
         # test if an exception is convertable to a string
-        body = u'<p>uumlaut:\xfc</p>'
+        body = '<p>uumlaut:\xfc</p>'
         string = body[3:-4]
         token = tokenize.Token(string, 3, body)
         e = exc.LanguageError('Invalid define syntax', token)
         # its fine if we get no exception from the following line
         str(e)
-

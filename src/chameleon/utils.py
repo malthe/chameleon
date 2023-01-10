@@ -1,63 +1,36 @@
-import os
-import re
-import sys
 import codecs
 import logging
+import os
+import re
+from html import entities as htmlentitydefs
 
-from copy import copy
 
 log = logging.getLogger('chameleon.utils')
 marker = object()
 
-# Python 2
-if sys.version_info < (3,):
-    import htmlentitydefs
-    import __builtin__ as builtins
 
-    from .compat import raise_with_traceback
+def safe_native(s, encoding='utf-8'):
+    if not isinstance(s, str):
+        s = bytes.decode(s, encoding, 'replace')
+    return s
 
-    chr = unichr
-    native_string = str
-    decode_string = unicode
-    encode_string = str
-    unicode_string = unicode
-    string_type = basestring
-    byte_string = str
 
-    def safe_native(s, encoding='utf-8'):
-        if not isinstance(s, unicode):
-            s = decode_string(s, encoding, 'replace')
+def raise_with_traceback(exc, tb):
+    exc.__traceback__ = tb
+    raise exc
 
-        return s.encode(encoding)
 
-# Python 3
-else:
-    from html import entities as htmlentitydefs
-    import builtins
+def encode_string(s):
+    return bytes(s, 'utf-8')
 
-    byte_string = bytes
-    string_type = str
-    native_string = str
-    decode_string = bytes.decode
-    encode_string = lambda s: bytes(s, 'utf-8')
-    unicode_string = str
-
-    def safe_native(s, encoding='utf-8'):
-        if not isinstance(s, str):
-            s = decode_string(s, encoding, 'replace')
-
-        return s
-
-    def raise_with_traceback(exc, tb):
-        exc.__traceback__ = tb
-        raise exc
 
 def text_(s, encoding='latin-1', errors='strict'):
-    """ If ``s`` is an instance of ``byte_string``, return
+    """ If ``s`` is an instance of ``bytes``, return
     ``s.decode(encoding, errors)``, otherwise return ``s``"""
-    if isinstance(s, byte_string):
+    if isinstance(s, bytes):
         return s.decode(encoding, errors)
     return s
+
 
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
@@ -71,7 +44,7 @@ xml_prefixes = (
     (codecs.BOM_UTF32_BE, 'utf-32-be'),
     (codecs.BOM_UTF32_LE, 'utf-32-le'),
     (codecs.BOM_UTF32, 'utf-32'),
-    )
+)
 
 
 def _has_encoding(encoding):
@@ -85,10 +58,10 @@ def _has_encoding(encoding):
 
 # Precomputed prefix table
 _xml_prefixes = tuple(
-    (bom, str('<?xml').encode(encoding), encoding)
+    (bom, '<?xml'.encode(encoding), encoding)
     for bom, encoding in reversed(xml_prefixes)
     if _has_encoding(encoding)
-    )
+)
 
 _xml_decl = encode_string("<?xml")
 
@@ -96,12 +69,12 @@ RE_META = re.compile(
     r'\s*<meta\s+http-equiv=["\']?Content-Type["\']?'
     r'\s+content=["\']?([^;]+);\s*charset=([^"\']+)["\']?\s*/?\s*>\s*',
     re.IGNORECASE
-    )
+)
 
 RE_ENCODING = re.compile(
-    r'encoding\s*=\s*(?:"|\')(?P<encoding>[\w\-]+)(?:"|\')'.encode('ascii'),
+    br'encoding\s*=\s*(?:"|\')(?P<encoding>[\w\-]+)(?:"|\')',
     re.IGNORECASE
-    )
+)
 
 
 def read_encoded(data):
@@ -113,7 +86,7 @@ def read_bytes(body, default_encoding):
         if body.startswith(bom):
             document = body.decode(encoding)
             return document, encoding, \
-                   "text/xml" if document.startswith("<?xml") else None
+                "text/xml" if document.startswith("<?xml") else None
 
         if prefix != encode_string('<?xml') and body.startswith(prefix):
             return body.decode(encoding), encoding, "text/xml"
@@ -140,7 +113,7 @@ def detect_encoding(body, default_encoding):
 
 
 def read_xml_encoding(body):
-    if body.startswith('<?xml'.encode('ascii')):
+    if body.startswith(b'<?xml'):
         match = RE_ENCODING.search(body)
         if match is not None:
             return match.group('encoding').decode('ascii')
@@ -195,7 +168,7 @@ def create_formatted_exception(exc, cls, formatter, base=Exception):
                 '_original__str__': exc.__str__,
                 '__new__': BaseException.__new__,
                 '__module__': cls.__module__,
-                })
+            })
         except TypeError:
             new = cls
 
@@ -222,7 +195,7 @@ def unescape(string):
     return string
 
 
-_concat = unicode_string("").join
+_concat = "".join
 
 
 def join(stream):
@@ -240,11 +213,11 @@ def join(stream):
 
     try:
         return _concat(stream)
-    except:
+    except BaseException:
         # Loop through stream and coerce each element into unicode;
         # this should raise an exception
         for element in stream:
-            unicode_string(element)
+            str(element)
 
         # In case it didn't, re-raise the original exception
         raise
@@ -252,7 +225,7 @@ def join(stream):
 
 def decode_htmlentities(string):
     """
-    >>> native_string(decode_htmlentities('&amp;amp;'))
+    >>> str(decode_htmlentities('&amp;amp;'))
     '&amp;'
 
     """
@@ -290,7 +263,7 @@ def _resolve_dotted(name, module=None):
 
 
 def resolve_dotted(dotted):
-    if not dotted in module_cache:
+    if dotted not in module_cache:
         resolved = _resolve_dotted(dotted)
         module_cache[dotted] = resolved
     return module_cache[dotted]
@@ -304,7 +277,7 @@ def limit_string(s, max_length=53):
 
 
 def value_repr(value):
-    if isinstance(value, string_type):
+    if isinstance(value, str):
         short = limit_string(value)
         return short.replace('\n', '\\n')
     if isinstance(value, (int, float)):
@@ -314,10 +287,11 @@ def value_repr(value):
 
     try:
         name = str(getattr(value, '__name__', None)),
-    except:
+    except:  # noqa: E722 do not use bare 'except'
         name = '-'
 
-    return '<%s %s at %s>' % (type(value).__name__, name, hex(abs(id(value))))
+    return '<{} {} at {}>'.format(
+        type(value).__name__, name, hex(abs(id(value))))
 
 
 class callablestr(str):
@@ -334,7 +308,7 @@ class callableint(int):
         return self
 
 
-class descriptorstr(object):
+class descriptorstr:
     __slots__ = "function", "__name__"
 
     def __init__(self, function):
@@ -345,7 +319,7 @@ class descriptorstr(object):
         return callablestr(self.function(context))
 
 
-class descriptorint(object):
+class descriptorint:
     __slots__ = "function", "__name__"
 
     def __init__(self, function):
@@ -358,10 +332,10 @@ class descriptorint(object):
 
 class DebuggingOutputStream(list):
     def append(self, value):
-        if not isinstance(value, string_type):
+        if not isinstance(value, str):
             raise TypeError(value)
 
-        unicode_string(value)
+        str(value)
         list.append(self, value)
 
 
@@ -456,15 +430,15 @@ class Scope(dict):
     setGlobal = set_global
 
 
-class ListDictProxy(object):
-    def __init__(self, l):
-        self._l = l
+class ListDictProxy:
+    def __init__(self, _l):
+        self._l = _l
 
     def get(self, key):
         return self._l[-1].get(key)
 
 
-class Markup(unicode_string):
+class Markup(str):
     """Wraps a string to always render as structure.
 
     >>> Markup('<br />')
@@ -472,13 +446,13 @@ class Markup(unicode_string):
     """
 
     def __html__(self):
-        return unicode_string(self)
+        return str(self)
 
     def __repr__(self):
         return "s'%s'" % self
 
 
-class ImportableMarker(object):
+class ImportableMarker:
     def __init__(self, module, name):
         self.__module__ = module
         self.name = name
