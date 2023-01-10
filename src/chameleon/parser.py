@@ -1,14 +1,11 @@
-import re
 import logging
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+import re
+from collections import OrderedDict
 
 from .exc import ParseError
 from .namespaces import XML_NS
 from .tokenize import Token
+
 
 match_double_hyphen = re.compile(r'--(?!(-)*>)')
 match_tag_prefix_and_name = re.compile(
@@ -45,7 +42,7 @@ def substitute(regex, repl, token):
         token.pos,
         token.source,
         token.filename
-        )
+    )
 
 
 def groups(m, token):
@@ -181,7 +178,7 @@ def identify(string):
     return "text"
 
 
-class ElementParser(object):
+class ElementParser:
     """Parses tokens into elements."""
 
     def __init__(self, stream, default_namespaces, restricted_namespace=True):

@@ -6,7 +6,7 @@ class TemplateLoader(BaseLoader):
     formats = {
         "xml": template.PageTemplateFile,
         "text": template.PageTextTemplateFile,
-        }
+    }
 
     default_format = "xml"
 
@@ -15,7 +15,7 @@ class TemplateLoader(BaseLoader):
         if formats is not None:
             self.formats = formats
 
-        super(TemplateLoader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def load(self, filename, format=None):
         """Load and return a template file.
@@ -25,6 +25,6 @@ class TemplateLoader(BaseLoader):
         """
 
         cls = self.formats[format or self.default_format]
-        return super(TemplateLoader, self).load(filename, cls)
+        return super().load(filename, cls)
 
     __getitem__ = load

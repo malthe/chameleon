@@ -1,40 +1,35 @@
 import re
 
+
 try:
     str = unicode
 except NameError:
     long = int
 
 import ast
-from functools import partial
 from copy import copy
+from functools import partial
 
-from ..program import ElementProgram
-
-from ..namespaces import XML_NS
-from ..namespaces import XMLNS_NS
-from ..namespaces import I18N_NS as I18N
-from ..namespaces import TAL_NS as TAL
-from ..namespaces import METAL_NS as METAL
-from ..namespaces import META_NS as META
-
+from .. import i18n
+from .. import metal
+from .. import nodes
+from .. import tal
 from ..astutil import Static
 from ..astutil import Symbol
 from ..astutil import parse
-from ..astutil import marker
-
-from .. import tal
-from .. import tales
-from .. import metal
-from .. import i18n
-from .. import nodes
-
+from ..exc import CompilationError
 from ..exc import LanguageError
 from ..exc import ParseError
-from ..exc import CompilationError
-
-from ..utils import decode_htmlentities
+from ..namespaces import I18N_NS as I18N
+from ..namespaces import META_NS as META
+from ..namespaces import METAL_NS as METAL
+from ..namespaces import TAL_NS as TAL
+from ..namespaces import XML_NS
+from ..namespaces import XMLNS_NS
+from ..program import ElementProgram
 from ..utils import ImportableMarker
+from ..utils import decode_htmlentities
+
 
 try:
     str = unicode
@@ -65,7 +60,7 @@ def validate_attributes(attributes, namespace, whitelist):
         if ns == namespace and name not in whitelist:
             raise CompilationError(
                 "Bad attribute for namespace '%s'" % ns, name
-                )
+            )
 
 
 def convert_data_attributes(ns_attrs, attrs, namespaces):
@@ -92,7 +87,7 @@ class MacroProgram(ElementProgram):
         'metal': METAL,
         'i18n': I18N,
         'meta': META,
-        }
+    }
 
     DROP_NS = TAL, METAL, I18N, META
 
@@ -171,7 +166,7 @@ class MacroProgram(ElementProgram):
             'restricted_namespace',
         )
 
-        super(MacroProgram, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def macros(self):
@@ -181,7 +176,7 @@ class MacroProgram(ElementProgram):
         return tuple(
             nodes.Macro(name, [nodes.Context(node)])
             for name, node in macros
-            )
+        )
 
     def visit_default(self, node):
         return nodes.Text(node)
@@ -237,20 +232,21 @@ class MacroProgram(ElementProgram):
             if use_macro:
                 inner = nodes.UseExternalMacro(
                     nodes.Value(use_macro), slots, False
-                    )
+                )
                 macro_name = use_macro
             else:
                 inner = nodes.UseExternalMacro(
                     nodes.Value(extend_macro), slots, True
-                    )
+                )
                 macro_name = extend_macro
 
-            # While the macro executes, it should have access to the name it was
-            # called with as 'macroname'. Splitting on / mirrors zope.tal and is a
-            # concession to the path expression syntax.
+            # While the macro executes, it should have access to the name it
+            # was called with as 'macroname'. Splitting on / mirrors zope.tal
+            # and is a concession to the path expression syntax.
             macro_name = macro_name.rsplit('/', 1)[-1]
             inner = nodes.Define(
-                [nodes.Assignment(["macroname"], Static(ast.Str(macro_name)), True)],
+                [nodes.Assignment(
+                    ["macroname"], Static(ast.Str(macro_name)), True)],
                 inner,
             )
             STATIC_ATTRIBUTES = None
@@ -272,7 +268,7 @@ class MacroProgram(ElementProgram):
 
                 if end is None:
                     # Make sure start-tag has opening suffix.
-                    start['suffix']  = ">"
+                    start['suffix'] = ">"
 
                     # Explicitly set end-tag.
                     end = {
@@ -280,7 +276,7 @@ class MacroProgram(ElementProgram):
                         'name': start['name'],
                         'space': '',
                         'suffix': '>'
-                        }
+                    }
 
             # i18n:translate
             try:
@@ -313,7 +309,7 @@ class MacroProgram(ElementProgram):
             prepared = tal.prepare_attributes(
                 attrs, TAL_ATTRIBUTES,
                 I18N_ATTRIBUTES, ns, self.DROP_NS
-                )
+            )
 
             # Create attribute nodes
             STATIC_ATTRIBUTES = self._create_static_attributes(prepared)
@@ -327,14 +323,14 @@ class MacroProgram(ElementProgram):
                 self._maybe_trim(start['prefix']),
                 self._maybe_trim(start['suffix']),
                 ATTRIBUTES
-                )
+            )
 
             end_tag = nodes.End(
                 end['name'],
                 end['space'],
                 self._maybe_trim(end['prefix']),
                 self._maybe_trim(end['suffix']),
-                ) if end is not None else None
+            ) if end is not None else None
 
             # tal:omit-tag
             try:
@@ -363,7 +359,7 @@ class MacroProgram(ElementProgram):
                     start_tag,
                     end_tag,
                     content,
-                    )
+                )
 
                 if omit is not False:
                     inner = nodes.Cache([omit], inner)
@@ -422,7 +418,8 @@ class MacroProgram(ElementProgram):
         ]
 
         # Assign static attributes dictionary to "attrs" value
-        assignments.insert(0, nodes.Alias(["attrs"], STATIC_ATTRIBUTES or EMPTY_DICT))
+        assignments.insert(
+            0, nodes.Alias(["attrs"], STATIC_ATTRIBUTES or EMPTY_DICT))
         DEFINE = partial(nodes.Define, assignments)
 
         # tal:case
@@ -438,20 +435,23 @@ class MacroProgram(ElementProgram):
             else:
                 raise LanguageError(
                     "Must define switch on a parent element.", clause
-                    )
+                )
 
-            CASE = lambda node: nodes.Define(
-                [nodes.Alias(["default"], self.default_marker)],
-                nodes.Condition(
-                    nodes.And([
-                        nodes.BinOp(switch, nodes.IsNot, self._cancel_marker),
-                        nodes.Or([
-                            nodes.BinOp(value, nodes.Equals, switch),
-                            nodes.BinOp(value, nodes.Equals, self.default_marker)
-                        ])
-                    ]),
-                    nodes.Cancel([switch], node, self._cancel_marker),
-                ))
+            def CASE(node):
+                return nodes.Define(
+                    [nodes.Alias(["default"], self.default_marker)],
+                    nodes.Condition(
+                        nodes.And([
+                            nodes.BinOp(
+                                switch, nodes.IsNot, self._cancel_marker),
+                            nodes.Or([
+                                nodes.BinOp(value, nodes.Equals, switch),
+                                nodes.BinOp(
+                                    value, nodes.Equals, self.default_marker)
+                            ])
+                        ]),
+                        nodes.Cancel([switch], node, self._cancel_marker),
+                    ))
 
         # tal:repeat
         try:
@@ -476,7 +476,7 @@ class MacroProgram(ElementProgram):
                 expression,
                 context == "local",
                 whitespace
-                )
+            )
 
         # tal:condition
         try:
@@ -532,7 +532,7 @@ class MacroProgram(ElementProgram):
             SWITCH,
             DOMAIN,
             CONTEXT,
-            )
+        )
 
         # metal:fill-slot
         try:
@@ -554,7 +554,7 @@ class MacroProgram(ElementProgram):
                 raise LanguageError(
                     "Cannot use metal:fill-slot without metal:use-macro.",
                     clause
-                    )
+                )
 
             slots = self._use_macro[index]
             slots.append(nodes.FillSlot(clause, slot))
@@ -572,13 +572,13 @@ class MacroProgram(ElementProgram):
                     clause
                 )
 
-            self._macros[clause] =  slot
+            self._macros[clause] = slot
             slot = nodes.UseInternalMacro(clause)
 
         slot = wrap(
             slot,
             NAME
-            )
+        )
 
         # tal:on-error
         try:
@@ -606,7 +606,7 @@ class MacroProgram(ElementProgram):
                 if end_tag is None:
                     # Make sure start-tag has opening suffix. We don't
                     # allow self-closing element here.
-                    start_tag.suffix  = ">"
+                    start_tag.suffix = ">"
 
                     # Explicitly set end-tag.
                     end_tag = nodes.End(start_tag.name, '', '</', '>',)
@@ -644,13 +644,13 @@ class MacroProgram(ElementProgram):
         return wrap(
             slot,
             ON_ERROR
-            )
+        )
 
     def visit_start_tag(self, start):
         return self.visit_element(start, None, [])
 
     def visit_cdata(self, node):
-        if not self._interpolation[-1] or not '${' in node:
+        if not self._interpolation[-1] or '${' not in node:
             return nodes.Text(node)
 
         expr = nodes.Substitution(node, ())
@@ -666,7 +666,7 @@ class MacroProgram(ElementProgram):
         if node.startswith('<!--?'):
             return nodes.Text('<!--' + node.lstrip('<!-?'))
 
-        if not self._interpolation[-1] or not '${' in node:
+        if not self._interpolation[-1] or '${' not in node:
             return nodes.Text(node)
 
         char_escape = ('&', '<', '>') if self.escape else ()
@@ -724,7 +724,7 @@ class MacroProgram(ElementProgram):
                 "Dynamic attributes not allowed on elements of "
                 "the namespace: %s." % namespace,
                 ns[TAL, 'attributes'],
-                )
+            )
 
         script = ns.get((TAL, 'script'))
         if script is not None:
@@ -736,13 +736,13 @@ class MacroProgram(ElementProgram):
             raise LanguageError(
                 "You cannot use tal:content and tal:replace at the same time.",
                 tal_content
-                )
+            )
 
         if tal_content and ns.get((I18N, 'translate')):
             raise LanguageError(
                 "You cannot use tal:content with non-trivial i18n:translate.",
                 tal_content
-                )
+            )
 
     def _make_content_node(self, expression, default, key, translate):
         value = nodes.Value(expression)
@@ -754,7 +754,7 @@ class MacroProgram(ElementProgram):
                 nodes.BinOp(value, nodes.Is, self.default_marker),
                 default,
                 content,
-                )
+            )
 
             # Cache expression to avoid duplicate evaluation
             content = nodes.Cache([value], content)
@@ -763,7 +763,7 @@ class MacroProgram(ElementProgram):
             content = nodes.Define(
                 [nodes.Alias(["default"], self.default_marker)],
                 content
-                )
+            )
 
         return content
 
@@ -787,7 +787,8 @@ class MacroProgram(ElementProgram):
             # substitution to the text.
             if expr is None and text is not None and '${' in text:
                 default = None
-                expr = nodes.Substitution(text, char_escape, default, self.default_marker)
+                expr = nodes.Substitution(
+                    text, char_escape, default, self.default_marker)
                 translation = implicit_i18n and msgid is missing
                 value = nodes.Interpolation(expr, True, translation)
             else:
@@ -810,7 +811,8 @@ class MacroProgram(ElementProgram):
                             fs.append(expression)
                         filtering.append([])
                     elif name in self.boolean_attributes:
-                        value = nodes.Boolean(expr, name, default, self.default_marker)
+                        value = nodes.Boolean(
+                            expr, name, default, self.default_marker)
                     else:
                         value = nodes.Substitution(
                             decode_htmlentities(expr),

@@ -1,8 +1,11 @@
-import unittest
-import time
 import os
 import re
+import time
+import unittest
+from itertools import chain
+
 from .utils import text_
+
 
 re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')
 
@@ -61,8 +64,8 @@ def benchmark(title):
     def decorator(f):
         def wrapper(*args):
             print(
-                "==========================\n " \
-                "%s\n==========================" % \
+                "==========================\n "
+                "%s\n==========================" %
                 title)
             return f(*args)
         return wrapper
@@ -103,7 +106,7 @@ def yield_tokens(table=None):
             yield "<", "td", "", ">\n"
 
             _tmp5 = d
-            if not isinstance(_tmp5, unicode):
+            if not isinstance(_tmp5, str):
                 _tmp5 = str(_tmp5)
             if ('&' in _tmp5):
                 if (';' in _tmp5):
@@ -119,10 +122,10 @@ def yield_tokens(table=None):
             _tmp5 = "column-%s" % _tmp5
 
             _tmp = d
-            if (_tmp.__class__ not in (str, unicode, int, float, )):
+            if (_tmp.__class__ not in (str, int, float, )):
                 raise
             if (_tmp is not None):
-                if not isinstance(_tmp, unicode):
+                if not isinstance(_tmp, str):
                     _tmp = str(_tmp)
                 if ('&' in _tmp):
                     if (';' in _tmp):
@@ -166,7 +169,7 @@ def yield_tokens_dict_version(**kwargs):
             yield "<", "td", "", ">\n"
 
             _tmp5 = kwargs['d']
-            if not isinstance(_tmp5, unicode):
+            if not isinstance(_tmp5, str):
                 _tmp5 = str(_tmp5)
             if ('&' in _tmp5):
                 if (';' in _tmp5):
@@ -182,10 +185,10 @@ def yield_tokens_dict_version(**kwargs):
             _tmp5 = "column-%s" % _tmp5
 
             _tmp = kwargs['d']
-            if (_tmp.__class__ not in (str, unicode, int, float, )):
+            if (_tmp.__class__ not in (str, int, float, )):
                 raise
             if (_tmp is not None):
-                if not isinstance(_tmp, unicode):
+                if not isinstance(_tmp, str):
                     _tmp = str(_tmp)
                 if ('&' in _tmp):
                     if (';' in _tmp):
@@ -222,7 +225,7 @@ def yield_stream(table=None):
             yield START, ("td", "", "\n"), None
 
             _tmp5 = d
-            if not isinstance(_tmp5, unicode):
+            if not isinstance(_tmp5, str):
                 _tmp5 = str(_tmp5)
             if ('&' in _tmp5):
                 if (';' in _tmp5):
@@ -238,10 +241,10 @@ def yield_stream(table=None):
             _tmp5 = "column-%s" % _tmp5
 
             _tmp = d
-            if (_tmp.__class__ not in (str, unicode, int, float, )):
+            if (_tmp.__class__ not in (str, int, float, )):
                 raise
             if (_tmp is not None):
-                if not isinstance(_tmp, unicode):
+                if not isinstance(_tmp, str):
                     _tmp = str(_tmp)
                 if ('&' in _tmp):
                     if (';' in _tmp):
@@ -258,8 +261,6 @@ def yield_stream(table=None):
             yield END, ("td", "", "\n"), None
         yield END, ("tr", "", "\n"), None
     yield END, ("html", "", "\n"), None
-
-from itertools import chain
 
 
 def bigtable_python_tokens(table=None, renderer=None):
@@ -285,7 +286,7 @@ def uppercase_filter(stream):
         elif kind is END:
             data = (data[0], data[1], data[2].upper())
         elif kind is TAG:
-            raise NotImplemented
+            raise NotImplementedError
         yield kind, data, pos
 
 
@@ -294,27 +295,27 @@ def stream_output(stream):
         if kind is START:
             tag = data[0]
             yield "<%s" % tag
-            l = len(data)
+            l_ = len(data)
 
             # optimize for common cases
-            if l == 3:
+            if l_ == 3:
                 pass
-            elif l == 6:
-                yield '%s%s="%s"' % (data[3], data[4], data[5])
+            elif l_ == 6:
+                yield '{}{}="{}"'.format(data[3], data[4], data[5])
             else:
                 i = 3
-                while i < l:
-                    yield '%s%s="%s"' % (data[i], data[i + 1], data[i + 2])
+                while i < l_:
+                    yield '{}{}="{}"'.format(data[i], data[i + 1], data[i + 2])
                     i += 3
-            yield "%s>%s" % (data[1], data[2])
+            yield "{}>{}".format(data[1], data[2])
         elif kind is END:
             yield "</%s%s>%s" % data
         elif kind is TAG:
-            raise NotImplemented
+            raise NotImplementedError
 
 
 class Benchmarks(unittest.TestCase):
-    table = [dict(a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10) \
+    table = [dict(a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10)
              for x in range(1000)]
 
     def setUp(self):
@@ -466,7 +467,7 @@ class Benchmarks(unittest.TestCase):
 
 def start():
     result = unittest.TestResult()
-    test = unittest.makeSuite(Benchmarks)
+    test = unittest.defaultTestLoader.loadTestsFromTestCase(Benchmarks)
     test.run(result)
 
     for error in result.errors:

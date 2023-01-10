@@ -1,12 +1,13 @@
-import os
 import logging
+import os
+
 
 log = logging.getLogger('chameleon.config')
-environment = dict(
-    (k[10:], v) for (k, v) in (
-        ((j.lower(), x) for (j, x) in os.environ.items()))
+environment = {
+    k[10:]: v for (k, v) in (
+        (j.lower(), x) for (j, x) in os.environ.items())
     if k.startswith('chameleon_')
-)
+}
 
 # Define which values are read as true
 TRUE = ('y', 'yes', 't', 'true', 'on', '1')
@@ -34,7 +35,7 @@ if path is not None:
     if not os.path.exists(CACHE_DIRECTORY):
         raise ValueError(
             "Cache directory does not exist: %s." % CACHE_DIRECTORY
-            )
+        )
     log.info("directory cache: %s." % CACHE_DIRECTORY)
 else:
     CACHE_DIRECTORY = None
@@ -51,5 +52,3 @@ for key in environment:
 # This is the slice length of the expression displayed in the
 # formatted exception string
 SOURCE_EXPRESSION_MARKER_LENGTH = 60
-
-

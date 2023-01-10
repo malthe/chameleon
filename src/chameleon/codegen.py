@@ -1,13 +1,17 @@
 import ast
-import inspect
+import builtins
 import textwrap
 import types
-import copy
 
-try:
-    import __builtin__ as builtins
-except ImportError:
-    import builtins
+from .astutil import ASTCodeGenerator
+from .astutil import Builtin
+from .astutil import Symbol
+from .astutil import load
+from .astutil import node_annotations
+from .astutil import parse
+from .astutil import store
+from .exc import CompilationError
+
 
 reverse_builtin_map = {}
 for name, value in builtins.__dict__.items():
@@ -18,29 +22,16 @@ for name, value in builtins.__dict__.items():
 
     reverse_builtin_map[value] = name
 
-try:
-    basestring
-except NameError:
-    basestring = str
-
-from .astutil import ASTCodeGenerator
-from .astutil import load
-from .astutil import store
-from .astutil import parse
-from .astutil import Builtin
-from .astutil import Symbol
-from .astutil import node_annotations
-
-from .exc import CompilationError
+NATIVE_NUMBERS = int, float, bool
 
 
-try:
-    NATIVE_NUMBERS = int, float, long, bool
-except NameError:
-    NATIVE_NUMBERS = int, float, bool
-
-
-def template(source, mode='exec', is_func=False, func_args=(), func_defaults=(), **kw):
+def template(
+        source,
+        mode='exec',
+        is_func=False,
+        func_args=(),
+        func_defaults=(),
+        **kw):
     def wrapper(*vargs, **kwargs):
         symbols = dict(zip(args, vargs + defaults))
         symbols.update(kwargs)
@@ -56,12 +47,12 @@ def template(source, mode='exec', is_func=False, func_args=(), func_defaults=(),
                         args=node.args,
                         body=node.body,
                         decorator_list=getattr(node, "decorator_list", []),
-                        )
+                    )
 
             def visit_Name(self, node):
                 value = symbols.get(node.id, self)
                 if value is not self:
-                    if isinstance(value, basestring):
+                    if isinstance(value, str):
                         value = load(value)
                     if isinstance(value, type) or value in reverse_builtin_map:
                         name = reverse_builtin_map.get(value)
@@ -79,7 +70,7 @@ def template(source, mode='exec', is_func=False, func_args=(), func_defaults=(),
         Visitor().visit(expr)
         return expr.body
 
-    assert isinstance(source, basestring)
+    assert isinstance(source, str)
     defaults = func_defaults
     args = func_args
     if is_func:
@@ -109,10 +100,10 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         self.tokens = []
 
         # Generate code
-        super(TemplateCodeGenerator, self).__init__(tree)
+        super().__init__(tree)
 
     def visit_Module(self, node):
-        super(TemplateCodeGenerator, self).visit_Module(node)
+        super().visit_Module(node)
 
         # Make sure we terminate the line printer
         self.flush()
@@ -194,7 +185,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
     def visit(self, node):
         annotation = node_annotations.get(node)
         if annotation is None:
-            super(TemplateCodeGenerator, self).visit(node)
+            super().visit(node)
         else:
             self.visit(annotation)
 
@@ -206,7 +197,7 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
         for line in node.text.replace('\r', '\n').split('\n'):
             self._new_line()
-            self._write("%s#%s" % (node.space, line))
+            self._write("{}#{}".format(node.space, line))
 
     def visit_Builtin(self, node):
         name = load(node.id)
@@ -227,4 +218,4 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
     def visit_TokenRef(self, node):
         self.tokens.append((node.pos, node.length))
-        super(TemplateCodeGenerator, self).visit(ast.Num(n=node.pos))
+        super().visit(ast.Num(n=node.pos))

@@ -1,5 +1,3 @@
-import sys
-
 from unittest import TestCase
 
 
@@ -19,13 +17,13 @@ class TokenizerTest(TestCase):
             try:
                 want = read_encoded(source)
             except UnicodeDecodeError as exc:
-                self.fail("%s - %s" % (exc, filename))
+                self.fail("{} - {}".format(exc, filename))
 
             from ..tokenize import iter_xml
             try:
                 tokens = iter_xml(want)
                 got = "".join(tokens)
-            except:
+            except BaseException:
                 self.fail(traceback.format_exc())
 
             from doctest import OutputChecker
@@ -36,7 +34,7 @@ class TokenizerTest(TestCase):
                 example = Example(f.name, want)
                 diff = checker.output_difference(
                     example, got, 0)
-                self.fail("(%s) - \n%s" % (f.name, diff))
+                self.fail("({}) - \n{}".format(f.name, diff))
 
     def test_token(self):
         from chameleon.tokenize import Token

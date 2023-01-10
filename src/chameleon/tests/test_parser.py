@@ -1,10 +1,8 @@
-from __future__ import with_statement
-
 from unittest import TestCase
 
+from ..namespaces import PY_NS
 from ..namespaces import XML_NS
 from ..namespaces import XMLNS_NS
-from ..namespaces import PY_NS
 
 
 class ParserTest(TestCase):
@@ -34,19 +32,19 @@ class ParserTest(TestCase):
             try:
                 want = read_encoded(source)
             except UnicodeDecodeError as exc:
-                self.fail("%s - %s" % (exc, filename))
+                self.fail("{} - {}".format(exc, filename))
 
-            from ..tokenize import iter_xml
             from ..parser import ElementParser
+            from ..tokenize import iter_xml
             try:
                 tokens = iter_xml(want)
                 parser = ElementParser(tokens, {
                     'xmlns': XMLNS_NS,
                     'xml': XML_NS,
                     'py': PY_NS,
-                    })
+                })
                 elements = tuple(parser)
-            except:
+            except BaseException:
                 self.fail(traceback.format_exc())
 
             output = []
@@ -59,9 +57,12 @@ class ParserTest(TestCase):
 
                     for attr in tag['attrs']:
                         output.append(
-                            "%(space)s%(name)s%(eq)s%(quote)s%(value)s%(quote)s" % \
-                            attr
-                            )
+                            "%(space)s"
+                            "%(name)s"
+                            "%(eq)s"
+                            "%(quote)s"
+                            "%(value)s"
+                            "%(quote)s" % attr)
 
                     output.append("%(suffix)s" % tag)
 
@@ -72,7 +73,7 @@ class ParserTest(TestCase):
                     # end tag
                     output.append(
                         "%(prefix)s%(name)s%(space)s%(suffix)s" % end
-                        )
+                    )
                 elif kind == 'text':
                     text = args[0]
                     output.append(text)
@@ -80,7 +81,7 @@ class ParserTest(TestCase):
                     node = args[0]
                     output.append(
                         "%(prefix)s%(name)s%(space)s%(suffix)s" % node
-                        )
+                    )
                 else:
                     raise RuntimeError("Not implemented: %s." % kind)
 
@@ -97,4 +98,4 @@ class ParserTest(TestCase):
                 example = Example(f.name, want)
                 diff = checker.output_difference(
                     example, got, 0)
-                self.fail("(%s) - \n%s" % (f.name, diff))
+                self.fail("({}) - \n{}".format(f.name, diff))

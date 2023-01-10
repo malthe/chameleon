@@ -43,7 +43,7 @@ class Value(Node):
 
         return "<%s %r (%d:%d)>" % (
             type(self).__name__, self.value, line, column
-            )
+        )
 
 
 class Substitution(Value):
@@ -79,7 +79,8 @@ class DictAttributes(Node):
 class Attribute(Node):
     """Element attribute."""
 
-    _fields = "name", "expression", "quote", "eq", "space", "default", "filters"
+    _fields = (
+        "name", "expression", "quote", "eq", "space", "default", "filters")
 
 
 class Start(Node):
@@ -206,9 +207,8 @@ class Text(Node):
 class Interpolation(Node):
     """String interpolation output."""
 
-    _fields = "value", "braces_required", "translation", "default", "default_marker"
-
-
+    _fields = (
+        "value", "braces_required", "translation", "default", "default_marker")
 
 
 class Translate(Node):

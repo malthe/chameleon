@@ -1,46 +1,30 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import with_statement
-
-import re
 import os
-import sys
+import re
 import shutil
+import sys
 import tempfile
-import unittest
-
-from functools import wraps
 from functools import partial
+from functools import wraps
+from unittest import TestCase
 
-try:
-    from unittest2 import TestCase
-except ImportError:
-    from unittest import TestCase
-
-try:
-    RecursionError
-except NameError:
-    RecursionError = RuntimeError
-
-from chameleon.utils import byte_string
 from chameleon.exc import RenderError
 from chameleon.tales import DEFAULT_MARKER
 
 
-class Message(object):
+class Message:
     def __str__(self):
         return "message"
 
 
 class ImportTestCase(TestCase):
     def test_pagetemplates(self):
-        from chameleon import PageTemplate
-        from chameleon import PageTemplateFile
-        from chameleon import PageTemplateLoader
+        from chameleon import PageTemplate  # noqa: F401 unused
+        from chameleon import PageTemplateFile  # noqa: F401 unused
+        from chameleon import PageTemplateLoader  # noqa: F401 unused
 
     def test_pagetexttemplates(self):
-        from chameleon import PageTextTemplate
-        from chameleon import PageTextTemplateFile
+        from chameleon import PageTextTemplate  # noqa: F401 unused
+        from chameleon import PageTextTemplateFile  # noqa: F401 unused
 
 
 class TemplateFileTestCase(TestCase):
@@ -101,11 +85,11 @@ class TemplateFileTestCase(TestCase):
         template = self._class("___does_not_exist___")
         try:
             template.cook_check()
-        except IOError as exc:
+        except OSError as exc:
             self.assertEqual(
                 os.getcwd(),
                 os.path.dirname(exc.filename)
-                )
+            )
         else:
             self.fail("Expected OSError.")
 
@@ -127,7 +111,7 @@ class RenderTestCase(TestCase):
             # expect input equal to output
             import glob
             globbed = tuple(glob.iglob(os.path.join(
-                outputs, "%s*%s" % (name.split('-', 1)[0], ext))))
+                outputs, "{}*{}".format(name.split('-', 1)[0], ext))))
 
             if not globbed:
                 self.fail("Missing output for: %s." % name)
@@ -170,7 +154,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             def wrapper(self):
                 from chameleon.exc import TemplateError
                 try:
-                    template = self.from_string(body)
+                    self.from_string(body)
                 except TemplateError as exc:
                     return func(self, body, exc)
                 else:
@@ -187,7 +171,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             self.from_string,
             """<tal:block replace='bad /// ' />""",
             strict=True
-            )
+        )
 
     def test_syntax_error_in_non_strict_mode(self):
         from chameleon.exc import ExpressionError
@@ -218,15 +202,20 @@ class ZopePageTemplatesTest(RenderTestCase):
             self.fail("Expected exception")
 
     def test_sys_exc_info_is_clear_after_pipe(self):
-        body = """<div tal:content="y|nothing"></div><span tal:content="error()" />"""
+        body = (
+            '<div tal:content="y|nothing"></div><span tal:content="error()" />'
+        )
         template = self.from_string(body, strict=False)
 
         got = template.render(error=sys.exc_info)
         self.assertTrue('<span>(None, None, None)</span>' in got)
 
     def test_render_macro_include_subtemplate_containing_error(self):
-        macro_inner = self.from_string('''<two tal:attributes="my_attr dict()['key-does-not-exist']" />''')
-        macro_wrap = self.from_string('''<one tal:content="macro_inner()" />''')
+        macro_inner = self.from_string(
+            '''<two tal:attributes="my_attr dict()['key-does-not-exist']" />'''
+        )
+        macro_wrap = self.from_string(
+            '''<one tal:content="macro_inner()" />''')
         template = self.from_string(
             '''
             <tal:defs define="translate string:">
@@ -235,7 +224,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             </tal:defs>
             ''')
         try:
-            result = template(macro=macro_wrap, macro_inner=macro_inner)
+            template(macro=macro_wrap, macro_inner=macro_inner)
         except RenderError as exc:
             self.assertTrue(isinstance(exc, KeyError))
             self.assertIn(''''key-does-not-exist'
@@ -281,7 +270,8 @@ class ZopePageTemplatesTest(RenderTestCase):
             <span i18n:name="repeat"/><span i18n:name="repeat"/>
             </p></tal:dummy>''')
     def test_repeat_i18n_name_error(self, body, exc):
-        self.assertTrue(body[exc.offset:].startswith('repeat'), body[exc.offset:])
+        self.assertTrue(body[exc.offset:].startswith(
+            'repeat'), body[exc.offset:])
 
     @error('''<tal:dummy>
             <span i18n:name="not_in_translation"/>
@@ -317,7 +307,7 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_unicode_decode_error(self):
         template = self.from_file(
             os.path.join(self.root, 'inputs', 'greeting.pt')
-            )
+        )
 
         string = native = "the artist formerly known as ƤŗíƞĆě"
         try:
@@ -366,7 +356,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertEqual(
             rendered,
             string.replace('${text}', text)
-            )
+        )
 
     def test_custom_encoding_for_str_or_bytes_in_attributes(self):
         string = '<img tal="Тест${text}" />'
@@ -389,7 +379,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertEqual(
             rendered,
             string.replace('${text}', text)
-            )
+        )
 
     def test_null_translate_function(self):
         template = self.from_string('${test}', translate=None)
@@ -403,14 +393,14 @@ class ZopePageTemplatesTest(RenderTestCase):
             '<tal:block on-error="string:error">${test}</tal:block>',
             on_error_handler=handler
         )
-        rendered = template()
+        template()
         self.assertEqual(len(exc), 1)
         self.assertEqual(exc[0].__class__.__name__, "NameError")
 
     def test_object_substitution_coerce_to_str(self):
         template = self.from_string('${test}', translate=None)
 
-        class dummy(object):
+        class dummy:
             def __repr__(inst):
                 self.fail("call not expected")
 
@@ -423,13 +413,13 @@ class ZopePageTemplatesTest(RenderTestCase):
     def test_repr(self):
         template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt')
-            )
+        )
         self.assertTrue(template.filename in repr(template))
 
     def test_underscore_variable(self):
         template = self.from_string(
             "<div tal:define=\"_dummy 'foo'\">${_dummy}</div>"
-            )
+        )
         self.assertTrue(template(), "<div>foo</div>")
 
     def test_trim_attribute_space(self):
@@ -455,7 +445,7 @@ class ZopePageTemplatesTest(RenderTestCase):
 
         template = self.from_string(
             "<div tal:define=\"dummy foo\">${dummy}</div>"
-            )
+        )
         try:
             template()
         except Exception as exc:
@@ -493,7 +483,8 @@ class ZopePageTemplatesTest(RenderTestCase):
                 if not bases == (BaseException, ):
                     raise TypeError(bases)
 
-        Difficult = DifficultMetaClass('Difficult', (BaseException, ), {'args': ()})
+        Difficult = DifficultMetaClass(
+            'Difficult', (BaseException, ), {'args': ()})
 
         exc = create_formatted_exception(Difficult(), Difficult, str)
         self.assertEqual(exc.args, ())
@@ -528,7 +519,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         self.assertRaises(
             TranslationError, self.from_string,
             "<div tal:define=\"__dummy 'foo'\">${__dummy}</div>",
-            )
+        )
 
     def test_disable_comment_interpolation(self):
         template = self.from_string(
@@ -542,7 +533,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         from chameleon.exc import TranslationError
 
         for name in COMPILER_INTERNALS_OR_DISALLOWED:
-            body = "<d tal:define=\"%s 'foo'\">${%s}</d>" % (name, name)
+            body = "<d tal:define=\"{} 'foo'\">${{{}}}</d>".format(name, name)
             self.assertRaises(TranslationError, self.from_string, body)
 
     def test_simple_translate_mapping(self):
@@ -582,9 +573,9 @@ class ZopePageTemplatesTest(RenderTestCase):
             '<input type="input" tal:attributes="checked None" />'
             '<input type="input" tal:attributes="checked \'\'" />'
             '<input type="input" tal:attributes="checked default" />'
-            '<input type="input" checked="checked" tal:attributes="checked default" />',
-            boolean_attributes=set(['checked'])
-            )
+            '<input type="input" checked="checked" tal:attributes="checked default" />',  # noqa: E501 line too long
+            boolean_attributes={
+                'checked'})
 
         self.assertEqual(
             template(),
@@ -595,13 +586,13 @@ class ZopePageTemplatesTest(RenderTestCase):
             '<input type="input" />'
             '<input type="input" checked="checked" />',
             template.source
-            )
+        )
 
     def test_default_debug_flag(self):
         from chameleon.config import DEBUG_MODE
         template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt'),
-            )
+        )
         self.assertEqual(template.debug, DEBUG_MODE)
         self.assertTrue('debug' not in template.__dict__)
 
@@ -621,7 +612,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt'),
             debug=True,
-            )
+        )
         self.assertTrue(template.debug)
         self.assertTrue(isinstance(template.loader, ModuleLoader))
 
@@ -639,7 +630,6 @@ class ZopePageTemplatesTest(RenderTestCase):
         else:
             self.fail("Expected error.")
 
-    @unittest.skipIf(sys.version_info < (3, 6), 'Only works on Python 3.6+')
     def test_f_strings(self):
         from math import pi
         from math import sin
@@ -678,7 +668,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
     def test_pt_files(self):
         from ..zpt.template import PageTemplateFile
 
-        class Literal(object):
+        class Literal:
             def __init__(self, s):
                 self.s = s
 
@@ -698,7 +688,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             content="<div>Hello world!</div>",
             message=Message(),
             load=loader.bind(PageTemplateFile),
-            )
+        )
 
     def test_txt_files(self):
         from ..zpt.template import PageTextTemplateFile
@@ -715,7 +705,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
 
             if mapping:
                 default = re.sub(r'\${([a-z_]+)}', r'%(\1)s', default) % \
-                          mapping
+                    mapping
 
             if target_language is None:
                 return default
@@ -731,10 +721,10 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 with_context = ", context '%s'" % context
 
             stripped = default.rstrip('\n ')
-            return "%s ('%s' translation into '%s'%s%s)%s" % (
+            return "{} ('{}' translation into '{}'{}{}){}".format(
                 stripped, msgid, target_language, with_domain, with_context,
                 default[len(stripped):]
-                )
+            )
 
         for input_path, output_path, language in self.find_files(ext):
             # Make friendly title so we can locate the generated
@@ -755,28 +745,29 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 implicit_i18n_translate=implicit_i18n,
                 implicit_i18n_attributes=implicit_i18n_attrs,
                 enable_data_attributes=enable_data_attributes,
-                )
+            )
 
             params = kwargs.copy()
             params.update({
                 'translate': translate,
                 'target_language': language,
-                })
+            })
 
             template.cook_check()
 
             try:
                 got = template.render(**params)
-            except:
+            except BaseException:
                 import traceback
                 e = traceback.format_exc()
-                self.fail("%s\n\n    Example source:\n\n%s" % (e, "\n".join(
-                    ["%#03.d%s" % (lineno + 1, line and " " + line or "")
-                     for (lineno, line) in
-                     enumerate(template.source.split(
-                         '\n'))])))
+                self.fail("{}\n\n    Example source:\n\n{}".format(
+                    e,
+                    "\n".join(
+                        ["%#03.d%s" % (lineno + 1, line and " " + line or "")
+                         for (lineno, line) in enumerate(template.source.split(
+                            '\n'))])))
 
-            if isinstance(got, byte_string):
+            if isinstance(got, bytes):
                 got = got.decode('utf-8')
 
             from doctest import OutputChecker
@@ -788,12 +779,12 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 with open(output_path, 'rb') as f:
                     output = f.read()
 
-            from chameleon.utils import read_xml_encoding
             from chameleon.utils import detect_encoding
+            from chameleon.utils import read_xml_encoding
 
             if template.content_type == 'text/xml':
                 encoding = read_xml_encoding(output) or \
-                           template.default_encoding
+                    template.default_encoding
             else:
                 content_type, encoding = detect_encoding(
                     output, template.default_encoding)
@@ -808,8 +799,6 @@ class ZopeTemplatesTestSuite(RenderTestCase):
                 diff = checker.output_difference(
                     example, got, 0)
                 source = template.source
-                if sys.version_info < (3, ):
-                    source = source.encode("utf-8")
-                self.fail("(%s) - \n%s\n\nCode:\n%s" % (
+                self.fail("({}) - \n{}\n\nCode:\n{}".format(
                     input_path, diff.rstrip('\n'),
                     source))

@@ -23,7 +23,7 @@ class LoadTests:
         loader = self._makeOne(search_path=[here])
 
         self.assertTrue(
-            self._load(loader, 'hello_world.pt') is \
+            self._load(loader, 'hello_world.pt') is
             self._load(loader, 'hello_world.pt'))
 
     def test_load_relative_badpath_in_searchpath(self):
@@ -58,11 +58,6 @@ class ModuleLoadTests(unittest.TestCase):
         path = tempfile.mkdtemp()
         loader = self._makeOne(path)
         source = "def function(): return %r" % "\xc3\xa6\xc3\xb8\xc3\xa5"
-        try:
-            source = source.decode('utf-8')
-        except AttributeError:
-            import sys
-            self.assertTrue(sys.version_info[0] > 2)
 
         module = loader.build(source, "test.xml")
         result1 = module['function']()
