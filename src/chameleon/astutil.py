@@ -778,6 +778,23 @@ class ASTCodeGenerator:
         self.visit(last)
         self._write('}')
 
+    # DictComp(expr key, expr value, comprehension* generators)
+    def visit_DictComp(self, node):
+        self._write('{')
+        self.visit(node.key)
+        self._write(': ')
+        self.visit(node.value)
+        for generator in node.generators:
+            # comprehension = (expr target, expr iter, expr* ifs)
+            self._write(' for ')
+            self.visit(generator.target)
+            self._write(' in ')
+            self.visit(generator.iter)
+            for ifexpr in generator.ifs:
+                self._write(' if ')
+                self.visit(ifexpr)
+        self._write('}')
+
     # ListComp(expr elt, comprehension* generators)
     def visit_ListComp(self, node):
         self._write('[')
@@ -807,6 +824,21 @@ class ASTCodeGenerator:
                 self._write(' if ')
                 self.visit(ifexpr)
         self._write(')')
+
+    # SetComp(expr elt, comprehension* generators)
+    def visit_SetComp(self, node):
+        self._write('{')
+        self.visit(node.elt)
+        for generator in node.generators:
+            # comprehension = (expr target, expr iter, expr* ifs)
+            self._write(' for ')
+            self.visit(generator.target)
+            self._write(' in ')
+            self.visit(generator.iter)
+            for ifexpr in generator.ifs:
+                self._write(' if ')
+                self.visit(ifexpr)
+                self._write('}')
 
     # Yield(expr? value)
     def visit_Yield(self, node):

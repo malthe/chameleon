@@ -6,6 +6,9 @@ Changes
 
 - Drop support for Python 2.7, 3.5, 3.6.
 
+- Add support for set- and dict comprehensions
+  (`#367 <https://github.com/malthe/chameleon/issues/367>`_)
+
 3.10.2 (2022-12-16)
 -------------------
 
