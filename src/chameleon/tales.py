@@ -249,7 +249,7 @@ class PythonExpr(TalesExpr):
         # Strip spaces
         string = expression.strip()
 
-        # Conver line continuations to newlines
+        # Convert line continuations to newlines
         string = substitute(re_continuation, '\n', string)
 
         # Convert newlines to spaces
@@ -427,7 +427,7 @@ class StringExpr:
     dummy engine which just returns the input as a string.
 
     As an example, we'll implement an expression engine which
-    instead counts the number of characters in the expresion and
+    instead counts the number of characters in the expression and
     returns an integer result.
 
     >>> class engine:

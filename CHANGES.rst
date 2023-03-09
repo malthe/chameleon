@@ -96,7 +96,7 @@ Changes
 3.7.1 (2020-05-10)
 ------------------
 
-- Fix compatiblity issue with Python 3.9.
+- Fix compatibility issue with Python 3.9.
 
 
 3.7.0 (2020-03-26)
@@ -670,7 +670,7 @@ Bugfixes:
 ------------------
 
 - The error handler now invokes the ``__init__`` method of
-  ``BaseException`` instead of the possibly overriden method (which
+  ``BaseException`` instead of the possibly overridden method (which
   may take required arguments). This fixes issue #97.
   [j23d, malthe]
 
@@ -1092,7 +1092,7 @@ Bugfixes:
 - Fixed an issue where assignment to a variable ``"type"`` would
   fail. This fixes issue #40.
 
-- Fixed an issue where an (unsuccesful) assignment for a repeat loop
+- Fixed an issue where an (unsuccessful) assignment for a repeat loop
   to a compiler internal name would not result in an error.
 
 - If the translation function returns the identical object, manually
@@ -1231,7 +1231,7 @@ Incompatibilities:
 
 Bugfixes:
 
-- The file-based template class no longer verifies the existance of a
+- The file-based template class no longer verifies the existence of a
   template file (using ``os.lstat``). This now happens implicitly if
   eager parsing is enabled, or otherwise when first needed (e.g. at
   render time).
@@ -1322,7 +1322,7 @@ Bugfixes:
 
 Features:
 
-- The ``RepeatDict`` class now works as a proxy behind a seperate
+- The ``RepeatDict`` class now works as a proxy behind a separate
   dictionary instance.
 
 - Added template constructor option ``keep_body`` which is a flag
