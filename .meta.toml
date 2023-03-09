@@ -19,7 +19,13 @@ testenv-deps = [
     ]
 
 [coverage]
-fail-under = 79.8
+fail-under = 86
+
+[coverage-run]
+additional-config = [
+    "omit =",
+    "    src/chameleon/benchmark.py",
+    ]
 
 [manifest]
 additional-rules = [
