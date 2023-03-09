@@ -879,7 +879,7 @@ Additionally, macros are always fully expanded, even in a template's
 source text, so that the template appears very similar to its final
 rendering.
 
-A single Page Template can accomodate multiple macros.
+A single Page Template can accommodate multiple macros.
 
 Namespace
 ~~~~~~~~~
@@ -1345,7 +1345,7 @@ Note that the value of the particular attributes come either from the
 HTML attribute value itself or from the data inserted by
 ``tal:attributes``.
 
-If an attibute is to be both computed using ``tal:attributes`` and
+If an attribute is to be both computed using ``tal:attributes`` and
 translated, the translation service is passed the result of the TALES
 expression for that attribute.
 

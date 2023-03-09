@@ -5,7 +5,7 @@ Benchmark for test the performance of Mako templates engine.
 Includes:
     -two template inherences
     -HTML escaping, XML escaping, URL escaping, whitespace trimming
-    -function defitions and calls
+    -function definitions and calls
     -forloops
 """
 

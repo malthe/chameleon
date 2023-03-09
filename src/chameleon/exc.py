@@ -33,7 +33,7 @@ def compute_source_marker(line, column, expression, size):
           ^^^
 
     The entire expression is always shown, even if ``size`` does not
-    accomodate for it.
+    accommodate for it.
 
     >>> test('  foo bar baz  ', 6, 'bar baz', 10)
     ··· oo bar baz

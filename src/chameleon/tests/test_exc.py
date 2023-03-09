@@ -16,7 +16,7 @@ class TestTemplateError(TestCase):
             'No location data found\n%s' % s)
 
     def test_umlaut_exc_to_string(self):
-        # test if an exception is convertable to a string
+        # test if an exception is convertible to a string
         body = '<p>uumlaut:\xfc</p>'
         string = body[3:-4]
         token = tokenize.Token(string, 3, body)
