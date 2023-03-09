@@ -24,14 +24,6 @@ def encode_string(s):
     return bytes(s, 'utf-8')
 
 
-def text_(s, encoding='latin-1', errors='strict'):
-    """ If ``s`` is an instance of ``bytes``, return
-    ``s.decode(encoding, errors)``, otherwise return ``s``"""
-    if isinstance(s, bytes):
-        return s.decode(encoding, errors)
-    return s
-
-
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
 module_cache = {}
@@ -185,14 +177,6 @@ def create_formatted_exception(exc, cls, formatter, base=Exception):
         name = type(exc).__name__
         log.warn("Unable to copy exception of type '%s'." % name)
         raise TypeError(exc)
-
-
-def unescape(string):
-    for name in ('lt', 'gt', 'quot'):
-        cp = htmlentitydefs.name2codepoint[name]
-        string = string.replace('&%s;' % name, chr(cp))
-
-    return string
 
 
 _concat = "".join
