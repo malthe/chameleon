@@ -9,6 +9,13 @@ Changes
 - Add support for set- and dict comprehensions
   (`#367 <https://github.com/malthe/chameleon/issues/367>`_)
 
+- Remove the following functions resp. modules:
+
+  + ``.utils.text_()``
+  + ``.utils.unescape()``
+  + ``.compat``
+
+
 3.10.2 (2022-12-16)
 -------------------
 
