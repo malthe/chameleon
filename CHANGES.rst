@@ -1,7 +1,10 @@
 Changes
 =======
 
-4.0.0 (unreleased)
+- Fix format spec applying for f-strings.
+  (`#376 <https://github.com/malthe/chameleon/issues/376>`_)
+
+4.0.0 (2023-03-06)
 ------------------
 
 - Drop support for Python 2.7, 3.5, 3.6.

@@ -413,8 +413,9 @@ class ASTCodeGenerator:
         self._write('(')
         self.visit(node.value)
         if node.format_spec is not None:
-            self._write(').__format__(')
+            self._write('.__format__(')
             self.visit(node.format_spec)
+            self._write(')')
         self._write(')')
 
     # Print(expr? dest, expr* values, bool nl)

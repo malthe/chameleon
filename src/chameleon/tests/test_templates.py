@@ -635,7 +635,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         from math import sin
         template = self.from_string('${f"sin({a}) is {sin(a):.3}"}')
         rendered = template(sin=sin, a=pi)
-        self.assertEqual('sin(3.141592653589793) is 1.2', rendered)
+        self.assertEqual('sin(3.141592653589793) is 1.22e-16', rendered)
 
     def test_windows_line_endings(self):
         template = self.from_string('<span id="span_id"\r\n'
