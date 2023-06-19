@@ -1,6 +1,9 @@
 Changes
 =======
 
+4.0.1 (2023-06-19)
+------------------
+
 - Fix format spec applying for f-strings.
   (`#376 <https://github.com/malthe/chameleon/issues/376>`_)
 
