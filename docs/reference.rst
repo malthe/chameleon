@@ -1391,7 +1391,7 @@ The ``i18n:comment`` attribute can be used to add extra comments for
 translators. It is not used by Chameleon for processing, but will be
 picked up by tools like `lingua <http://pypi.python.org/pypi/lingua>`_.
 
-An example:
+An example::
 
    <h3 i18n:comment="Header for the news section"
        i18n:translate="">News</h3>
@@ -1403,7 +1403,7 @@ The ``i18n:ignore`` attribute can be used to inform translation extraction tools
 like `i18ndude <http://pypi.python.org/pypi/i18ndude>`_ to not give a
 warning/error on the given tag if there is no ``i18n:translate`` attribute.
 
-An example:
+An example::
 
    <h1 i18n:ignore="">News</h3>
 
@@ -1415,7 +1415,7 @@ used by translation extraction tools like `i18ndude <http://pypi.python.org/pypi
 If ``i18n:ignore`` makes text within a tag to be ignored, ``i18n:ignore-attributes``
 marks the given attributes as ignored.
 
-An example:
+An example::
 
    <a href="http://python.org"
       title="Python!"
