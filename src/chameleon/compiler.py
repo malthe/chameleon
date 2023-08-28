@@ -11,6 +11,7 @@ import textwrap
 import threading
 from ast import Try
 
+from .astutil import AST_NONE
 from .astutil import Builtin
 from .astutil import Comment
 from .astutil import NameLookupRewriteVisitor
@@ -66,6 +67,7 @@ COMPILER_INTERNALS_OR_DISALLOWED = {
     "float",
     "long",
     "len",
+    "bool",
     "None",
     "True",
     "False",
@@ -127,6 +129,10 @@ def eval_token(token):
         col=ast.Num(n=column),
         mode="eval"
     )
+
+
+def indent(s):
+    return textwrap.indent(s, "    ") if s else ""
 
 
 emit_node_if_non_trivial = template(is_func=True, func_args=('node',),
@@ -491,11 +497,12 @@ class ExpressionEngine:
     supported_char_escape_set = {'&', '<', '>'}
 
     def __init__(self, parser, char_escape=(),
-                 default=None, default_marker=None):
+                 default=None, default_marker=None, literal_false=True):
         self._parser = parser
         self._char_escape = char_escape
         self._default = default
         self._default_marker = default_marker
+        self._literal_false = literal_false
 
     def __call__(self, string, target):
         # BBB: This method is deprecated. Instead, a call should first
@@ -521,6 +528,22 @@ class ExpressionEngine:
             if result_type is not None:
                 method = getattr(self, '_convert_%s' % result_type)
                 steps = method(target, char_escape, *args)
+
+                if not self._literal_false:
+                    steps = [
+                        ast.If(
+                            ast.UnaryOp(
+                                op=ast.Not(),
+                                operand=target
+                            ),
+                            [ast.Assign(
+                                targets=[store(target.id)],
+                                value=AST_NONE
+                            )],
+                            steps
+                        )
+                    ]
+
                 stmts.extend(steps)
 
             if handle_errors:
@@ -834,7 +857,8 @@ class ExpressionTransform:
     def visit_Substitution(self, node, target):
         engine = self.engine_factory(
             default=node.default,
-            default_marker=node.default_marker
+            default_marker=node.default_marker,
+            literal_false=node.literal_false,
         )
         compiler = engine.parse(node.value, char_escape=node.char_escape)
         return compiler.assign_text(target)
@@ -869,7 +893,8 @@ class ExpressionTransform:
             engine = self.engine_factory(
                 char_escape=expr.char_escape,
                 default=expr.default,
-                default_marker=expr.default_marker
+                default_marker=expr.default_marker,
+                literal_false=expr.literal_false,
             )
         elif isinstance(expr, Value):
             engine = self.engine_factory(
@@ -884,11 +909,16 @@ class ExpressionTransform:
             translate=node.translation,
             decode_htmlentities=True
         )
-
-        compiler = engine.get_compiler(
-            interpolator, expr.value, True, ()
-        )
+        compiler = engine.get_compiler(interpolator, expr.value, True, ())
         return compiler(target, engine, "text")
+
+    def visit_Replace(self, node, target):
+        stmts = self.translate(node.value, target)
+        return stmts + template(
+            "if TARGET: TARGET = S",
+            TARGET=target,
+            S=ast.Str(s=node.s)
+        )
 
     def visit_Translate(self, node, target):
         if node.msgid is not None:
@@ -1492,6 +1522,13 @@ class Compiler:
         target = identifier("attr", id(node))
         body = self._engine(node.expression, store(target))
 
+        bool_names = Static(template(
+            "set(LIST)", LIST=ast.List(
+                elts=[ast.Str(s=name) for name in node.bool_names],
+                ctx=ast.Load(),
+            ), mode="eval"
+        ))
+
         exclude = Static(template(
             "set(LIST)", LIST=ast.List(
                 elts=[ast.Str(s=name) for name in node.exclude],
@@ -1499,17 +1536,31 @@ class Compiler:
             ), mode="eval"
         ))
 
+        bool_cond = (
+            "if name in BOOL_NAMES:\n" +
+            indent("if not bool(value): continue\n") +
+            indent("value = name\n")
+        ) if node.bool_names else ""
+
         body += template(
-            "for name, value in TARGET.items():\n  "
-            "if name not in EXCLUDE and value is not None: __append("
-            "' ' + name + '=' + QUOTE + "
-            "QUOTE_FUNC(value, QUOTE, QUOTE_ENTITY, None, None) + QUOTE"
-            ")",
+            "for name, value in TARGET.items():\n" +
+            indent(bool_cond) +
+            indent(
+                "if name not in EXCLUDE and value is not None:\n" +
+                indent(bool_cond) +
+                indent(
+                    "__append("
+                    "' ' + name + '=' + QUOTE + "
+                    "QUOTE_FUNC(value, QUOTE, QUOTE_ENTITY, None, None) + "
+                    "QUOTE)"
+                )
+            ),
             TARGET=target,
             EXCLUDE=exclude,
             QUOTE_FUNC="__quote",
             QUOTE=ast.Str(s=node.quote),
             QUOTE_ENTITY=ast.Str(s=char2entity(node.quote or '\0')),
+            BOOL_NAMES=bool_names
         )
 
         return body

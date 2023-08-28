@@ -49,9 +49,12 @@ class Value(Node):
 class Substitution(Value):
     """Expression value for text substitution."""
 
-    _fields = "value", "char_escape", "default", "default_marker"
+    _fields = (
+        "value", "char_escape", "default", "default_marker", "literal_false"
+    )
 
     default = None
+    literal_false = True
 
 
 class Boolean(Value):
@@ -73,7 +76,7 @@ class Element(Node):
 class DictAttributes(Node):
     """Element attributes from one or more Python dicts."""
 
-    _fields = "expression", "char_escape", "quote", "exclude"
+    _fields = "expression", "char_escape", "quote", "exclude", "bool_names"
 
 
 class Attribute(Node):
@@ -209,6 +212,12 @@ class Interpolation(Node):
 
     _fields = (
         "value", "braces_required", "translation", "default", "default_marker")
+
+
+class Replace(Node):
+    """Replace non-empty value with string."""
+
+    _fields = "value", "s"
 
 
 class Translate(Node):

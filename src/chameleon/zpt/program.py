@@ -785,12 +785,24 @@ class MacroProgram(ElementProgram):
             # If (by heuristic) ``text`` contains one or more
             # interpolation expressions, apply interpolation
             # substitution to the text.
+            boolean = name in self.boolean_attributes
             if expr is None and text is not None and '${' in text:
                 default = None
                 expr = nodes.Substitution(
-                    text, char_escape, default, self.default_marker)
-                translation = implicit_i18n and msgid is missing
+                    text,
+                    char_escape,
+                    default,
+                    self.default_marker,
+                    literal_false=not boolean
+                )
+                translation = (
+                    implicit_i18n and
+                    msgid is missing and
+                    not boolean
+                )
                 value = nodes.Interpolation(expr, True, translation)
+                if boolean:
+                    value = nodes.Replace(value, name)
             else:
                 default = ast.Str(s=text) if text is not None else None
 
@@ -804,8 +816,11 @@ class MacroProgram(ElementProgram):
                             self.default_marker
                         )
                         value = nodes.DictAttributes(
-                            expression, ('&', '<', '>', '"'), '"',
-                            set(filter(None, names[i:]))
+                            expression,
+                            ('&', '<', '>', '"'),
+                            '"',
+                            set(filter(None, names[i:])),
+                            self.boolean_attributes
                         )
                         for fs in filtering:
                             fs.append(expression)
@@ -819,6 +834,7 @@ class MacroProgram(ElementProgram):
                             char_escape,
                             default,
                             self.default_marker,
+                            literal_false=not boolean
                         )
 
                 # Otherwise, it's a static attribute. We don't include it
