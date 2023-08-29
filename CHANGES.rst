@@ -1,12 +1,22 @@
 Changes
 =======
 
-In next release ...
+4.1.0 (2023-08-29)
+------------------
 
 - Boolean attributes (those configured using the optional
-  `boolean_attributes` parameter) now correctly work with $-expression
-  interpolation. Additionally, dynamic attributes now respect the
-  boolean attributes configuration as well.
+  `boolean_attributes` parameter) now work with $-expression
+  interpolation.
+
+  Unlike content and regular attributes, a special check for a falsy
+  value is now done for boolean attributes, such that boolean logic
+  can be used for interpolation expressions (only a truthy value will
+  include the attribute).
+
+  This reverts a change in behavior introduced in 3.8.0.
+
+  Additionally, dynamic attributes now respect the boolean attributes
+  configuration as well.
 
 4.0.1 (2023-06-19)
 ------------------
