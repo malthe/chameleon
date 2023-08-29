@@ -3,7 +3,10 @@ Changes
 
 In next release ...
 
--
+- Boolean attributes (those configured using the optional
+  `boolean_attributes` parameter) now correctly work with $-expression
+  interpolation. Additionally, dynamic attributes now respect the
+  boolean attributes configuration as well.
 
 4.0.1 (2023-06-19)
 ------------------

@@ -568,24 +568,41 @@ class ZopePageTemplatesTest(RenderTestCase):
 
     def test_boolean_attributes(self):
         template = self.from_string(
-            '<input type="input" tal:attributes="checked False" />'
-            '<input type="input" tal:attributes="checked True" />'
-            '<input type="input" tal:attributes="checked None" />'
-            '<input type="input" tal:attributes="checked \'\'" />'
-            '<input type="input" tal:attributes="checked default" />'
-            '<input type="input" checked="checked" tal:attributes="checked default" />',  # noqa: E501 line too long
+            "\n".join((
+                '<input type="input" tal:attributes="checked False" />',
+                '<input type="input" tal:attributes="checked True" />',
+                '<input type="input" tal:attributes="checked None" />',
+                '<input type="input" tal:attributes="checked \'\'" />',
+                '<input type="input" tal:attributes="checked default" />',
+                '<input type="input" tal:attributes="dynamic_true" />',
+                '<input type="input" tal:attributes="dynamic_false" />',
+                '<input type="input" checked="${True}" />',
+                '<input type="input" checked="${False}" />',
+                '<input type="input" checked="${[]}" />',
+                '<input type="input" checked="checked" tal:attributes="checked default" />',  # noqa: E501 line too long
+            )),
             boolean_attributes={
                 'checked'})
 
         self.assertEqual(
-            template(),
-            '<input type="input" />'
-            '<input type="input" checked="checked" />'
-            '<input type="input" />'
-            '<input type="input" />'
-            '<input type="input" />'
-            '<input type="input" checked="checked" />',
-            template.source
+            template(
+                dynamic_true={"checked": True},
+                dynamic_false={"checked": False}
+            ),
+            "\n".join((
+                '<input type="input" />',
+                '<input type="input" checked="checked" />',
+                '<input type="input" />',
+                '<input type="input" />',
+                '<input type="input" />',
+                '<input type="input" checked="checked" />',
+                '<input type="input" />',
+                '<input type="input" checked="checked" />',
+                '<input type="input" />',
+                '<input type="input" />',
+                '<input type="input" checked="checked" />',
+            )),
+            "Output mismatch\n" + template.source
         )
 
     def test_default_debug_flag(self):
