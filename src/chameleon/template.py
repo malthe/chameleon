@@ -18,6 +18,7 @@ from .loader import ModuleLoader
 from .nodes import Module
 from .utils import DebuggingOutputStream
 from .utils import Scope
+from .utils import detect_encoding
 from .utils import create_formatted_exception
 from .utils import join
 from .utils import mangle
@@ -225,8 +226,12 @@ class BaseTemplate:
                 body, self.default_encoding
             )
         else:
-            content_type = body.startswith('<?xml')
-            encoding = None
+            content_type, encoding = detect_encoding(
+                body, self.default_encoding
+                )
+
+            if body.startswith('<?xml'):
+                content_type = 'text/xml'
 
         self.content_type = content_type
         self.content_encoding = encoding
