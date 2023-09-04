@@ -580,9 +580,9 @@ class ZopePageTemplatesTest(RenderTestCase):
                 '<input type="input" checked="${False}" />',
                 '<input type="input" checked="${[]}" />',
                 '<input type="input" checked="checked" tal:attributes="checked default" />',  # noqa: E501 line too long
-            )),
-            boolean_attributes={
-                'checked'})
+
+            ))
+        )
 
         self.assertEqual(
             template(
@@ -659,7 +659,7 @@ class ZopePageTemplatesTest(RenderTestCase):
                                     '      class="foo"\r\n'
                                     '      tal:content="string:bar"/>')
         self.assertEqual(template(),
-                         '<span id="span_id"\r\n'
+                         '<span id="span_id"\n'
                          '      class="foo">bar</span>')
 
     def test_digest(self):

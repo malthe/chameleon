@@ -3,7 +3,12 @@ Changes
 
 In next release ...
 
--
+- Boolean attributes are now automatically configured for templates in
+  non-XML mode, presuming that we're being used to generate HTML.
+
+  This means that the same loading mechanism can be used for both XML-
+  and HTML-based templates.
+
 
 4.1.0 (2023-08-29)
 ------------------

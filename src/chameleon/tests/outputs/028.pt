@@ -1,5 +1,5 @@
 <div xmlns="http://www.w3.org/1999/xhtml">
-  <option selected="True"></option>
-  <option selected="False"></option>
+  <option selected="selected"></option>
+  <option></option>
   <option></option>
 </div>
