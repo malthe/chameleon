@@ -576,7 +576,7 @@ class ZopePageTemplatesTest(RenderTestCase):
                 '<input type="input" tal:attributes="checked default" />',
                 '<input type="input" tal:attributes="dynamic_true" />',
                 '<input type="input" tal:attributes="dynamic_false" />',
-                '<input type="input" tal:attributes="checked dynamic_marker" />',
+                '<input type="input" tal:attributes="checked dynamic_marker" />',  # noqa: E501 line too long
                 '<input type="input" checked="${dynamic_marker}" />',
                 '<input type="input" checked="${True}" />',
                 '<input type="input" checked="${False}" />',
