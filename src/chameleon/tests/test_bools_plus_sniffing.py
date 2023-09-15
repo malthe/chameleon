@@ -3,6 +3,7 @@ import unittest
 
 from chameleon import PageTemplate
 
+
 xml_bytes = b"""\
 <?xml version="1.0" ?>
 <input type="checkbox" checked="nope" tal:attributes="checked checked" />
