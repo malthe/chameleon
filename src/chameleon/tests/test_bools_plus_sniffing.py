@@ -49,6 +49,7 @@ html5_w_ct_n_enc_bytes = b"""\
 </html>
 """
 
+
 class BaseTestCase(unittest.TestCase):
     def get_template(self, text):
         template = PageTemplate(text)
@@ -62,11 +63,12 @@ class BaseTestCase(unittest.TestCase):
 
     def assert_same(self, s1, s2):
         L1 = s1.splitlines()
-        L1 = list(filter(None, [ ' '.join(x.split()).strip() for x in L1 ]))
+        L1 = list(filter(None, [' '.join(x.split()).strip() for x in L1]))
         L2 = s2.splitlines()
-        L2 = list(filter(None, [ ' '.join(x.split()).strip() for x in L2 ]))
+        L2 = list(filter(None, [' '.join(x.split()).strip() for x in L2]))
         diff = '\n'.join(list(difflib.unified_diff(L1, L2)))
         assert diff == '', diff
+
 
 class XMLTestCase(BaseTestCase):
 
@@ -98,7 +100,7 @@ class XMLTestCase(BaseTestCase):
         """
         result = template(checked=True)
         self.assert_same(expected, result)
-        
+
     def test_bytes_checked_false(self):
         template = self.get_template_bytes()
         expected = """
@@ -118,7 +120,7 @@ class XMLTestCase(BaseTestCase):
         """
         result = template(checked=None)
         self.assert_same(expected, result)
-        
+
     def test_bytes_checked_default(self):
         template = self.get_template_bytes()
         expected = """
@@ -138,7 +140,7 @@ class XMLTestCase(BaseTestCase):
         """
         result = template(checked=True)
         self.assert_same(expected, result)
-        
+
     def test_str_checked_false(self):
         template = self.get_template_str()
         expected = """
@@ -158,7 +160,7 @@ class XMLTestCase(BaseTestCase):
         """
         result = template(checked=None)
         self.assert_same(expected, result)
-        
+
     def test_str_checked_default(self):
         template = self.get_template_str()
         expected = """
@@ -168,7 +170,8 @@ class XMLTestCase(BaseTestCase):
         """
         result = template(checked=template.default_marker.value)
         self.assert_same(expected, result)
-        
+
+
 class XMLWithEncodingTestCase(BaseTestCase):
 
     input_bytes = xml_w_enc_bytes
@@ -177,10 +180,11 @@ class XMLWithEncodingTestCase(BaseTestCase):
     def test_bytes_encoding(self):
         template = self.get_template_bytes()
         self.assertEqual(template.content_encoding, self.encoding)
-    
+
     def test_str_encoding(self):
         template = self.get_template_str()
         self.assertEqual(template.content_encoding, self.encoding)
+
 
 class HTML5TestCase(BaseTestCase):
 
@@ -220,7 +224,7 @@ class HTML5TestCase(BaseTestCase):
         """
         result = template(checked=True)
         self.assert_same(expected, result)
-        
+
     def test_bytes_checked_false(self):
         template = self.get_template_bytes()
         expected = """
@@ -258,7 +262,7 @@ class HTML5TestCase(BaseTestCase):
         """
         result = template(checked=None)
         self.assert_same(expected, result)
-        
+
     def test_bytes_checked_default(self):
         template = self.get_template_bytes()
         expected = """
@@ -296,7 +300,7 @@ class HTML5TestCase(BaseTestCase):
         """
         result = template(checked=True)
         self.assert_same(expected, result)
-        
+
     def test_str_checked_false(self):
         template = self.get_template_str()
         expected = """
@@ -334,7 +338,7 @@ class HTML5TestCase(BaseTestCase):
         """
         result = template(checked=None)
         self.assert_same(expected, result)
-        
+
     def test_str_checked_default(self):
         template = self.get_template_str()
         expected = """
@@ -354,6 +358,7 @@ class HTML5TestCase(BaseTestCase):
         result = template(checked=template.default_marker.value)
         self.assert_same(expected, result)
 
+
 class HTML5WithContentTypeAndEncodingTestCase(BaseTestCase):
 
     input_bytes = html5_w_ct_n_enc_bytes
@@ -361,11 +366,11 @@ class HTML5WithContentTypeAndEncodingTestCase(BaseTestCase):
     def test_bytes_content_type(self):
         template = self.get_template_bytes()
         self.assertEqual(template.content_type, 'foo/bar')
-    
+
     def test_bytes_encoding(self):
         template = self.get_template_bytes()
         self.assertEqual(template.content_encoding, 'utf-8')
-    
+
     def test_str_content_type(self):
         template = self.get_template_str()
         self.assertEqual(template.content_type, 'foo/bar')
@@ -373,4 +378,3 @@ class HTML5WithContentTypeAndEncodingTestCase(BaseTestCase):
     def test_str_encoding(self):
         template = self.get_template_str()
         self.assertEqual(template.content_encoding, 'utf-8')
-
