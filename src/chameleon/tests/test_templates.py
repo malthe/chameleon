@@ -576,6 +576,8 @@ class ZopePageTemplatesTest(RenderTestCase):
                 '<input type="input" tal:attributes="checked default" />',
                 '<input type="input" tal:attributes="dynamic_true" />',
                 '<input type="input" tal:attributes="dynamic_false" />',
+                '<input type="input" tal:attributes="checked dynamic_marker" />',
+                '<input type="input" checked="${dynamic_marker}" />',
                 '<input type="input" checked="${True}" />',
                 '<input type="input" checked="${False}" />',
                 '<input type="input" checked="${[]}" />',
@@ -583,11 +585,11 @@ class ZopePageTemplatesTest(RenderTestCase):
 
             ))
         )
-
         self.assertEqual(
             template(
                 dynamic_true={"checked": True},
-                dynamic_false={"checked": False}
+                dynamic_false={"checked": False},
+                dynamic_marker=template.default_marker.value,
             ),
             "\n".join((
                 '<input type="input" />',
@@ -596,6 +598,8 @@ class ZopePageTemplatesTest(RenderTestCase):
                 '<input type="input" />',
                 '<input type="input" />',
                 '<input type="input" checked="checked" />',
+                '<input type="input" />',
+                '<input type="input" />',
                 '<input type="input" />',
                 '<input type="input" checked="checked" />',
                 '<input type="input" />',
