@@ -3,22 +3,6 @@ import unittest
 
 from chameleon import PageTemplate
 
-boolean_html_attributes= [
-        # From http://www.w3.org/TR/xhtml1/#guidelines (C.10)
-        "compact",
-        "nowrap",
-        "ismap",
-        "declare",
-        "noshade",
-        "checked",
-        "disabled",
-        "readonly",
-        "multiple",
-        "selected",
-        "noresize",
-        "defer",
-    ]
-
 xml_bytes = b"""\
 <?xml version="1.0" ?>
 <input type="checkbox" checked="nope" tal:attributes="checked checked" />
@@ -66,10 +50,7 @@ html5_w_ct_n_enc_bytes = b"""\
 
 class BaseTestCase(unittest.TestCase):
     def get_template(self, text):
-        template = PageTemplate(
-            text,
-            boolean_attributes=boolean_html_attributes
-        )
+        template = PageTemplate(text)
         return template
 
     def get_template_bytes(self):
@@ -89,6 +70,7 @@ class BaseTestCase(unittest.TestCase):
 class XMLTestCase(BaseTestCase):
 
     input_bytes = xml_bytes
+    encoding = None
 
     def test_bytes_content_type(self):
         template = self.get_template_bytes()
@@ -96,7 +78,7 @@ class XMLTestCase(BaseTestCase):
 
     def test_bytes_encoding(self):
         template = self.get_template_bytes()
-        self.assertEqual(template.encoding, None)
+        self.assertEqual(template.content_encoding, 'utf-8')
 
     def test_str_content_type(self):
         template = self.get_template_str()
@@ -104,7 +86,7 @@ class XMLTestCase(BaseTestCase):
 
     def test_str_encoding(self):
         template = self.get_template_str()
-        self.assertEqual(template.encoding, None)
+        self.assertEqual(template.content_encoding, self.encoding)
 
     def test_bytes_checked_true(self):
         template = self.get_template_bytes()
@@ -143,7 +125,7 @@ class XMLTestCase(BaseTestCase):
         <input type="checkbox" checked="nope" />
         <input type="checkbox" />
         """
-        result = template(checked=template.default_marker)
+        result = template(checked=template.default_marker.value)
         self.assert_same(expected, result)
 
     def test_str_checked_true(self):
@@ -183,20 +165,21 @@ class XMLTestCase(BaseTestCase):
         <input type="checkbox" checked="nope" />
         <input type="checkbox" />
         """
-        result = template(checked=template.default_marker)
+        result = template(checked=template.default_marker.value)
         self.assert_same(expected, result)
         
 class XMLWithEncodingTestCase(BaseTestCase):
 
     input_bytes = xml_w_enc_bytes
+    encoding = 'ascii'
 
     def test_bytes_encoding(self):
         template = self.get_template_bytes()
-        self.assertEqual(template.encoding, 'ascii')
+        self.assertEqual(template.content_encoding, self.encoding)
     
     def test_str_encoding(self):
         template = self.get_template_str()
-        self.assertEqual(template.encoding, 'ascii')
+        self.assertEqual(template.content_encoding, self.encoding)
 
 class HTML5TestCase(BaseTestCase):
 
@@ -204,19 +187,19 @@ class HTML5TestCase(BaseTestCase):
 
     def test_bytes_content_type(self):
         template = self.get_template_bytes()
-        self.assertEqual(template.content_type, None)
+        self.assertEqual(template.content_type, 'text/html')
 
     def test_bytes_encoding(self):
         template = self.get_template_bytes()
-        self.assertEqual(template.encoding, None)
+        self.assertEqual(template.content_encoding, 'utf-8')
 
     def test_str_content_type(self):
         template = self.get_template_str()
-        self.assertEqual(template.content_type, None)
+        self.assertEqual(template.content_type, 'text/html')
 
     def test_str_encoding(self):
         template = self.get_template_str()
-        self.assertEqual(template.encoding, None)
+        self.assertEqual(template.content_encoding, 'utf-8')
 
     def test_bytes_checked_true(self):
         template = self.get_template_bytes()
@@ -285,13 +268,13 @@ class HTML5TestCase(BaseTestCase):
         </head>
         <body>
           <form>
-            <input type="checkbox" checked="nope"/>
+            <input type="checkbox" checked="nope" />
             <input type="checkbox" />
           </form>
         </body>
         </html>
         """
-        result = template(checked=template.default_marker)
+        result = template(checked=template.default_marker.value)
         self.assert_same(expected, result)
 
     def test_str_checked_true(self):
@@ -367,7 +350,7 @@ class HTML5TestCase(BaseTestCase):
         </body>
         </html>
         """
-        result = template(checked=template.default_marker)
+        result = template(checked=template.default_marker.value)
         self.assert_same(expected, result)
 
 class HTML5WithContentTypeAndEncodingTestCase(BaseTestCase):
@@ -376,17 +359,17 @@ class HTML5WithContentTypeAndEncodingTestCase(BaseTestCase):
 
     def test_bytes_content_type(self):
         template = self.get_template_bytes()
-        self.assertEqual(template.encoding, 'foo/bar')
+        self.assertEqual(template.content_type, 'foo/bar')
     
     def test_bytes_encoding(self):
         template = self.get_template_bytes()
-        self.assertEqual(template.encoding, 'utf-8')
+        self.assertEqual(template.content_encoding, 'utf-8')
     
     def test_str_content_type(self):
         template = self.get_template_str()
-        self.assertEqual(template.encoding, 'foo/bar')
+        self.assertEqual(template.content_type, 'foo/bar')
 
     def test_str_encoding(self):
         template = self.get_template_str()
-        self.assertEqual(template.encoding, 'utf-8')
+        self.assertEqual(template.content_encoding, 'utf-8')
 

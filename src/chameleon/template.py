@@ -24,6 +24,7 @@ from .utils import join
 from .utils import mangle
 from .utils import raise_with_traceback
 from .utils import read_bytes
+from .utils import read_xml_encoding
 from .utils import value_repr
 
 
@@ -228,7 +229,7 @@ class BaseTemplate:
             )
         elif body.startswith('<?xml'):
             content_type = 'text/xml'
-            encoding = None
+            encoding = read_xml_encoding(body.encode("utf-8"))
         else:
             content_type, encoding = detect_encoding(
                 body, self.default_encoding
