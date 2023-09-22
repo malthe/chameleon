@@ -19,10 +19,12 @@ from .nodes import Module
 from .utils import DebuggingOutputStream
 from .utils import Scope
 from .utils import create_formatted_exception
+from .utils import detect_encoding
 from .utils import join
 from .utils import mangle
 from .utils import raise_with_traceback
 from .utils import read_bytes
+from .utils import read_xml_encoding
 from .utils import value_repr
 
 
@@ -87,6 +89,7 @@ class BaseTemplate:
     """
 
     default_encoding = "utf-8"
+    default_content_type = None
 
     # This attribute is strictly informational in this template class
     # and is used in exception formatting. It may be set on
@@ -224,11 +227,15 @@ class BaseTemplate:
             body, encoding, content_type = read_bytes(
                 body, self.default_encoding
             )
+        elif body.startswith('<?xml'):
+            content_type = 'text/xml'
+            encoding = read_xml_encoding(body.encode("utf-8"))
         else:
-            content_type = body.startswith('<?xml')
-            encoding = None
+            content_type, encoding = detect_encoding(
+                body, self.default_encoding
+            )
 
-        self.content_type = content_type
+        self.content_type = content_type or self.default_content_type
         self.content_encoding = encoding
 
         self.cook(body)
@@ -344,12 +351,7 @@ class BaseTemplateFile(BaseTemplate):
             data, self.default_encoding
         )
 
-        # In non-XML mode, we support various platform-specific line
-        # endings and convert them to the UNIX newline character
-        if content_type != "text/xml" and '\r' in body:
-            body = body.replace('\r\n', '\n').replace('\r', '\n')
-
-        self.content_type = content_type
+        self.content_type = content_type or self.default_content_type
         self.content_encoding = encoding
 
         return body

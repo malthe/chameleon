@@ -85,7 +85,6 @@ def read_bytes(body, default_encoding):
 
     if body.startswith(_xml_decl):
         content_type = "text/xml"
-
         encoding = read_xml_encoding(body) or default_encoding
     else:
         content_type, encoding = detect_encoding(body, default_encoding)

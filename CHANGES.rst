@@ -3,7 +3,15 @@ Changes
 
 In next release ...
 
--
+- An XML document provided as a string (i.e. decoded) now correctly
+  has its content encoding parsed.
+
+- Boolean attributes are now automatically configured for templates in
+  non-XML mode, presuming that we're being used to generate HTML.
+
+  This means that the same loading mechanism can be used for both XML-
+  and HTML-based templates.
+
 
 4.1.0 (2023-08-29)
 ------------------

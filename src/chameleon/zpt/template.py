@@ -27,6 +27,23 @@ except NameError:
     bytes = str
 
 
+BOOLEAN_HTML_ATTRIBUTES = [
+    # From http://www.w3.org/TR/xhtml1/#guidelines (C.10)
+    "compact",
+    "nowrap",
+    "ismap",
+    "declare",
+    "noshade",
+    "checked",
+    "disabled",
+    "readonly",
+    "multiple",
+    "selected",
+    "noresize",
+    "defer",
+]
+
+
 class PageTemplate(BaseTemplate):
     """Constructor for the page template language.
 
@@ -72,6 +89,10 @@ class PageTemplate(BaseTemplate):
 
         The special return value ``default`` drops or inserts the
         attribute based on the value element attribute value.
+
+        The default setting is to autodetect if we're in HTML-mode and
+        provide the standard set of boolean attributes for this
+        document type.
 
       ``translate``
 
@@ -171,12 +192,13 @@ class PageTemplate(BaseTemplate):
     }
 
     default_expression = 'python'
+    default_content_type = 'text/html'
 
     translate = staticmethod(simple_translate)
 
     encoding = None
 
-    boolean_attributes = set()
+    boolean_attributes = None
 
     mode = "xml"
 
@@ -222,11 +244,22 @@ class PageTemplate(BaseTemplate):
         return ExpressionParser(self.expression_types, self.default_expression)
 
     def parse(self, body):
+        boolean_attributes = self.boolean_attributes
+
+        if self.content_type != 'text/xml':
+            if boolean_attributes is None:
+                boolean_attributes = BOOLEAN_HTML_ATTRIBUTES
+
+            # In non-XML mode, we support various platform-specific
+            # line endings and convert them to the UNIX newline
+            # character.
+            body = body.replace('\r\n', '\n').replace('\r', '\n')
+
         return MacroProgram(
             body, self.mode, self.filename,
             escape=True if self.mode == "xml" else False,
             default_marker=self.default_marker,
-            boolean_attributes=self.boolean_attributes,
+            boolean_attributes=boolean_attributes or frozenset([]),
             implicit_i18n_translate=self.implicit_i18n_translate,
             implicit_i18n_attributes=self.implicit_i18n_attributes,
             trim_attribute_space=self.trim_attribute_space,
