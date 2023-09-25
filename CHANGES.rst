@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+4.2.0 (2023-09-25)
+------------------
 
 - An XML document provided as a string (i.e. decoded) now correctly
   has its content encoding parsed.
