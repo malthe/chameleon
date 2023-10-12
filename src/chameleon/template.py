@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import tempfile
+import warnings
 
 
 try:
@@ -96,6 +97,14 @@ class BaseTemplate:
     # and is used in exception formatting. It may be set on
     # initialization using the optional ``spec`` keyword argument.
     spec = '<string>'
+
+    @property
+    def filename(self):
+        warnings.warn(
+            "The filename attribute is deprecated, use spec instead.",
+            DeprecationWarning,
+            stacklevel=2)
+        return self.spec
 
     _cooked = False
 
@@ -340,6 +349,14 @@ class BaseTemplateFile(BaseTemplate):
 
         if EAGER_PARSING:
             self.cook_check()
+
+    @property
+    def filename(self):
+        warnings.warn(
+            "The filename attribute is deprecated, use spec.filename instead.",
+            DeprecationWarning,
+            stacklevel=2)
+        return self.spec.filename
 
     def cook_check(self):
         if self.auto_reload:

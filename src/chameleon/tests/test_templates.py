@@ -667,14 +667,14 @@ class ZopePageTemplatesTest(RenderTestCase):
                          '      class="foo">bar</span>')
 
     def test_digest(self):
-        # Make sure ``digest`` doesn't error out when ``filename`` is something
+        # Make sure ``digest`` doesn't error out when ``spec`` is something
         # other than a simple string
         data = '<html></html>'
         template = self.from_string(data)
-        template.filename = None
+        template.spec = None
         self.assertTrue(template.digest(data, []))
 
-        template.filename = ''
+        template.spec = ''
         self.assertTrue(template.digest(data, []))
 
 
