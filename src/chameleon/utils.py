@@ -366,6 +366,14 @@ class Scope(dict):
     def __contains__(self, key):
         return self.get(key, marker) is not marker
 
+    def __iter__(self):
+        root = getattr(self, "_root", marker)
+        yield from dict.__iter__(self)
+        if root is not marker:
+            for key in root:
+                if not dict.__contains__(self, key):
+                    yield key
+
     def get(self, key, default=None):
         value = dict.get(self, key, marker)
         if value is not marker:
@@ -379,15 +387,6 @@ class Scope(dict):
                 return value
 
         return default
-
-    def items(self):
-        raise NotImplementedError()
-
-    def keys(self):
-        raise NotImplementedError()
-
-    def values(self):
-        raise NotImplementedError()
 
     @property
     def vars(self):
