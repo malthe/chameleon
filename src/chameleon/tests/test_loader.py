@@ -41,6 +41,70 @@ class LoadTests:
         result = self._load(loader, abs)
         self.assertEqual(result.filename, abs)
 
+    def test_load_egg(self):
+        import subprocess
+        import sys
+        import tempfile
+        import textwrap
+        import zipimport
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmpdir:
+            basedir = Path(tmpdir) / 'chameleon_test_pkg'
+            pkgdir = basedir / 'src' / 'chameleon_test_pkg'
+            templatesdir = pkgdir / 'templates'
+            templatesdir.mkdir(parents=True)
+            with basedir.joinpath('MANIFEST.in').open('w') as f:
+                f.write('recursive-include src *.pt')
+            with basedir.joinpath('setup.py').open('w') as f:
+                f.write(textwrap.dedent("""
+                    from setuptools import find_packages
+                    from setuptools import setup
+
+
+                    setup(
+                        name="chameleon-test-pkg",
+                        version="1.0",
+                        packages=find_packages('src'),
+                        package_dir={'': 'src'},
+                        include_package_data=True)
+                """))
+            pkgdir.joinpath('__init__.py').touch()
+            with templatesdir.joinpath('test.pt').open('w') as f:
+                f.write(textwrap.dedent("""
+                    <html>
+                    <head><title>Test Title</title></head>
+                    <body>${content}</body>
+                    </html>
+                """))
+            try:
+                subprocess.check_output(
+                    ['python', 'setup.py', 'bdist_egg'],
+                    cwd=basedir,
+                    stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                print('\n', e.output.decode(), file=sys.stderr)
+                raise
+            (egg_path,) = basedir.glob('dist/*.egg')
+            zipimport.zipimporter(
+                str(egg_path)).load_module('chameleon_test_pkg')
+            try:
+                # we use auto_reload to trigger a call of mtime
+                loader = self._makeOne(auto_reload=True)
+                result = self._load(
+                    loader, 'chameleon_test_pkg:templates/test.pt')
+                self.assertIsNone(result._v_last_read)
+                output = result(content='Test Content')
+                self.assertIsNotNone(result._v_last_read)
+                old_v_last_read = result._v_last_read
+                self.assertIn("Test Title", output)
+                self.assertIn("Test Content", output)
+                # make sure the template isn't recooked
+                output = result(content='foo')
+                self.assertEqual(result._v_last_read, old_v_last_read)
+            finally:
+                # cleanup
+                sys.modules.pop('chameleon_test_pkg', None)
+
 
 class LoadPageTests(unittest.TestCase, LoadTests):
     def _load(self, loader, filename):
