@@ -4,6 +4,11 @@ Changes
 In next release ...
 
 
+- Replace ``pkg_resources`` with newer and faster ``importlib.resources`` and
+  ``importlib.metadata``. Just importing ``pkg_resources`` becomes slower and
+  slower the more packages are installed.
+
+
 4.2.0 (2023-09-25)
 ------------------
 

@@ -414,7 +414,7 @@ class ZopePageTemplatesTest(RenderTestCase):
         template = self.from_file(
             os.path.join(self.root, 'inputs', 'hello_world.pt')
         )
-        self.assertTrue(template.filename in repr(template))
+        self.assertTrue(template.spec.filename in repr(template))
 
     def test_underscore_variable(self):
         template = self.from_string(
@@ -667,14 +667,14 @@ class ZopePageTemplatesTest(RenderTestCase):
                          '      class="foo">bar</span>')
 
     def test_digest(self):
-        # Make sure ``digest`` doesn't error out when ``filename`` is something
+        # Make sure ``digest`` doesn't error out when ``spec`` is something
         # other than a simple string
         data = '<html></html>'
         template = self.from_string(data)
-        template.filename = None
+        template.spec = None
         self.assertTrue(template.digest(data, []))
 
-        template.filename = ''
+        template.spec = ''
         self.assertTrue(template.digest(data, []))
 
 

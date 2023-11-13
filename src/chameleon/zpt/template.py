@@ -256,7 +256,7 @@ class PageTemplate(BaseTemplate):
             body = body.replace('\r\n', '\n').replace('\r', '\n')
 
         return MacroProgram(
-            body, self.mode, self.filename,
+            body, self.mode, self.spec,
             escape=True if self.mode == "xml" else False,
             default_marker=self.default_marker,
             boolean_attributes=boolean_attributes or frozenset([]),
@@ -412,7 +412,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
     prepend_relative_search_path = True
 
-    def __init__(self, filename, search_path=None, loader_class=TemplateLoader,
+    def __init__(self, spec, search_path=None, loader_class=TemplateLoader,
                  **config):
         if search_path is None:
             search_path = []
@@ -426,7 +426,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
             # If the flag is set (this is the default), prepend the path
             # relative to the template file to the search path
             if self.prepend_relative_search_path:
-                path = dirname(self.filename)
+                path = dirname(self.spec.filename)
                 search_path.insert(0, path)
 
             loader = loader_class(search_path=search_path, **config)
@@ -437,7 +437,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
             self._loader = loader.bind(template_class)
 
         super().__init__(
-            filename,
+            spec,
             post_init_hook=post_init,
             **config
         )
