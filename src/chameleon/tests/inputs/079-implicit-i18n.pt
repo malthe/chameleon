@@ -12,5 +12,8 @@
       <br />
       bar.
     </div>
+    <div tal:define="Message import:chameleon.tests.test_templates.Message" i18n:target="string:fr">
+      ${Message()}
+    </div>
   </body>
 </html>

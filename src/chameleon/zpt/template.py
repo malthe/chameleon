@@ -314,15 +314,11 @@ class PageTemplate(BaseTemplate):
         else:
             decode = bytes.decode
 
-        target_language = _kw.get('target_language')
-
         setdefault = _kw.setdefault
         setdefault("__translate", translate)
-        setdefault("__convert",
-                   partial(translate, target_language=target_language))
         setdefault("__decode", decode)
-        setdefault("target_language", None)
         setdefault("__on_error_handler", self.on_error_handler)
+        setdefault("target_language", None)
 
         # Make sure we have a repeat dictionary
         if 'repeat' not in _kw:

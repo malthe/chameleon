@@ -395,22 +395,6 @@ class MacroProgram(ElementProgram):
             if defines is None:
                 raise ParseError("Invalid define syntax.", clause)
 
-        # i18n:target
-        try:
-            target_language = ns[I18N, 'target']
-        except KeyError:
-            pass
-        else:
-            # The name "default" is an alias for the target language
-            # variable. We simply replace it.
-            target_language = target_language.replace(
-                'default', 'target_language'
-            )
-
-            defines.append(
-                ('local', ("target_language", ), target_language)
-            )
-
         assignments = [
             nodes.Assignment(
                 names, nodes.Value(expr), context == "local")
@@ -509,6 +493,17 @@ class MacroProgram(ElementProgram):
         else:
             CONTEXT = partial(nodes.TxContext, clause)
 
+        # i18n:target
+        try:
+            clause = ns[I18N, 'target']
+        except KeyError:
+            TARGET = skip
+        else:
+            TARGET = lambda node: nodes.Define(  # noqa:  E731 do not assign a lambda expression, use a def
+                [nodes.Alias(["default"], "target_language")],
+                nodes.Target(clause, node)
+            )
+
         # i18n:name
         try:
             clause = ns[I18N, 'name']
@@ -532,6 +527,7 @@ class MacroProgram(ElementProgram):
             SWITCH,
             DOMAIN,
             CONTEXT,
+            TARGET,
         )
 
         # metal:fill-slot

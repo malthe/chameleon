@@ -238,6 +238,12 @@ class Domain(Node):
     _fields = "name", "node"
 
 
+class Target(Node):
+    """Update translation target."""
+
+    _fields = "expression", "node"
+
+
 class TxContext(Node):
     """Update translation context."""
 

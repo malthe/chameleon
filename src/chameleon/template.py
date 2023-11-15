@@ -199,8 +199,14 @@ class BaseTemplate:
         rcontext = {}
         self.cook_check()
         stream = self.output_stream_factory()
+        target_language = __kw.get("target_language")
         try:
-            self._render(stream, econtext, rcontext)
+            self._render(
+                stream,
+                econtext,
+                rcontext,
+                target_language=target_language
+            )
         except RecursionError:
             raise
         except BaseException:

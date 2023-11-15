@@ -496,7 +496,7 @@ class ZopePageTemplatesTest(RenderTestCase):
             def __init__(self, *args, **kwargs):
                 calls.append((args, kwargs))
 
-        def _render(stream, econtext, rcontext):
+        def _render(stream, econtext, rcontext, **kw):
             exc = TestException('foo', bar='baz')
             rcontext['__error__'] = ('expression', 1, 42, 'test.pt', exc),
             raise exc
