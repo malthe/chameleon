@@ -12,5 +12,8 @@
       <br />
       bar. ('bar.' translation into 'en')
     </div>
+    <div>
+      Message ('message' translation into 'fr')
+    </div>
   </body>
 </html>

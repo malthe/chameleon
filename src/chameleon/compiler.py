@@ -62,6 +62,7 @@ log = logging.getLogger('chameleon.compiler')
 COMPILER_INTERNALS_OR_DISALLOWED = {
     "econtext",
     "rcontext",
+    "target_language",
     "str",
     "int",
     "float",
@@ -173,7 +174,12 @@ emit_convert = template(is_func=True,
             try:
                 target = target.__html__
             except AttributeError:
-                __converted = convert(target)
+                __converted = translate(
+                    target,
+                    domain=__i18n_domain,
+                    context=__i18n_context,
+                    target_language=target_language
+                )
                 target = str(target) if target is __converted else __converted
             else:
                 target = target()""")
@@ -199,22 +205,32 @@ emit_func_convert = template(
             try:
                 target = target.__html__
             except AttributeError:
-                __converted = convert(target)
+                __converted = translate(
+                    target,
+                    domain=__i18n_domain,
+                    context=__i18n_context,
+                    target_language=target_language
+                )
                 target = str(target) if target is __converted else __converted
             else:
                 target = target()
 
-        return target""")
+        return target"""
+)
 
 
 emit_translate = template(is_func=True,
-                          func_args=('target', 'msgid', 'target_language',
+                          func_args=('target', 'msgid',
                                      'default'),
                           func_defaults=(None,),
                           source=r"""
-    target = translate(msgid, default=default, domain=__i18n_domain,
-                       context=__i18n_context,
-                       target_language=target_language)""")
+    target = translate(
+        msgid,
+        default=default,
+        domain=__i18n_domain,
+        context=__i18n_context,
+        target_language=target_language
+    )""")
 
 
 emit_func_convert_and_escape = template(
@@ -240,7 +256,12 @@ emit_func_convert_and_escape = template(
                 try:
                     target = target.__html__
                 except:
-                    __converted = convert(target)
+                    __converted = translate(
+                        target,
+                        domain=__i18n_domain,
+                        context=__i18n_context,
+                        target_language=target_language
+                    )
                     target = str(target) if target is __converted \
                              else __converted
                 else:
@@ -408,7 +429,6 @@ class Interpolator:
                     "translate(msgid, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",  # noqa:  E501 line too long
                     msgid=target,
                     mode="eval",
-                    target_language=load("target_language"),
                 )
         else:
             if translate:
@@ -429,7 +449,6 @@ class Interpolator:
                     "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",   # noqa:  E501 line too long
                     msgid=ast.Str(
                         s=formatting_string),
-                    target_language=load("target_language"),
                     mapping=ast.Dict(
                         keys=keys,
                         values=values),
@@ -926,10 +945,7 @@ class ExpressionTransform:
         else:
             msgid = target
         return self.translate(node.node, target) + \
-            emit_translate(
-            target, msgid, "target_language",
-            default=target
-        )
+            emit_translate(target, msgid, default=target)
 
     def visit_Static(self, node, target):
         value = annotated(node)
@@ -954,7 +970,6 @@ class Compiler:
     defaults = {
         'translate': Symbol(simple_translate),
         'decode': Builtin("str"),
-        'convert': Builtin("str"),
         'on_error_handler': Builtin("str")
     }
 
@@ -1191,8 +1206,9 @@ class Compiler:
                     param("rcontext"),
                     param("__i18n_domain"),
                     param("__i18n_context"),
+                    param("target_language"),
                 ],
-                defaults=[load("None"), load("None")],
+                defaults=[load("None"), load("None"), load("None")],
             ),
             body=body
         )
@@ -1202,12 +1218,21 @@ class Compiler:
     def visit_Text(self, node):
         yield EmitText(node.value)
 
+    # TODO Refactor!
+
     def visit_Domain(self, node):
         backup = "__previous_i18n_domain_%s" % mangle(id(node))
         return template("BACKUP = __i18n_domain", BACKUP=backup) + \
             template("__i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
             self.visit(node.node) + \
             template("__i18n_domain = BACKUP", BACKUP=backup)
+
+    def visit_Target(self, node):
+        backup = "__previous_i18n_target_%s" % mangle(id(node))
+        return template("BACKUP = target_language", BACKUP=backup) + \
+            self._engine(node.expression, store("target_language")) + \
+            self.visit(node.node) + \
+            template("target_language = BACKUP", BACKUP=backup)
 
     def visit_TxContext(self, node):
         backup = "__previous_i18n_context_%s" % mangle(id(node))
@@ -1253,9 +1278,7 @@ class Compiler:
         body = self._engine(node.expression, store(name))
 
         if node.translate:
-            body += emit_translate(
-                name, name, load_econtext("target_language")
-            )
+            body += emit_translate(name, name)
 
         if node.char_escape:
             body += template(
@@ -1441,8 +1464,7 @@ class Compiler:
             "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=__i18n_context, target_language=target_language))",  # noqa:  E501 line too long
             msgid=msgid,
             default=default,
-            mapping=mapping,
-            target_language=load_econtext("target_language"))
+            mapping=mapping)
 
         # pop away translation block reference
         self._translations.pop()
@@ -1603,7 +1625,8 @@ class Compiler:
             render = "render_%s" % mangle(node.name)
         token_reset = template("__token = None")
         return token_reset + template(
-            "f(__stream, econtext.copy(), rcontext, __i18n_domain)",
+            "f(__stream, econtext.copy(), rcontext, "
+            "__i18n_domain, __i18n_context, target_language)",
             f=render) + \
             template("econtext.update(rcontext)")
 
@@ -1690,10 +1713,12 @@ class Compiler:
                             param("rcontext"),
                             param("__i18n_domain"),
                             param("__i18n_context"),
+                            param("target_language"),
                         ],
                         defaults=[
                             load("__i18n_domain"),
-                            load("__i18n_context")],
+                            load("__i18n_context"),
+                            load("target_language"),],
                     ),
                     body=body or [
                         ast.Pass()],
@@ -1730,7 +1755,7 @@ class Compiler:
             ) +
             template(
                 "__m(__stream, econtext.copy(), "
-                "rcontext, __i18n_domain)"
+                "rcontext, __i18n_domain, __i18n_context, target_language)"
             ) +
             template("econtext.update(rcontext)")
         )

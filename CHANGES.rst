@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+- Implicit translation now provides the translation context, domain,
+  and target language to the translation function (if applicable). Previously,
+  the target language was provided, but this did not respect a change via
+  `i18n:target`.
+  (`#369 <https://github.com/malthe/chameleon/issues/369>`_)
 
 - Replace ``pkg_resources`` with newer and faster ``importlib.resources`` and
   ``importlib.metadata``. Just importing ``pkg_resources`` becomes slower and
