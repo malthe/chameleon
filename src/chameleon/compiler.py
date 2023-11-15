@@ -180,7 +180,8 @@ emit_convert = template(is_func=True,
                         context=__i18n_context,
                         target_language=target_language
                     )
-                    target = str(target) if target is __converted else __converted
+                    target = str(target) if target is __converted \
+                        else __converted
                 else:
                     target = render()""")
 
@@ -209,7 +210,8 @@ emit_func_convert = template(
                         context=__i18n_context,
                         target_language=target_language
                     )
-                    target = str(target) if target is __converted else __converted
+                    target = str(target) if target is __converted \
+                        else __converted
                 else:
                     target = render()
 
