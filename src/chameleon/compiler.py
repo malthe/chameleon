@@ -166,23 +166,23 @@ emit_convert = template(is_func=True,
     else:
         __tt = type(target)
 
-        if __tt is int or __tt is float or __tt is long:
-            target = str(target)
-        elif __tt is encoded:
+        if __tt is encoded:
             target = decode(target)
         elif __tt is not str:
-            try:
-                target = target.__html__
-            except AttributeError:
-                __converted = translate(
-                    target,
-                    domain=__i18n_domain,
-                    context=__i18n_context,
-                    target_language=target_language
-                )
-                target = str(target) if target is __converted else __converted
+            if __tt is int or __tt is float or __tt is long:
+                target = str(target)
             else:
-                target = target()""")
+                render = getattr(target, "__html__", None)
+                if render is None:
+                    __converted = translate(
+                        target,
+                        domain=__i18n_domain,
+                        context=__i18n_context,
+                        target_language=target_language
+                    )
+                    target = str(target) if target is __converted else __converted
+                else:
+                    target = render()""")
 
 
 emit_func_convert = template(
@@ -195,25 +195,23 @@ emit_func_convert = template(
 
         __tt = type(target)
 
-        if __tt is int or __tt is float or __tt is long:
-            target = str(target)
-
-        elif __tt is encoded:
+        if __tt is encoded:
             target = decode(target)
-
         elif __tt is not str:
-            try:
-                target = target.__html__
-            except AttributeError:
-                __converted = translate(
-                    target,
-                    domain=__i18n_domain,
-                    context=__i18n_context,
-                    target_language=target_language
-                )
-                target = str(target) if target is __converted else __converted
+            if __tt is int or __tt is float or __tt is long:
+                target = str(target)
             else:
-                target = target()
+                render = getattr(target, "__html__", None)
+                if render is None:
+                    __converted = translate(
+                        target,
+                        domain=__i18n_domain,
+                        context=__i18n_context,
+                        target_language=target_language
+                    )
+                    target = str(target) if target is __converted else __converted
+                else:
+                    target = render()
 
         return target"""
 )
@@ -247,42 +245,40 @@ emit_func_convert_and_escape = template(
 
         __tt = type(target)
 
-        if __tt is int or __tt is float or __tt is long:
-            target = str(target)
-        else:
-            if __tt is encoded:
-                target = decode(target)
-            elif __tt is not str:
-                try:
-                    target = target.__html__
-                except:
-                    __converted = translate(
-                        target,
-                        domain=__i18n_domain,
-                        context=__i18n_context,
-                        target_language=target_language
-                    )
-                    target = str(target) if target is __converted \
-                             else __converted
-                else:
-                    return target()
+        if __tt is encoded:
+            target = decode(target)
+        elif __tt is not str:
+            if __tt is int or __tt is float or __tt is long:
+                return str(target)
+            render = getattr(target, "__html__", None)
+            if render is None:
+                __converted = translate(
+                    target,
+                    domain=__i18n_domain,
+                    context=__i18n_context,
+                    target_language=target_language
+                )
+                target = str(target) if target is __converted \
+                         else __converted
+            else:
+                return render()
 
-            if target is not None:
-                try:
-                    escape = __re_needs_escape(target) is not None
-                except TypeError:
-                    pass
-                else:
-                    if escape:
-                        # Character escape
-                        if '&' in target:
-                            target = target.replace('&', '&amp;')
-                        if '<' in target:
-                            target = target.replace('<', '&lt;')
-                        if '>' in target:
-                            target = target.replace('>', '&gt;')
-                        if quote is not None and quote in target:
-                            target = target.replace(quote, quote_entity)
+        if target is not None:
+            try:
+                escape = __re_needs_escape(target) is not None
+            except TypeError:
+                pass
+            else:
+                if escape:
+                    # Character escape
+                    if '&' in target:
+                        target = target.replace('&', '&amp;')
+                    if '<' in target:
+                        target = target.replace('<', '&lt;')
+                    if '>' in target:
+                        target = target.replace('>', '&gt;')
+                    if quote is not None and quote in target:
+                        target = target.replace(quote, quote_entity)
 
         return target""")
 

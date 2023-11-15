@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Minor optimizations to rendering logic.
+
 - Implicit translation now provides the translation context, domain,
   and target language to the translation function (if applicable). Previously,
   the target language was provided, but this did not respect a change via
