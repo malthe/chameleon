@@ -1,10 +1,8 @@
 import os
 import sys
 import tempfile
-import textwrap
 import unittest
 import zipimport
-from contextlib import contextmanager
 from pathlib import Path
 
 from setuptools import find_packages
@@ -56,29 +54,11 @@ class LoadTests:
         self.assertEqual(result.spec.filename, abs)
 
     def test_load_egg(self):
-        with self._test_load_package("bdist_egg", ".egg"):
-            pass
+        self._test_load_package("bdist_egg", ".egg")
 
     def test_load_wheel(self):
-        with self._test_load_package("bdist_wheel", ".whl") as basedir:
-            with basedir.joinpath('pyproject.toml').open('w') as f:
-                f.write(textwrap.dedent("""
-                    [build-system]
-                    requires = ["setuptools"]
-                    build-backend = "setuptools.build_meta"
+        self._test_load_package("bdist_wheel", ".whl")
 
-                    [project]
-                    name = "chameleon-test-pkg"
-                    version = "1.0"
-
-                    [tool.setuptools]
-                    include-package-data = true
-
-                    [tool.setuptools.packages.find]
-                    where = ["src"]
-                """))
-
-    @contextmanager
     def _test_load_package(self, command, pkg_extension):
         with tempfile.TemporaryDirectory() as tmpdir:
             basedir = Path(tmpdir) / 'chameleon_test_pkg'
@@ -92,8 +72,6 @@ class LoadTests:
             try:
                 with open('MANIFEST.in', 'w') as f:
                     f.write('recursive-include src *.pt')
-
-                yield basedir
 
                 pkgdir.joinpath('__init__.py').touch()
                 with templatesdir.joinpath('test.pt').open('w') as f:
