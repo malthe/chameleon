@@ -22,7 +22,7 @@ tal:content="python: d" />
 MANY_STRINGS_ZPT = """\
 <table xmlns="http://www.w3.org/1999/xhtml"
 xmlns:tal="http://xml.zope.org/namespaces/tal">
-<tr tal:repeat="i python: xrange(1000)">
+<tr tal:repeat="i python: range(1000)">
 <td tal:content="string: number ${i}" />
 </tr>
 </table>
@@ -42,7 +42,7 @@ I18N_ZPT = """\
 xmlns:tal="http://xml.zope.org/namespaces/tal"
 xmlns:i18n="http://xml.zope.org/namespaces/i18n">
   <body>
-    <div tal:repeat="i python: xrange(10)">
+    <div tal:repeat="i python: range(10)">
       <div i18n:translate="">
         Hello world!
       </div>
