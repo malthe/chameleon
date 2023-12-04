@@ -130,12 +130,12 @@ class RenderTestCase(TestCase):
 class ZopePageTemplatesTest(RenderTestCase):
     @property
     def from_string(body):
-        from ..zpt.template import PageTemplate
+        from chameleon.zpt.template import PageTemplate
         return partial(PageTemplate, keep_source=True)
 
     @property
     def from_file(body):
-        from ..zpt.template import PageTemplateFile
+        from chameleon.zpt.template import PageTemplateFile
         return partial(PageTemplateFile, keep_source=True)
 
     def template(body):
@@ -687,7 +687,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
             shutil.rmtree(path)
 
     def test_pt_files(self):
-        from ..zpt.template import PageTemplateFile
+        from chameleon.zpt.template import PageTemplateFile
 
         class Literal:
             def __init__(self, s):
@@ -712,7 +712,7 @@ class ZopeTemplatesTestSuite(RenderTestCase):
         )
 
     def test_txt_files(self):
-        from ..zpt.template import PageTextTemplateFile
+        from chameleon.zpt.template import PageTextTemplateFile
         self.execute(".txt", PageTextTemplateFile)
 
     def execute(self, ext, factory, **kwargs):

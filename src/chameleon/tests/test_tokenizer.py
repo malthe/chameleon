@@ -13,13 +13,13 @@ class TokenizerTest(TestCase):
             source = f.read()
             f.close()
 
-            from ..utils import read_encoded
+            from chameleon.utils import read_encoded
             try:
                 want = read_encoded(source)
             except UnicodeDecodeError as exc:
                 self.fail("{} - {}".format(exc, filename))
 
-            from ..tokenize import iter_xml
+            from chameleon.tokenize import iter_xml
             try:
                 tokens = iter_xml(want)
                 got = "".join(tokens)

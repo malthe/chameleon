@@ -1,13 +1,13 @@
 from unittest import TestCase
 
-from ..namespaces import PY_NS
-from ..namespaces import XML_NS
-from ..namespaces import XMLNS_NS
+from chameleon.namespaces import PY_NS
+from chameleon.namespaces import XML_NS
+from chameleon.namespaces import XMLNS_NS
 
 
 class ParserTest(TestCase):
     def test_comment_double_hyphen_parsing(self):
-        from ..parser import match_double_hyphen
+        from chameleon.parser import match_double_hyphen
 
         self.assertFalse(match_double_hyphen.match('->'))
         self.assertFalse(match_double_hyphen.match('-->'))
@@ -28,14 +28,14 @@ class ParserTest(TestCase):
             with open(os.path.join(path, filename), 'rb') as f:
                 source = f.read()
 
-            from ..utils import read_encoded
+            from chameleon.utils import read_encoded
             try:
                 want = read_encoded(source)
             except UnicodeDecodeError as exc:
                 self.fail("{} - {}".format(exc, filename))
 
-            from ..parser import ElementParser
-            from ..tokenize import iter_xml
+            from chameleon.parser import ElementParser
+            from chameleon.tokenize import iter_xml
             try:
                 tokens = iter_xml(want)
                 parser = ElementParser(tokens, {
