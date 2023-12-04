@@ -1,7 +1,11 @@
 Changes
 =======
 
-In next release ...
+4.3.0 (2023-12-04)
+------------------
+
+- Local variable scope is now iterable, completing dict interface.
+  (`#390 <https://github.com/malthe/chameleon/pull/390>`_)
 
 - Minor optimizations to rendering logic.
 
