@@ -16,8 +16,8 @@ except BaseException:  # doesn't work under tox/pip
     CHANGES = ''
 
 install_requires = [
-    'importlib.metadata;python_version<"3.10"',
-    'importlib.resources;python_version<"3.9"']
+    'importlib-metadata;python_version<"3.10"',
+    'importlib-resources;python_version<"3.9"']
 
 
 class Benchmark(test):
