@@ -23,10 +23,10 @@ class ElementProgram:
 
     restricted_namespace = True
 
-    def __init__(self, source, mode="xml", spec=None, tokenizer=None):
+    def __init__(self, source, mode="xml", filename=None, tokenizer=None):
         if tokenizer is None:
             tokenizer = self.tokenizers[mode]
-        tokens = tokenizer(source, spec)
+        tokens = tokenizer(source, filename)
         parser = ElementParser(
             tokens,
             self.DEFAULT_NAMESPACES,

@@ -1,7 +1,11 @@
 Changes
 =======
 
-In next release ...
+- The file-based template classes now also support `pathlib.Path` and
+  `zipfile.Path` as the filename.
+
+- Fix regression where Chameleon would not load templates correctly on
+  Windows.
 
 - Fix names of dependencies for ``importlib_resources`` and
   ``importlib_metadata``.

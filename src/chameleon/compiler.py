@@ -977,7 +977,7 @@ class Compiler:
 
     global_builtins = set(builtins.__dict__)
 
-    def __init__(self, engine_factory, node, spec, source,
+    def __init__(self, engine_factory, node, filename, source,
                  builtins={}, strict=True):
         self._scopes = [set()]
         self._expression_cache = {}
@@ -1052,7 +1052,7 @@ class Compiler:
                 self.lock.release()
 
         self.code = "\n".join((
-            "__spec = %r\n" % spec,
+            "__filename = %r\n" % filename,
             token_map_def,
             generator.code
         ))
@@ -1181,7 +1181,7 @@ class Compiler:
 
         exc_handler = template(
             "if pos is not None: rcontext.setdefault('__error__', [])."
-            "append(token + (__spec, exc, ))",
+            "append(token + (__filename, exc, ))",
             exc=exc,
             token=template("__tokens[pos]", pos="__token", mode="eval"),
             pos="__token"

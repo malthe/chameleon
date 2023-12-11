@@ -24,7 +24,7 @@ class LoadTests:
         loader = self._makeOne(search_path=[here])
         result = self._load(loader, 'hello_world.pt')
         self.assertEqual(
-            result.spec.filename,
+            result.filename,
             os.path.join(here, 'hello_world.pt'))
 
     def test_consecutive_loads(self):
@@ -42,7 +42,7 @@ class LoadTests:
         loader = self._makeOne(search_path=[os.path.join(here, 'none'), here])
         result = self._load(loader, 'hello_world.pt')
         self.assertEqual(
-            result.spec.filename,
+            result.filename,
             os.path.join(here, 'hello_world.pt'))
 
     def test_load_abs(self):
@@ -51,7 +51,7 @@ class LoadTests:
         loader = self._makeOne()
         abs = os.path.join(here, 'hello_world.pt')
         result = self._load(loader, abs)
-        self.assertEqual(result.spec.filename, abs)
+        self.assertEqual(result.filename, abs)
 
     def test_load_egg(self):
         self._test_load_package("bdist_egg", ".egg")

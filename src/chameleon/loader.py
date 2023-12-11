@@ -1,13 +1,22 @@
 import functools
 import logging
 import os
+import pathlib
 import py_compile
 import shutil
 import sys
 import tempfile
 import warnings
+import zipfile
 from importlib.machinery import SourceFileLoader
 from threading import RLock
+
+try:
+    # we need to try the backport first, as we rely on ``files`` added in 3.9
+    import importlib_resources
+except ImportError:
+    import importlib.resources as importlib_resources
+
 
 from .utils import encode_string
 
@@ -66,12 +75,23 @@ class TemplateLoader:
         if self.default_extension is not None and '.' not in spec:
             spec += self.default_extension
 
-        if ':' not in spec and not os.path.isabs(spec):
+        if ':' in spec:
+            pname, filename = spec.split(':', 1)
+            files = importlib_resources.files(pname)
+            spec = files.joinpath(filename)
+            assert isinstance(spec, (pathlib.Path, zipfile.Path))
+        elif not os.path.isabs(spec):
             for path in self.search_path:
-                path = os.path.join(path, spec)
-                if os.path.exists(path):
-                    spec = path
-                    break
+                if isinstance(path, zipfile.Path):
+                    path = path.joinpath(spec)
+                    if path.exists():
+                        spec = path
+                        break
+                else:
+                    path = os.path.join(path, spec)
+                    if os.path.exists(path):
+                        spec = path
+                        break
             else:
                 raise ValueError("Template not found: %s." % spec)
 
