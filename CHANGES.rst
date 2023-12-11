@@ -1,6 +1,8 @@
 Changes
 =======
 
+- Drop support for Python 3.7.
+
 - The file-based template classes now also support `pathlib.Path` and
   `zipfile.Path` as the filename.
 
