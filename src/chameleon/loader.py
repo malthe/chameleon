@@ -11,12 +11,12 @@ import zipfile
 from importlib.machinery import SourceFileLoader
 from threading import RLock
 
+
 try:
     # we need to try the backport first, as we rely on ``files`` added in 3.9
     import importlib_resources
 except ImportError:
     import importlib.resources as importlib_resources
-
 
 from .utils import encode_string
 

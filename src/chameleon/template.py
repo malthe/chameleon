@@ -4,7 +4,6 @@ import logging
 import os
 import sys
 import tempfile
-import warnings
 import zipfile
 
 from .compiler import Compiler
