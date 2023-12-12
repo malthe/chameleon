@@ -100,11 +100,15 @@ class LoadTests:
 
             (package_path,) = basedir.glob('dist/*' + pkg_extension)
 
-            zipimport.zipimporter(
-                str(package_path)).load_module(pkg_name)
+            importer = zipimport.zipimporter(str(package_path))
+            importer.load_module(pkg_name)
 
             try:
                 self._test_pkg(pkg_name)
+
+                # Manually clean up archive.
+                # See https://github.com/python/cpython/issues/87319.
+                os.unlink(importer.archive)
             finally:
                 # cleanup
                 sys.modules.pop(pkg_name, None)
