@@ -61,8 +61,9 @@ class LoadTests:
 
     def _test_load_package(self, command, pkg_extension):
         with tempfile.TemporaryDirectory() as tmpdir:
-            basedir = Path(tmpdir) / 'chameleon_test_pkg'
-            pkgdir = basedir / 'src' / 'chameleon_test_pkg'
+            pkg_name = 'chameleon_test_pkg'
+            basedir = Path(tmpdir) / pkg_name
+            pkgdir = basedir / 'src' / pkg_name
             templatesdir = pkgdir / 'templates'
             templatesdir.mkdir(parents=True)
 
@@ -76,9 +77,18 @@ class LoadTests:
                 pkgdir.joinpath('__init__.py').touch()
                 with templatesdir.joinpath('test.pt').open('w') as f:
                     f.write("<html><body>${content}</body></html>")
+                with templatesdir.joinpath('macro1.pt').open('w') as f:
+                    f.write(
+                        f'<html metal:use-macro="'
+                        f'load: {pkg_name}:templates/test.pt" />'
+                    )
+                with templatesdir.joinpath('macro2.pt').open('w') as f:
+                    f.write(
+                        '<html metal:use-macro="load: test.pt" />'
+                    )
 
                 setup(
-                    name="chameleon-test-pkg",
+                    name=pkg_name,
                     version="1.0",
                     packages=find_packages('src'),
                     package_dir={'': 'src'},
@@ -97,7 +107,7 @@ class LoadTests:
             try:
                 # we use auto_reload to trigger a call of mtime
                 result = self._load(
-                    loader, 'chameleon_test_pkg:templates/test.pt')
+                    loader, f'{pkg_name}:templates/test.pt')
                 self.assertIsNone(result._v_last_read)
                 output = result(content='foo')
                 self.assertIsNotNone(result._v_last_read)
@@ -106,6 +116,12 @@ class LoadTests:
                 # make sure the template isn't recooked
                 output = result(content='bar')
                 self.assertEqual(result._v_last_read, old_v_last_read)
+                macro1 = self._load(loader, f'{pkg_name}:templates/macro1.pt')
+                macro1_output = macro1(content='bar')
+                self.assertEquals(output, macro1_output)
+                macro2 = self._load(loader, f'{pkg_name}:templates/macro2.pt')
+                macro2_output = macro2(content='bar')
+                self.assertEquals(output, macro2_output)
             finally:
                 # cleanup
                 del loader

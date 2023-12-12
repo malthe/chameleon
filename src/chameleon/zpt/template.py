@@ -393,6 +393,10 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
         The default setting is ``True``.
 
+      ``package_name``
+
+        If provided, the template is loaded relative to the package contents.
+
       ``search_path``
 
         If provided, this is used as the search path for the ``load:``
@@ -409,8 +413,14 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
     prepend_relative_search_path = True
 
-    def __init__(self, filename, search_path=None, loader_class=TemplateLoader,
-                 **config):
+    def __init__(
+            self,
+            filename,
+            loader_class=TemplateLoader,
+            package_name=None,
+            search_path=None,
+            **config
+    ):
         if search_path is None:
             search_path = []
         else:
@@ -427,6 +437,8 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
                     path = self.filename.parent
                 else:
                     path = dirname(self.filename)
+                    if package_name is not None:
+                        path = "%s:%s" % (package_name, path)
                 search_path.insert(0, path)
 
             loader = loader_class(search_path=search_path, **config)
@@ -438,6 +450,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
 
         super().__init__(
             filename,
+            package_name=package_name,
             post_init_hook=post_init,
             **config
         )

@@ -1,13 +1,12 @@
+import contextlib
 import functools
 import logging
 import os
-import pathlib
 import py_compile
 import shutil
 import sys
 import tempfile
 import warnings
-import zipfile
 from importlib.machinery import SourceFileLoader
 from threading import RLock
 
@@ -36,6 +35,14 @@ def cache(func):
             self.registry[args] = template = func(self, *args, **kwargs)
         return template
     return load
+
+
+@contextlib.contextmanager
+def import_package_resource(name):
+    path = importlib_resources.files(name)
+    yield path
+    if hasattr(path.root, "close"):
+        path.root.close()
 
 
 class TemplateLoader:
@@ -75,28 +82,34 @@ class TemplateLoader:
         if self.default_extension is not None and '.' not in spec:
             spec += self.default_extension
 
+        package_name = None
+
         if not os.path.isabs(spec):
             if ':' in spec:
-                pname, filename = spec.split(':', 1)
-                files = importlib_resources.files(pname)
-                spec = files.joinpath(filename)
-                assert isinstance(spec, (pathlib.Path, zipfile.Path))
+                package_name, spec = spec.split(':', 1)
             else:
                 for path in self.search_path:
-                    if isinstance(path, zipfile.Path):
-                        path = path.joinpath(spec)
-                        if path.exists():
-                            spec = path
-                            break
+                    if not os.path.isabs(path) and ':' in path:
+                        package_name, path = path.split(':', 1)
+                        with import_package_resource(package_name) as files:
+                            if files.joinpath(path, spec).exists():
+                                spec = os.path.join(path, spec)
+                                break
                     else:
                         path = os.path.join(path, spec)
                         if os.path.exists(path):
+                            package_name = None
                             spec = path
                             break
                 else:
                     raise ValueError("Template not found: %s." % spec)
 
-        return cls(spec, search_path=self.search_path, **self.kwargs)
+        return cls(
+            spec,
+            search_path=self.search_path,
+            package_name=package_name,
+            **self.kwargs
+        )
 
     def bind(self, cls):
         return functools.partial(self.load, cls=cls)

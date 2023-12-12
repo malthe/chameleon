@@ -1,10 +1,10 @@
+import datetime
 import hashlib
 import inspect
 import logging
 import os
 import sys
 import tempfile
-import zipfile
 
 from .compiler import Compiler
 from .config import AUTO_RELOAD
@@ -16,6 +16,7 @@ from .exc import RenderError
 from .exc import TemplateError
 from .loader import MemoryLoader
 from .loader import ModuleLoader
+from .loader import import_package_resource
 from .nodes import Module
 from .utils import DebuggingOutputStream
 from .utils import Scope
@@ -305,13 +306,15 @@ class BaseTemplateFile(BaseTemplate):
             self,
             filename,
             auto_reload=None,
+            package_name=None,
             post_init_hook=None,
             **config):
-        if not isinstance(filename, zipfile.Path):
+        if package_name is None:
             # Normalize filename
             filename = os.path.abspath(
                 os.path.normpath(os.path.expanduser(filename))
             )
+        self.package_name = package_name
         self.filename = filename
 
         # Override reload setting only if value is provided explicitly
@@ -341,16 +344,23 @@ class BaseTemplateFile(BaseTemplate):
 
     def mtime(self):
         filename = self.filename
-        if isinstance(filename, zipfile.Path):
-            filename = filename.root.filename
+        if self.package_name is not None:
+            with import_package_resource(self.package_name) as path:
+                filename = path.joinpath(self.filename).filename.relative_to(
+                    path.root.filename
+                )
+                timetuple = path.root.getinfo(str(filename)).date_time
+                return datetime.datetime(*timetuple).timestamp()
         try:
             return os.path.getmtime(filename)
         except OSError:
             return 0
 
     def read(self):
-        if isinstance(self.filename, zipfile.Path):
-            data = self.filename.read_bytes()
+        if self.package_name is not None:
+            with import_package_resource(self.package_name) as files:
+                path = files.joinpath(self.filename)
+                data = path.read_bytes()
         else:
             with open(self.filename, "rb") as f:
                 data = f.read()

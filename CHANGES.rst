@@ -1,10 +1,10 @@
 Changes
 =======
 
-- Drop support for Python 3.7.
+- Add optional parameter ``package_name`` which allows loading a
+  template relative to a package.
 
-- The file-based template classes now also support `pathlib.Path` and
-  `zipfile.Path` as the filename.
+- Drop support for Python 3.7.
 
 - Fix regression where Chameleon would not load templates correctly on
   Windows.
