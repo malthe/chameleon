@@ -14,7 +14,7 @@ Changes
 
 - Fix names of dependencies for ``importlib_resources`` and
   ``importlib_metadata``.
-  (``#394 <https://github.com/malthe/chameleon/pull/394>`_)
+  (`#394 <https://github.com/malthe/chameleon/pull/394>`_)
 
 
 4.3.0 (2023-12-04)
