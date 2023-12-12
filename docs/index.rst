@@ -26,15 +26,13 @@ Getting the code
 ----------------
 
 You can `download <http://pypi.python.org/pypi/Chameleon#downloads>`_ the
-package from the Python package index or install the latest release
-using setuptools or the newer `distribute
-<http://packages.python.org/distribute/>`_ (required for Python 3.x)::
+package from the Python package index::
 
-  $ easy_install Chameleon
+  $ pip install Chameleon
 
 .. _no-dependencies:
 
-There are no required library dependencies on Python 2.7 and up
+There are no required library dependencies on Python 3.11 and up
 [2]_.
 
 The project is hosted in a `GitHub repository
