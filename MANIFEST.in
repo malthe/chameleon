@@ -3,6 +3,7 @@
 include *.md
 include *.rst
 include *.txt
+include *.yaml
 include buildout.cfg
 include tox.ini
 
