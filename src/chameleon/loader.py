@@ -93,7 +93,7 @@ class TemplateLoader:
                     if not os.path.isabs(path) and ':' in path:
                         package_name, path = path.split(':', 1)
                         with import_package_resource(package_name) as files:
-                            if files.joinpath(path, spec).exists():
+                            if files.joinpath(path).joinpath(spec).exists():
                                 spec = posixpath.join(path, spec)
                                 break
                     else:

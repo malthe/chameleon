@@ -346,10 +346,8 @@ class BaseTemplateFile(BaseTemplate):
         filename = self.filename
         if self.package_name is not None:
             with import_package_resource(self.package_name) as path:
-                filename = path.joinpath(self.filename).filename.relative_to(
-                    path.root.filename
-                )
-                timetuple = path.root.getinfo(filename.as_posix()).date_time
+                filename = path.joinpath(self.filename).at
+                timetuple = path.root.getinfo(filename).date_time
                 return datetime.datetime(*timetuple).timestamp()
         try:
             return os.path.getmtime(filename)
