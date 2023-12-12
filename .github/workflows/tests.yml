@@ -35,6 +35,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     name: ${{ matrix.config[1] }}
     steps:
+    - run: git config --global core.autocrlf false
     - uses: actions/checkout@v3
     - name: Set up Python
       uses: actions/setup-python@v4
