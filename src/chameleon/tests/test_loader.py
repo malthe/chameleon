@@ -105,12 +105,12 @@ class LoadTests:
 
             try:
                 self._test_pkg(pkg_name)
-
+            finally:
                 # Manually clean up archive.
                 # See https://github.com/python/cpython/issues/87319.
                 os.unlink(importer.archive)
-            finally:
-                # cleanup
+
+                # Remove imported module.
                 sys.modules.pop(pkg_name, None)
 
     def _test_pkg(self, pkg_name):
