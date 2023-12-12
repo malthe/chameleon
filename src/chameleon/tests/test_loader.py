@@ -24,7 +24,7 @@ class LoadTests:
         loader = self._makeOne(search_path=[here])
         result = self._load(loader, 'hello_world.pt')
         self.assertEqual(
-            result.spec.filename,
+            result.filename,
             os.path.join(here, 'hello_world.pt'))
 
     def test_consecutive_loads(self):
@@ -42,7 +42,7 @@ class LoadTests:
         loader = self._makeOne(search_path=[os.path.join(here, 'none'), here])
         result = self._load(loader, 'hello_world.pt')
         self.assertEqual(
-            result.spec.filename,
+            result.filename,
             os.path.join(here, 'hello_world.pt'))
 
     def test_load_abs(self):
@@ -51,7 +51,7 @@ class LoadTests:
         loader = self._makeOne()
         abs = os.path.join(here, 'hello_world.pt')
         result = self._load(loader, abs)
-        self.assertEqual(result.spec.filename, abs)
+        self.assertEqual(result.filename, abs)
 
     def test_load_egg(self):
         self._test_load_package("bdist_egg", ".egg")
@@ -61,8 +61,9 @@ class LoadTests:
 
     def _test_load_package(self, command, pkg_extension):
         with tempfile.TemporaryDirectory() as tmpdir:
-            basedir = Path(tmpdir) / 'chameleon_test_pkg'
-            pkgdir = basedir / 'src' / 'chameleon_test_pkg'
+            pkg_name = 'chameleon_test_pkg'
+            basedir = Path(tmpdir) / pkg_name
+            pkgdir = basedir / 'src' / pkg_name
             templatesdir = pkgdir / 'templates'
             templatesdir.mkdir(parents=True)
 
@@ -76,9 +77,18 @@ class LoadTests:
                 pkgdir.joinpath('__init__.py').touch()
                 with templatesdir.joinpath('test.pt').open('w') as f:
                     f.write("<html><body>${content}</body></html>")
+                with templatesdir.joinpath('macro1.pt').open('w') as f:
+                    f.write(
+                        f'<html metal:use-macro="'
+                        f'load: {pkg_name}:templates/test.pt" />'
+                    )
+                with templatesdir.joinpath('macro2.pt').open('w') as f:
+                    f.write(
+                        '<html metal:use-macro="load: test.pt" />'
+                    )
 
                 setup(
-                    name="chameleon-test-pkg",
+                    name=pkg_name,
                     version="1.0",
                     packages=find_packages('src'),
                     package_dir={'': 'src'},
@@ -90,25 +100,38 @@ class LoadTests:
 
             (package_path,) = basedir.glob('dist/*' + pkg_extension)
 
-            zipimport.zipimporter(
-                str(package_path)).load_module('chameleon_test_pkg')
+            importer = zipimport.zipimporter(str(package_path))
+            importer.load_module(pkg_name)
 
             try:
-                # we use auto_reload to trigger a call of mtime
-                loader = self._makeOne(auto_reload=True)
-                result = self._load(
-                    loader, 'chameleon_test_pkg:templates/test.pt')
-                self.assertIsNone(result._v_last_read)
-                output = result(content='foo')
-                self.assertIsNotNone(result._v_last_read)
-                old_v_last_read = result._v_last_read
-                self.assertIn("foo", output)
-                # make sure the template isn't recooked
-                output = result(content='bar')
-                self.assertEqual(result._v_last_read, old_v_last_read)
+                self._test_pkg(pkg_name)
             finally:
-                # cleanup
-                sys.modules.pop('chameleon_test_pkg', None)
+                # Manually clean up archive.
+                # See https://github.com/python/cpython/issues/87319.
+                os.unlink(importer.archive)
+
+                # Remove imported module.
+                sys.modules.pop(pkg_name, None)
+
+    def _test_pkg(self, pkg_name):
+        loader = self._makeOne(auto_reload=True)
+        # we use auto_reload to trigger a call of mtime
+        result = self._load(
+            loader, f'{pkg_name}:templates/test.pt')
+        self.assertIsNone(result._v_last_read)
+        output = result(content='foo')
+        self.assertIsNotNone(result._v_last_read)
+        old_v_last_read = result._v_last_read
+        self.assertIn("foo", output)
+        # make sure the template isn't recooked
+        output = result(content='bar')
+        self.assertEqual(result._v_last_read, old_v_last_read)
+        macro1 = self._load(loader, f'{pkg_name}:templates/macro1.pt')
+        macro1_output = macro1(content='bar')
+        self.assertEqual(output, macro1_output)
+        macro2 = self._load(loader, f'{pkg_name}:templates/macro2.pt')
+        macro2_output = macro2(content='bar')
+        self.assertEqual(output, macro2_output)
 
 
 class LoadPageTests(unittest.TestCase, LoadTests):

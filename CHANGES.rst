@@ -1,7 +1,13 @@
 Changes
 =======
 
-In next release ...
+- Add optional parameter ``package_name`` which allows loading a
+  template relative to a package.
+
+- Drop support for Python 3.7.
+
+- Fix regression where Chameleon would not load templates correctly on
+  Windows.
 
 - Fix names of dependencies for ``importlib_resources`` and
   ``importlib_metadata``.

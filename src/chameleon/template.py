@@ -1,17 +1,10 @@
+import datetime
 import hashlib
 import inspect
 import logging
 import os
 import sys
 import tempfile
-import warnings
-
-
-try:
-    # we need to try the backport first, as we rely on ``files`` added in 3.9
-    import importlib_resources
-except ImportError:
-    import importlib.resources as importlib_resources
 
 from .compiler import Compiler
 from .config import AUTO_RELOAD
@@ -23,6 +16,7 @@ from .exc import RenderError
 from .exc import TemplateError
 from .loader import MemoryLoader
 from .loader import ModuleLoader
+from .loader import import_package_resource
 from .nodes import Module
 from .utils import DebuggingOutputStream
 from .utils import Scope
@@ -95,16 +89,8 @@ class BaseTemplate:
 
     # This attribute is strictly informational in this template class
     # and is used in exception formatting. It may be set on
-    # initialization using the optional ``spec`` keyword argument.
-    spec = '<string>'
-
-    @property
-    def filename(self):
-        warnings.warn(
-            "The filename attribute is deprecated, use spec instead.",
-            DeprecationWarning,
-            stacklevel=2)
-        return self.spec
+    # initialization using the optional ``filename`` keyword argument.
+    filename = '<string>'
 
     _cooked = False
 
@@ -156,7 +142,7 @@ class BaseTemplate:
         return self.render(**kwargs)
 
     def __repr__(self):
-        return "<{} {}>".format(self.__class__.__name__, self.spec)
+        return "<{} {}>".format(self.__class__.__name__, self.filename)
 
     @property
     def keep_body(self):
@@ -267,12 +253,12 @@ class BaseTemplate:
                 source = self._compile(body, builtins)
                 if self.debug:
                     source = "# template: {}\n#\n{}".format(
-                        self.spec, source)
+                        self.filename, source)
                 if self.keep_source:
                     self.source = source
                 cooked = self.loader.build(source, filename)
             except TemplateError as exc:
-                exc.token.filename = self.spec
+                exc.token.filename = self.filename
                 raise
         elif self.keep_source:
             module = sys.modules.get(cooked.get('__name__'))
@@ -289,8 +275,9 @@ class BaseTemplate:
         sha.update(class_name)
         digest = sha.hexdigest()
 
-        if self.spec and self.spec is not BaseTemplate.spec:
-            digest = os.path.splitext(self.spec.filename)[0] + '-' + digest
+        filename = str(self.filename)
+        if filename and filename != BaseTemplate.filename:
+            digest = os.path.splitext(filename)[0] + '-' + digest
 
         return digest
 
@@ -298,25 +285,10 @@ class BaseTemplate:
         program = self.parse(body)
         module = Module("initialize", program)
         compiler = Compiler(
-            self.engine, module, self.spec, body,
+            self.engine, module, str(self.filename), body,
             builtins, strict=self.strict
         )
         return compiler.code
-
-
-class Spec(object):
-    __slots__ = ('filename', 'pname', 'spec')
-
-    def __init__(self, spec):
-        self.spec = spec
-        if ':' in spec:
-            (self.pname, self.filename) = spec.split(':', 1)
-        else:
-            self.pname = None
-            self.filename = spec
-
-    def __repr__(self):
-        return repr(self.spec)
 
 
 class BaseTemplateFile(BaseTemplate):
@@ -332,17 +304,18 @@ class BaseTemplateFile(BaseTemplate):
 
     def __init__(
             self,
-            spec,
+            filename,
             auto_reload=None,
+            package_name=None,
             post_init_hook=None,
             **config):
-        if ':' not in spec:
+        if package_name is None:
             # Normalize filename
-            spec = os.path.abspath(
-                os.path.normpath(os.path.expanduser(spec))
+            filename = os.path.abspath(
+                os.path.normpath(os.path.expanduser(filename))
             )
-
-        self.spec = Spec(spec)
+        self.package_name = package_name
+        self.filename = filename
 
         # Override reload setting only if value is provided explicitly
         if auto_reload is not None:
@@ -356,14 +329,6 @@ class BaseTemplateFile(BaseTemplate):
         if EAGER_PARSING:
             self.cook_check()
 
-    @property
-    def filename(self):
-        warnings.warn(
-            "The filename attribute is deprecated, use spec.filename instead.",
-            DeprecationWarning,
-            stacklevel=2)
-        return self.spec.filename
-
     def cook_check(self):
         if self.auto_reload:
             mtime = self.mtime()
@@ -374,24 +339,28 @@ class BaseTemplateFile(BaseTemplate):
 
         if self._cooked is False:
             body = self.read()
-            log.debug("cooking %r (%d bytes)..." % (self.spec, len(body)))
+            log.debug("cooking %r (%d bytes)..." % (self.filename, len(body)))
             self.cook(body)
 
     def mtime(self):
-        if self.spec.pname is not None:
+        filename = self.filename
+        if self.package_name is not None:
+            with import_package_resource(self.package_name) as path:
+                filename = path.joinpath(self.filename).at
+                timetuple = path.root.getinfo(filename).date_time
+                return datetime.datetime(*timetuple).timestamp()
+        try:
+            return os.path.getmtime(filename)
+        except OSError:
             return 0
-        else:
-            try:
-                return os.path.getmtime(self.spec.filename)
-            except OSError:
-                return 0
 
     def read(self):
-        if self.spec.pname is not None:
-            files = importlib_resources.files(self.spec.pname)
-            data = files.joinpath(self.spec.filename).read_bytes()
+        if self.package_name is not None:
+            with import_package_resource(self.package_name) as files:
+                path = files.joinpath(self.filename)
+                data = path.read_bytes()
         else:
-            with open(self.spec.filename, "rb") as f:
+            with open(self.filename, "rb") as f:
                 data = f.read()
 
         body, encoding, content_type = read_bytes(
@@ -404,16 +373,16 @@ class BaseTemplateFile(BaseTemplate):
         return body
 
     def _get_module_name(self, name):
-        filename = os.path.basename(self.spec.filename)
+        filename = os.path.basename(str(self.filename))
         mangled = mangle(filename)
         return "{}_{}.py".format(mangled, name)
 
-    def _get_spec(self):
-        return self.__dict__.get('spec')
+    def _get_filename(self):
+        return self.__dict__.get('filename')
 
-    def _set_spec(self, spec):
-        self.__dict__['spec'] = spec
+    def _set_filename(self, filename):
+        self.__dict__['filename'] = filename
         self._v_last_read = None
         self._cooked = False
 
-    spec = property(_get_spec, _set_spec)
+    filename = property(_get_filename, _set_filename)
