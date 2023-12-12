@@ -1,6 +1,9 @@
 Changes
 =======
 
+4.4.0 (2023-12-12)
+------------------
+
 - Add optional parameter ``package_name`` which allows loading a
   template relative to a package.
 
