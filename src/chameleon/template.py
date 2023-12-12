@@ -349,7 +349,7 @@ class BaseTemplateFile(BaseTemplate):
                 filename = path.joinpath(self.filename).filename.relative_to(
                     path.root.filename
                 )
-                timetuple = path.root.getinfo(str(filename)).date_time
+                timetuple = path.root.getinfo(filename.as_posix()).date_time
                 return datetime.datetime(*timetuple).timestamp()
         try:
             return os.path.getmtime(filename)
