@@ -2,6 +2,7 @@ import contextlib
 import functools
 import logging
 import os
+import posixpath
 import py_compile
 import shutil
 import sys
@@ -93,7 +94,7 @@ class TemplateLoader:
                         package_name, path = path.split(':', 1)
                         with import_package_resource(package_name) as files:
                             if files.joinpath(path, spec).exists():
-                                spec = os.path.join(path, spec)
+                                spec = posixpath.join(path, spec)
                                 break
                     else:
                         path = os.path.join(path, spec)
