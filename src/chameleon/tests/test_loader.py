@@ -101,31 +101,33 @@ class LoadTests:
             (package_path,) = basedir.glob('dist/*' + pkg_extension)
 
             zipimport.zipimporter(
-                str(package_path)).load_module('chameleon_test_pkg')
+                str(package_path)).load_module(pkg_name)
 
-            loader = self._makeOne(auto_reload=True)
             try:
-                # we use auto_reload to trigger a call of mtime
-                result = self._load(
-                    loader, f'{pkg_name}:templates/test.pt')
-                self.assertIsNone(result._v_last_read)
-                output = result(content='foo')
-                self.assertIsNotNone(result._v_last_read)
-                old_v_last_read = result._v_last_read
-                self.assertIn("foo", output)
-                # make sure the template isn't recooked
-                output = result(content='bar')
-                self.assertEqual(result._v_last_read, old_v_last_read)
-                macro1 = self._load(loader, f'{pkg_name}:templates/macro1.pt')
-                macro1_output = macro1(content='bar')
-                self.assertEquals(output, macro1_output)
-                macro2 = self._load(loader, f'{pkg_name}:templates/macro2.pt')
-                macro2_output = macro2(content='bar')
-                self.assertEquals(output, macro2_output)
+                self._test_pkg(pkg_name)
             finally:
                 # cleanup
-                del loader
-                sys.modules.pop('chameleon_test_pkg', None)
+                sys.modules.pop(pkg_name, None)
+
+    def _test_pkg(self, pkg_name):
+        loader = self._makeOne(auto_reload=True)
+        # we use auto_reload to trigger a call of mtime
+        result = self._load(
+            loader, f'{pkg_name}:templates/test.pt')
+        self.assertIsNone(result._v_last_read)
+        output = result(content='foo')
+        self.assertIsNotNone(result._v_last_read)
+        old_v_last_read = result._v_last_read
+        self.assertIn("foo", output)
+        # make sure the template isn't recooked
+        output = result(content='bar')
+        self.assertEqual(result._v_last_read, old_v_last_read)
+        macro1 = self._load(loader, f'{pkg_name}:templates/macro1.pt')
+        macro1_output = macro1(content='bar')
+        self.assertEqual(output, macro1_output)
+        macro2 = self._load(loader, f'{pkg_name}:templates/macro2.pt')
+        macro2_output = macro2(content='bar')
+        self.assertEqual(output, macro2_output)
 
 
 class LoadPageTests(unittest.TestCase, LoadTests):
