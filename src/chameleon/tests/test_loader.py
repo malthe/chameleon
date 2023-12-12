@@ -93,9 +93,9 @@ class LoadTests:
             zipimport.zipimporter(
                 str(package_path)).load_module('chameleon_test_pkg')
 
+            loader = self._makeOne(auto_reload=True)
             try:
                 # we use auto_reload to trigger a call of mtime
-                loader = self._makeOne(auto_reload=True)
                 result = self._load(
                     loader, 'chameleon_test_pkg:templates/test.pt')
                 self.assertIsNone(result._v_last_read)
@@ -108,6 +108,7 @@ class LoadTests:
                 self.assertEqual(result._v_last_read, old_v_last_read)
             finally:
                 # cleanup
+                del loader
                 sys.modules.pop('chameleon_test_pkg', None)
 
 
