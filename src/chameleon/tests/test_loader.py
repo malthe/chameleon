@@ -5,9 +5,6 @@ import unittest
 import zipimport
 from pathlib import Path
 
-from setuptools import find_packages
-from setuptools import setup
-
 
 class LoadTests:
     def _makeOne(self, search_path=None, **kwargs):
@@ -86,6 +83,9 @@ class LoadTests:
                     f.write(
                         '<html metal:use-macro="load: test.pt" />'
                     )
+
+                from setuptools import find_packages
+                from setuptools import setup
 
                 setup(
                     name=pkg_name,
