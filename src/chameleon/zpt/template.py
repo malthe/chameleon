@@ -3,23 +3,23 @@ from hashlib import sha256
 from os.path import dirname
 from zipfile import Path
 
-from ..astutil import Symbol
-from ..compiler import ExpressionEngine
-from ..i18n import simple_translate
-from ..loader import TemplateLoader
-from ..tal import RepeatDict
-from ..tales import DEFAULT_MARKER
-from ..tales import ExistsExpr
-from ..tales import ExpressionParser
-from ..tales import ImportExpr
-from ..tales import NotExpr
-from ..tales import ProxyExpr
-from ..tales import PythonExpr
-from ..tales import StringExpr
-from ..tales import StructureExpr
-from ..template import BaseTemplate
-from ..template import BaseTemplateFile
-from .program import MacroProgram
+from chameleon.astutil import Symbol
+from chameleon.compiler import ExpressionEngine
+from chameleon.i18n import simple_translate
+from chameleon.loader import TemplateLoader
+from chameleon.tal import RepeatDict
+from chameleon.tales import DEFAULT_MARKER
+from chameleon.tales import ExistsExpr
+from chameleon.tales import ExpressionParser
+from chameleon.tales import ImportExpr
+from chameleon.tales import NotExpr
+from chameleon.tales import ProxyExpr
+from chameleon.tales import PythonExpr
+from chameleon.tales import StringExpr
+from chameleon.tales import StructureExpr
+from chameleon.template import BaseTemplate
+from chameleon.template import BaseTemplateFile
+from chameleon.zpt.program import MacroProgram
 
 
 try:

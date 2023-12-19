@@ -3,14 +3,14 @@ import builtins
 import textwrap
 import types
 
-from .astutil import ASTCodeGenerator
-from .astutil import Builtin
-from .astutil import Symbol
-from .astutil import load
-from .astutil import node_annotations
-from .astutil import parse
-from .astutil import store
-from .exc import CompilationError
+from chameleon.astutil import ASTCodeGenerator
+from chameleon.astutil import Builtin
+from chameleon.astutil import Symbol
+from chameleon.astutil import load
+from chameleon.astutil import node_annotations
+from chameleon.astutil import parse
+from chameleon.astutil import store
+from chameleon.exc import CompilationError
 
 
 reverse_builtin_map = {}

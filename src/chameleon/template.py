@@ -6,28 +6,28 @@ import os
 import sys
 import tempfile
 
-from .compiler import Compiler
-from .config import AUTO_RELOAD
-from .config import CACHE_DIRECTORY
-from .config import DEBUG_MODE
-from .config import EAGER_PARSING
-from .exc import ExceptionFormatter
-from .exc import RenderError
-from .exc import TemplateError
-from .loader import MemoryLoader
-from .loader import ModuleLoader
-from .loader import import_package_resource
-from .nodes import Module
-from .utils import DebuggingOutputStream
-from .utils import Scope
-from .utils import create_formatted_exception
-from .utils import detect_encoding
-from .utils import join
-from .utils import mangle
-from .utils import raise_with_traceback
-from .utils import read_bytes
-from .utils import read_xml_encoding
-from .utils import value_repr
+from chameleon.compiler import Compiler
+from chameleon.config import AUTO_RELOAD
+from chameleon.config import CACHE_DIRECTORY
+from chameleon.config import DEBUG_MODE
+from chameleon.config import EAGER_PARSING
+from chameleon.exc import ExceptionFormatter
+from chameleon.exc import RenderError
+from chameleon.exc import TemplateError
+from chameleon.loader import MemoryLoader
+from chameleon.loader import ModuleLoader
+from chameleon.loader import import_package_resource
+from chameleon.nodes import Module
+from chameleon.utils import DebuggingOutputStream
+from chameleon.utils import Scope
+from chameleon.utils import create_formatted_exception
+from chameleon.utils import detect_encoding
+from chameleon.utils import join
+from chameleon.utils import mangle
+from chameleon.utils import raise_with_traceback
+from chameleon.utils import read_bytes
+from chameleon.utils import read_xml_encoding
+from chameleon.utils import value_repr
 
 
 try:

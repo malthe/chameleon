@@ -3,11 +3,11 @@ try:
 except NameError:
     long = int
 
-from .namespaces import XML_NS
-from .namespaces import XMLNS_NS
-from .parser import ElementParser
-from .tokenize import iter_text
-from .tokenize import iter_xml
+from chameleon.namespaces import XML_NS
+from chameleon.namespaces import XMLNS_NS
+from chameleon.parser import ElementParser
+from chameleon.tokenize import iter_text
+from chameleon.tokenize import iter_xml
 
 
 class ElementProgram:
