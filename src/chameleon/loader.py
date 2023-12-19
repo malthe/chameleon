@@ -18,7 +18,7 @@ try:
 except ImportError:
     import importlib.resources as importlib_resources
 
-from .utils import encode_string
+from chameleon.utils import encode_string
 
 
 lock = RLock()

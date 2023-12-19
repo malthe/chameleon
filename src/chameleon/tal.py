@@ -15,11 +15,11 @@
 import copy
 import re
 
-from .exc import LanguageError
-from .namespaces import XMLNS_NS
-from .parser import groups
-from .utils import descriptorint
-from .utils import descriptorstr
+from chameleon.exc import LanguageError
+from chameleon.namespaces import XMLNS_NS
+from chameleon.parser import groups
+from chameleon.utils import descriptorint
+from chameleon.utils import descriptorstr
 
 
 try:

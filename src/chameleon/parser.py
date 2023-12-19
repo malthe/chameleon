@@ -2,9 +2,9 @@ import logging
 import re
 from collections import OrderedDict
 
-from .exc import ParseError
-from .namespaces import XML_NS
-from .tokenize import Token
+from chameleon.exc import ParseError
+from chameleon.namespaces import XML_NS
+from chameleon.tokenize import Token
 
 
 match_double_hyphen = re.compile(r'--(?!(-)*>)')

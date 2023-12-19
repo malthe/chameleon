@@ -357,7 +357,7 @@ class Benchmarks(unittest.TestCase):
 
     @staticmethod
     def _chameleon(body, **kwargs):
-        from .zpt.template import PageTemplate
+        from chameleon.zpt.template import PageTemplate
         return PageTemplate(body, **kwargs)
 
     @staticmethod

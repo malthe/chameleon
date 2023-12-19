@@ -1,4 +1,4 @@
-from .astutil import Node
+from chameleon.astutil import Node
 
 
 class UseExternalMacro(Node):

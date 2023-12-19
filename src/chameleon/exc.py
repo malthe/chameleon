@@ -1,9 +1,9 @@
 import traceback
 
-from .config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
-from .tokenize import Token
-from .utils import create_formatted_exception
-from .utils import safe_native
+from chameleon.config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
+from chameleon.tokenize import Token
+from chameleon.utils import create_formatted_exception
+from chameleon.utils import safe_native
 
 
 def compute_source_marker(line, column, expression, size):

@@ -3,23 +3,23 @@ import re
 import sys
 from ast import Try
 
-from .astutil import Builtin
-from .astutil import ItemLookupOnAttributeErrorVisitor
-from .astutil import Symbol
-from .astutil import load
-from .astutil import parse
-from .astutil import store
-from .codegen import TemplateCodeGenerator
-from .codegen import reverse_builtin_map
-from .codegen import template
-from .compiler import Interpolator
-from .exc import ExpressionError
-from .parser import substitute
-from .tokenize import Token
-from .utils import ImportableMarker
-from .utils import Markup
-from .utils import lookup_attr
-from .utils import resolve_dotted
+from chameleon.astutil import Builtin
+from chameleon.astutil import ItemLookupOnAttributeErrorVisitor
+from chameleon.astutil import Symbol
+from chameleon.astutil import load
+from chameleon.astutil import parse
+from chameleon.astutil import store
+from chameleon.codegen import TemplateCodeGenerator
+from chameleon.codegen import reverse_builtin_map
+from chameleon.codegen import template
+from chameleon.compiler import Interpolator
+from chameleon.exc import ExpressionError
+from chameleon.parser import substitute
+from chameleon.tokenize import Token
+from chameleon.utils import ImportableMarker
+from chameleon.utils import Markup
+from chameleon.utils import lookup_attr
+from chameleon.utils import resolve_dotted
 
 
 DEFAULT_MARKER = ImportableMarker(__name__, "DEFAULT")

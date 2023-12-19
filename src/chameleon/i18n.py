@@ -14,7 +14,7 @@
 
 import re
 
-from .exc import CompilationError
+from chameleon.exc import CompilationError
 
 
 NAME_RE = r"[a-zA-Z][-a-zA-Z0-9_]*"

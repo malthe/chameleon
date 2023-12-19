@@ -10,25 +10,25 @@ import ast
 from copy import copy
 from functools import partial
 
-from .. import i18n
-from .. import metal
-from .. import nodes
-from .. import tal
-from ..astutil import Static
-from ..astutil import Symbol
-from ..astutil import parse
-from ..exc import CompilationError
-from ..exc import LanguageError
-from ..exc import ParseError
-from ..namespaces import I18N_NS as I18N
-from ..namespaces import META_NS as META
-from ..namespaces import METAL_NS as METAL
-from ..namespaces import TAL_NS as TAL
-from ..namespaces import XML_NS
-from ..namespaces import XMLNS_NS
-from ..program import ElementProgram
-from ..utils import ImportableMarker
-from ..utils import decode_htmlentities
+from chameleon import i18n
+from chameleon import metal
+from chameleon import nodes
+from chameleon import tal
+from chameleon.astutil import Static
+from chameleon.astutil import Symbol
+from chameleon.astutil import parse
+from chameleon.exc import CompilationError
+from chameleon.exc import LanguageError
+from chameleon.exc import ParseError
+from chameleon.namespaces import I18N_NS as I18N
+from chameleon.namespaces import META_NS as META
+from chameleon.namespaces import METAL_NS as METAL
+from chameleon.namespaces import TAL_NS as TAL
+from chameleon.namespaces import XML_NS
+from chameleon.namespaces import XMLNS_NS
+from chameleon.program import ElementProgram
+from chameleon.utils import ImportableMarker
+from chameleon.utils import decode_htmlentities
 
 
 try:
