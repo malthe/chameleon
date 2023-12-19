@@ -30,7 +30,7 @@ DEBUG_MODE = DEBUG_MODE.lower() in TRUE
 # If a cache directory is specified, template source code will be
 # persisted on disk and reloaded between sessions
 path = environment.pop('cache', None)
-if path is not None:
+if path is not None:  # pragma: no cover
     CACHE_DIRECTORY = os.path.abspath(path)
     if not os.path.exists(CACHE_DIRECTORY):
         raise ValueError(
