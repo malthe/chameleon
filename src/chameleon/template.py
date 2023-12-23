@@ -3,6 +3,7 @@ import hashlib
 import inspect
 import logging
 import os
+import pathlib
 import sys
 import tempfile
 
@@ -341,12 +342,20 @@ class BaseTemplateFile(BaseTemplate):
             body = self.read()
             log.debug("cooking %r (%d bytes)..." % (self.filename, len(body)))
             self.cook(body)
+            return True
+
+        return False
 
     def mtime(self):
         filename = self.filename
         if self.package_name is not None:
             with import_package_resource(self.package_name) as path:
-                filename = path.joinpath(self.filename).at
+                joined = path.joinpath(filename)
+                if isinstance(joined, pathlib.Path):
+                    return joined.stat().st_mtime
+
+                # Assume this is a zip-like path object:
+                filename = joined.at
                 timetuple = path.root.getinfo(filename).date_time
                 return datetime.datetime(*timetuple).timestamp()
         try:

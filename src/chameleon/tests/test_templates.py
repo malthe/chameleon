@@ -129,12 +129,12 @@ class RenderTestCase(TestCase):
 
 class ZopePageTemplatesTest(RenderTestCase):
     @property
-    def from_string(body):
+    def from_string(self):
         from chameleon.zpt.template import PageTemplate
         return partial(PageTemplate, keep_source=True)
 
     @property
-    def from_file(body):
+    def from_file(self):
         from chameleon.zpt.template import PageTemplateFile
         return partial(PageTemplateFile, keep_source=True)
 
@@ -334,6 +334,15 @@ class ZopePageTemplatesTest(RenderTestCase):
             self.assertTrue(native in formatted)
         else:
             self.fail("expected error")
+
+    def test_package_name_cook_check(self):
+        template = self.from_file(
+            "__init__.py",
+            package_name="setuptools",
+            auto_reload=True
+        )
+        assert template.cook_check()
+        assert not template.cook_check()
 
     def test_custom_encoding_for_str_or_bytes_in_content(self):
         string = '<div>Тест${text}</div>'
