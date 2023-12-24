@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Remove `zope.interface` 
+
 - Fix an issue where `auto_reload` is enabled and a file is loaded
   from a package that wasn't zip-compressed.
   (`#402 <https://github.com/malthe/chameleon/issues/402>`_)
