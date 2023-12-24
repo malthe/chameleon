@@ -22,15 +22,6 @@ from chameleon.utils import descriptorint
 from chameleon.utils import descriptorstr
 
 
-try:
-    # optional library: `zope.interface`
-    import zope.interface
-
-    from chameleon import interfaces
-except ImportError:
-    interfaces = None
-
-
 NAME = r"[a-zA-Z_][-a-zA-Z0-9_]*"
 DEFINE_RE = re.compile(
     r"(?s)\s*(?:(global|local)\s+)?" +
@@ -414,10 +405,6 @@ class RepeatItem:
         return self.Roman().lower()
 
 
-if interfaces is not None:
-    zope.interface.classImplements(RepeatItem, interfaces.ITALESIterator)
-
-
 class RepeatDict:
     """Repeat dictionary implementation.
 
@@ -433,14 +420,6 @@ class RepeatDict:
     <chameleon.tal.RepeatItem object at ...>
 
     >>> getattr(repeat, 'missing_key', None) is None
-    True
-
-    >>> try:
-    ...     from chameleon import interfaces
-    ...     interfaces.ITALESIterator(repeat,None) is None
-    ... except ImportError:
-    ...     True
-    ...
     True
     """
 
@@ -483,8 +462,3 @@ class ErrorInfo:
             self.value = None
         self.lineno = position[0]
         self.offset = position[1]
-
-
-if interfaces is not None:
-    zope.interface.classImplements(
-        ErrorInfo, interfaces.ITALExpressionErrorInfo)
