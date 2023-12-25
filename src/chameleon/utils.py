@@ -2,25 +2,33 @@ import codecs
 import logging
 import os
 import re
+import typing as t
 from html import entities as htmlentitydefs
+
+
+if t.TYPE_CHECKING:
+    from types import TracebackType
 
 
 log = logging.getLogger('chameleon.utils')
 marker = object()
 
 
-def safe_native(s, encoding='utf-8'):
+def safe_native(s: t.Union[str, bytes], encoding: str = 'utf-8') -> str:
     if not isinstance(s, str):
         s = bytes.decode(s, encoding, 'replace')
     return s
 
 
-def raise_with_traceback(exc, tb):
+def raise_with_traceback(
+    exc: BaseException,
+    tb: t.Optional['TracebackType']
+) -> t.NoReturn:
     exc.__traceback__ = tb
     raise exc
 
 
-def encode_string(s):
+def encode_string(s: str) -> bytes:
     return bytes(s, 'utf-8')
 
 
@@ -39,7 +47,7 @@ xml_prefixes = (
 )
 
 
-def _has_encoding(encoding):
+def _has_encoding(encoding: str) -> bool:
     try:
         "".encode(encoding)
     except LookupError:
@@ -69,11 +77,15 @@ RE_ENCODING = re.compile(
 )
 
 
-def read_encoded(data):
+def read_encoded(data: bytes) -> str:
     return read_bytes(data, "utf-8")[0]
 
 
-def read_bytes(body, default_encoding):
+def read_bytes(
+    body: bytes,
+    default_encoding: str
+) -> t.Tuple[str, str, t.Optional[str]]:
+
     for bom, prefix, encoding in _xml_prefixes:
         if body.startswith(bom):
             document = body.decode(encoding)
@@ -83,6 +95,7 @@ def read_bytes(body, default_encoding):
         if prefix != encode_string('<?xml') and body.startswith(prefix):
             return body.decode(encoding), encoding, "text/xml"
 
+    content_type: t.Optional[str]
     if body.startswith(_xml_decl):
         content_type = "text/xml"
         encoding = read_xml_encoding(body) or default_encoding
@@ -92,25 +105,31 @@ def read_bytes(body, default_encoding):
     return body.decode(encoding), encoding, content_type
 
 
-def detect_encoding(body, default_encoding):
+def detect_encoding(
+    body: t.Union[str, bytes],
+    default_encoding: str
+) -> t.Tuple[t.Optional[str], str]:
+
     if not isinstance(body, str):
         body = body.decode('ascii', 'ignore')
 
     match = RE_META.search(body)
     if match is not None:
-        return match.groups()
+        # this can be treated like tuple[str, str] since we unpack it
+        return match.groups()  # type: ignore[return-value]
 
     return None, default_encoding
 
 
-def read_xml_encoding(body):
+def read_xml_encoding(body: bytes) -> t.Optional[str]:
     if body.startswith(b'<?xml'):
         match = RE_ENCODING.search(body)
         if match is not None:
             return match.group('encoding').decode('ascii')
+    return None
 
 
-def mangle(filename):
+def mangle(filename: str) -> str:
     """Mangles template filename into top-level Python module name.
 
     >>> mangle('hello_world.pt')
@@ -181,7 +200,7 @@ def create_formatted_exception(exc, cls, formatter, base=Exception):
 _concat = "".join
 
 
-def join(stream):
+def join(stream: t.Iterable[str]) -> str:
     """Concatenate stream.
 
     >>> print(join(('Hello', ' ', 'world')))
@@ -294,7 +313,7 @@ class callableint(int):
 class descriptorstr:
     __slots__ = "function", "__name__"
 
-    def __init__(self, function):
+    def __init__(self, function) -> None:
         self.function = function
         self.__name__ = function.__name__
 
@@ -305,7 +324,7 @@ class descriptorstr:
 class descriptorint:
     __slots__ = "function", "__name__"
 
-    def __init__(self, function):
+    def __init__(self, function) -> None:
         self.function = function
         self.__name__ = function.__name__
 
@@ -313,7 +332,15 @@ class descriptorint:
         return callableint(self.function(context))
 
 
-class DebuggingOutputStream(list):
+if t.TYPE_CHECKING:
+    # We can only subscript list at type checking time in Python 3.8
+    # so until we stop supporting that version we need to do this
+    _BaseStream = t.List[str]
+else:
+    _BaseStream = list
+
+
+class DebuggingOutputStream(_BaseStream):
     def append(self, value):
         if not isinstance(value, str):
             raise TypeError(value)
@@ -363,7 +390,7 @@ class Scope(dict):
             raise KeyError(key)
         return value
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         return self.get(key, marker) is not marker
 
     def __iter__(self):
@@ -398,7 +425,7 @@ class Scope(dict):
         inst._root = root
         return inst
 
-    def set_global(self, name, value):
+    def set_global(self, name, value) -> None:
         root = getattr(self, "_root", self)
         root[name] = value
 
@@ -413,7 +440,7 @@ class Scope(dict):
 
 
 class ListDictProxy:
-    def __init__(self, _l):
+    def __init__(self, _l) -> None:
         self._l = _l
 
     def get(self, key):
@@ -430,20 +457,20 @@ class Markup(str):
     def __html__(self):
         return str(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "s'%s'" % self
 
 
 class ImportableMarker:
-    def __init__(self, module, name):
+    def __init__(self, module, name) -> None:
         self.__module__ = module
         self.name = name
 
     @property
-    def __name__(self):
+    def __name__(self) -> str:
         return "%s_MARKER" % self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<%s>' % self.name
 
 

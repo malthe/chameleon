@@ -11,6 +11,7 @@
 .eggs/
 .installed.cfg
 .mr.developer.cfg
+.mypy_cache/
 .tox/
 .vscode/
 __pycache__/

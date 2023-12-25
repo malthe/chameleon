@@ -269,7 +269,7 @@ class PythonExpr(TalesExpr):
 class ImportExpr:
     re_dotted = re.compile(r'^[A-Za-z.]+$')
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -294,7 +294,7 @@ class NotExpr:
     False
     """
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -314,7 +314,7 @@ class StructureExpr:
 
     wrapper_class = Symbol(Markup)
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -323,7 +323,7 @@ class StructureExpr:
         return body + template(
             "target = wrapper(target)",
             target=target,
-            wrapper=self.wrapper_class
+            wrapper=self.wrapper_class,
         )
 
 
@@ -336,7 +336,7 @@ class IdentityExpr:
     42
     """
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -456,7 +456,7 @@ class StringExpr:
     'There are 11 characters in \"hello world\"'
     """
 
-    def __init__(self, expression, braces_required=False):
+    def __init__(self, expression, braces_required: bool = False) -> None:
         # The code relies on the expression being a token string
         if not isinstance(expression, Token):
             expression = Token(expression, 0)
@@ -470,7 +470,7 @@ class StringExpr:
 class ProxyExpr(TalesExpr):
     braces_required = False
 
-    def __init__(self, name, expression, ignore_prefix=True):
+    def __init__(self, name, expression, ignore_prefix: bool = True) -> None:
         super().__init__(expression)
         self.ignore_prefix = ignore_prefix
         self.name = name
@@ -509,7 +509,7 @@ class ExistsExpr:
 
     exceptions = AttributeError, LookupError, TypeError, NameError
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -533,7 +533,7 @@ class ExistsExpr:
 
 
 class ExpressionParser:
-    def __init__(self, factories, default):
+    def __init__(self, factories, default) -> None:
         self.factories = factories
         self.default = default
 
@@ -558,7 +558,7 @@ class ExpressionParser:
 class SimpleEngine:
     expression = PythonExpr
 
-    def __init__(self, expression=None):
+    def __init__(self, expression=None) -> None:
         if expression is not None:
             self.expression = expression
 
@@ -568,7 +568,7 @@ class SimpleEngine:
 
 
 class SimpleCompiler:
-    def __init__(self, compiler, engine):
+    def __init__(self, compiler, engine) -> None:
         self.compiler = compiler
         self.engine = engine
 

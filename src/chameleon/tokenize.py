@@ -5,19 +5,18 @@
 # modified to capture all non-overlapping parts of tokens
 
 import re
+import typing as t
 
 
-try:
-    str = unicode
-except NameError:
-    pass
+if t.TYPE_CHECKING:
+    import typing_extensions as te
 
 
 class recollector:
     def __init__(self):
         self.res = {}
 
-    def add(self, name, reg):
+    def add(self, name, reg) -> None:
         re.compile(reg)  # check that it is valid
         self.res[name] = reg % self.res
 
@@ -82,63 +81,89 @@ def iter_text(body, filename=None):
 class Token(str):
     __slots__ = "pos", "source", "filename"
 
-    def __new__(cls, string, pos=0, source=None, filename=None):
+    pos: int
+    source: t.Optional[str]
+    filename: str
+
+    def __new__(
+        cls,
+        string: str,
+        pos: int = 0,
+        source: t.Optional[str] = None,
+        filename: t.Optional[str] = None
+    ) -> 'te.Self':
+
         inst = str.__new__(cls, string)
         inst.pos = pos
         inst.source = source
+        # convert pathlib.Path to a str, since we rely on this
+        # being a string downstream
         inst.filename = filename or ""
         return inst
 
-    def __getslice__(self, i, j):
-        slice = str.__getslice__(self, i, j)
-        return Token(slice, self.pos + i, self.source, self.filename)
+    @t.overload  # type: ignore[override]
+    def __getitem__(self, index: slice) -> 'Token': ...
 
-    def __getitem__(self, index):
+    @t.overload
+    def __getitem__(self, index: t.SupportsIndex) -> str: ...
+
+    def __getitem__(self, index: t.Union[t.SupportsIndex, slice]) -> str:
         s = str.__getitem__(self, index)
         if isinstance(index, slice):
             return Token(
                 s, self.pos + (index.start or 0), self.source, self.filename)
         return s
 
-    def __add__(self, other):
+    def __add__(self, other: t.Optional[str]) -> 'Token':
         if other is None:
             return self
 
         return Token(
             str.__add__(self, other), self.pos, self.source, self.filename)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return str.__eq__(self, other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return str.__hash__(self)
 
-    def replace(self, *args):
-        s = str.replace(self, *args)
+    def replace(
+        self,
+        old: str,
+        new: str,
+        count: t.SupportsIndex = -1,
+        /
+    ) -> 'Token':
+        s = str.replace(self, old, new, count)
         return Token(s, self.pos, self.source, self.filename)
 
-    def split(self, *args):
-        l_ = str.split(self, *args)
+    def split(  # type: ignore[override]
+        self,
+        sep: t.Optional[str] = None,
+        maxsplit: t.SupportsIndex = -1
+    ) -> t.List['Token']:
+
+        l_ = str.split(self, sep, maxsplit)
         pos = self.pos
         for i, s in enumerate(l_):
             l_[i] = Token(s, pos, self.source, self.filename)
             pos += len(s)
-        return l_
+        return t.cast('t.List[Token]', l_)
 
-    def strip(self, *args):
-        return self.lstrip(*args).rstrip(*args)
+    def strip(self, chars: t.Optional[str] = None, /) -> 'Token':
+        return self.lstrip(chars).rstrip(chars)
 
-    def lstrip(self, *args):
-        s = str.lstrip(self, *args)
+    def lstrip(self, chars: t.Optional[str] = None, /) -> 'Token':
+        s = str.lstrip(self, chars)
         return Token(
             s, self.pos + len(self) - len(s), self.source, self.filename)
 
-    def rstrip(self, *args):
-        s = str.rstrip(self, *args)
+    def rstrip(self, chars: t.Optional[str] = None, /) -> 'Token':
+        s = str.rstrip(self, chars)
         return Token(s, self.pos, self.source, self.filename)
 
     @property
-    def location(self):
+    def location(self) -> t.Tuple[int, int]:
         if self.source is None:
             return 0, self.pos
 

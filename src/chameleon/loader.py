@@ -7,18 +7,30 @@ import py_compile
 import shutil
 import sys
 import tempfile
+import typing as t
 import warnings
 from importlib.machinery import SourceFileLoader
 from threading import RLock
 
 
-try:
-    # we need to try the backport first, as we rely on ``files`` added in 3.9
-    import importlib_resources
-except ImportError:
+if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
+else:
+    import importlib_resources
 
 from chameleon.utils import encode_string
+
+
+if t.TYPE_CHECKING:
+    from pathlib import Path
+
+    from .template import BaseTemplate
+
+    _F = t.TypeVar('_F', bound=t.Callable[..., t.Any])
+    _TemplateT = t.TypeVar('_TemplateT', bound='BaseTemplate')
+
+    class _SupportsRmtree(t.Protocol):
+        def rmtree(self, path: str, /) -> object: ...
 
 
 lock = RLock()
@@ -29,20 +41,23 @@ del lock
 log = logging.getLogger('chameleon.loader')
 
 
-def cache(func):
-    def load(self, *args, **kwargs):
+def cache(func: '_F') -> '_F':
+    def load(self: t.Any, *args: t.Any, **kwargs: t.Any) -> t.Any:
         template = self.registry.get(args)
         if template is None:
             self.registry[args] = template = func(self, *args, **kwargs)
         return template
-    return load
+    return t.cast('_F', load)
 
 
 @contextlib.contextmanager
-def import_package_resource(name):
-    path = importlib_resources.files(name)
+def import_package_resource(name: str) -> t.Iterator['Path']:
+    # FIXME: we should restrict ourselves to the Traversable protocol
+    #        but for right now we assume that we always get a simple
+    #        filesystem resource loader which returns pathlib.Path objects
+    path: 'Path' = importlib_resources.files(name)  # type: ignore[assignment]
     yield path
-    if hasattr(path.root, "close"):
+    if hasattr(path.root, 'close'):
         path.root.close()
 
 
@@ -60,9 +75,16 @@ class TemplateLoader:
     constructor.
     """
 
-    default_extension = None
+    default_extension: t.Optional[str] = None
+    registry: t.Dict[t.Tuple[t.Any, ...], t.Any]
 
-    def __init__(self, search_path=None, default_extension=None, **kwargs):
+    def __init__(
+        self,
+        search_path: t.Union[t.Sequence[str], str, None] = None,
+        default_extension: t.Optional[str] = None,
+        **kwargs: t.Any
+    ) -> None:
+
         if search_path is None:
             search_path = []
         if isinstance(search_path, str):
@@ -74,7 +96,12 @@ class TemplateLoader:
         self.kwargs = kwargs
 
     @cache
-    def load(self, spec, cls=None):
+    def load(
+        self,
+        spec: str,
+        cls: t.Type['_TemplateT'] = None  # type: ignore[assignment]
+    ) -> '_TemplateT':
+
         if cls is None:
             raise ValueError("Unbound template loader.")
 
@@ -112,37 +139,40 @@ class TemplateLoader:
             **self.kwargs
         )
 
-    def bind(self, cls):
+    def bind(
+        self,
+        cls: t.Type['_TemplateT']
+    ) -> t.Callable[[str], '_TemplateT']:
         return functools.partial(self.load, cls=cls)
 
 
 class MemoryLoader:
-    def build(self, source, filename):
+    def build(self, source: str, filename: str) -> t.Dict[str, t.Any]:
         code = compile(source, filename, 'exec')
-        env = {}
+        env: t.Dict[str, t.Any] = {}
         exec(code, env)
         return env
 
-    def get(self, name):
+    def get(self, name: str) -> None:
         return None
 
 
 class ModuleLoader:
-    def __init__(self, path, remove=False):
+    def __init__(self, path: str, remove: bool = False) -> None:
         self.path = path
         self.remove = remove
 
-    def __del__(self, shutil=shutil):
+    def __del__(self, shutil: '_SupportsRmtree' = shutil) -> None:
         if not self.remove:
             return
         try:
             shutil.rmtree(self.path)
         except BaseException:
             warnings.warn(
-                "Could not clean up temporary file path: %s" %
-                (self.path,))
+                "Could not clean up temporary file path: %s" % (self.path,)
+            )
 
-    def get(self, filename):
+    def get(self, filename: str) -> t.Optional[t.Dict[str, t.Any]]:
         path = os.path.join(self.path, filename)
         if os.path.exists(path):
             log.debug("loading module from cache: %s." % filename)
@@ -150,8 +180,9 @@ class ModuleLoader:
             return self._load(base, path)
         else:
             log.debug('cache miss: %s' % filename)
+            return None
 
-    def build(self, source, filename):
+    def build(self, source: str, filename: str) -> t.Dict[str, t.Any]:
         acquire_lock()
         try:
             d = self.get(filename)
@@ -186,7 +217,7 @@ class ModuleLoader:
         finally:
             release_lock()
 
-    def _load(self, base, filename):
+    def _load(self, base: str, filename: str) -> t.Dict[str, t.Any]:
         acquire_lock()
         try:
             module = sys.modules.get(base)

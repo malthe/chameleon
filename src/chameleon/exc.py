@@ -1,9 +1,14 @@
 import traceback
+import typing as t
 
 from chameleon.config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
 from chameleon.tokenize import Token
 from chameleon.utils import create_formatted_exception
 from chameleon.utils import safe_native
+
+if t.TYPE_CHECKING:
+    from _typeshed import StrPath
+    import typing_extensions as te
 
 
 def compute_source_marker(line, column, expression, size):
@@ -140,18 +145,20 @@ class TemplateError(Exception):
 
     """
 
-    def __init__(self, msg, token):
+    args: t.Tuple[str, Token]
+
+    def __init__(self, msg: str, token: Token) -> None:
         if not isinstance(token, Token):
             token = Token(token, 0)
 
         Exception.__init__(self, msg, token)
 
-    def __copy__(self):
+    def __copy__(self) -> "te.Self":
         inst = Exception.__new__(type(self))
         inst.args = self.args
         return inst
 
-    def __str__(self):
+    def __str__(self) -> str:
         text = "%s\n\n" % self.args[0]
         text += " - String:     \"%s\"" % safe_native(self.token)
 
@@ -159,15 +166,15 @@ class TemplateError(Exception):
             text += "\n"
             text += " - Filename:   %s" % self.filename
 
-        line, column = self.location
+        lineno, column = self.location
         text += "\n"
-        text += " - Location:   (line %d: col %d)" % (line, column)
+        text += " - Location:   (line %d: col %d)" % (lineno, column)
 
-        if line and column:
+        if lineno and column:
             if self.token.source:
                 lines = iter_source_marker_lines(
                     self.token.source.splitlines(),
-                    self.token, line, column
+                    self.token, lineno, column
                 )
             elif self.filename and not self.filename.startswith('<'):
                 try:
@@ -176,7 +183,7 @@ class TemplateError(Exception):
                     pass
                 else:
                     iter_source_marker_lines(
-                        iter(f), self.token, line, column
+                        iter(f), self.token, lineno, column
                     )
                     try:
                         lines = list(lines)
@@ -191,7 +198,7 @@ class TemplateError(Exception):
 
         return text
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             return "{}('{}', '{}')".format(
                 self.__class__.__name__, self.args[0], safe_native(self.token)
@@ -200,19 +207,19 @@ class TemplateError(Exception):
             return object.__repr__(self)
 
     @property
-    def token(self):
+    def token(self) -> Token:
         return self.args[1]
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         return self.token.filename
 
     @property
-    def location(self):
+    def location(self) -> t.Tuple[int, int]:
         return self.token.location
 
     @property
-    def offset(self):
+    def offset(self) -> int:
         return getattr(self.token, "pos", 0)
 
 
@@ -253,7 +260,7 @@ class ExpressionError(LanguageError):
 
 
 class ExceptionFormatter:
-    def __init__(self, errors, econtext, rcontext, value_repr):
+    def __init__(self, errors, econtext, rcontext, value_repr) -> None:
         kwargs = rcontext.copy()
         kwargs.update(econtext)
 
