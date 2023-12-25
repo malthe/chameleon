@@ -6,8 +6,8 @@ from chameleon.tokenize import Token
 from chameleon.utils import create_formatted_exception
 from chameleon.utils import safe_native
 
+
 if t.TYPE_CHECKING:
-    from _typeshed import StrPath
     import typing_extensions as te
 
 

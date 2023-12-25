@@ -33,8 +33,9 @@ from chameleon.utils import value_repr
 
 
 if t.TYPE_CHECKING:
-    from _typeshed import StrPath
     from abc import abstractmethod
+
+    from _typeshed import StrPath
 
     from chameleon.compiler import ExpressionEngine
 

@@ -25,13 +25,13 @@ from chameleon.zpt.program import MacroProgram
 
 
 if t.TYPE_CHECKING:
-    from _typeshed import StrPath
     import typing_extensions as te
+    from _typeshed import StrPath
 
+    from chameleon.types import AnyTranslationFunction
     from chameleon.types import ExpressionType
     from chameleon.types import PageTemplateConfig
     from chameleon.types import Tokenizer
-    from chameleon.types import AnyTranslationFunction
 
 
 BOOLEAN_HTML_ATTRIBUTES = [

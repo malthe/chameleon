@@ -1,5 +1,6 @@
 import typing as t
 
+
 if t.TYPE_CHECKING:
     from chameleon.tokenize import Token
 
