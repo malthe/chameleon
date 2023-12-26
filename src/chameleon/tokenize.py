@@ -4,12 +4,17 @@
 #
 # modified to capture all non-overlapping parts of tokens
 
+from __future__ import annotations
+
 import re
-import typing as t
+from typing import TYPE_CHECKING
+from typing import SupportsIndex
+from typing import cast
+from typing import overload
 
 
-if t.TYPE_CHECKING:
-    import typing_extensions as te
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class recollector:
@@ -82,16 +87,16 @@ class Token(str):
     __slots__ = "pos", "source", "filename"
 
     pos: int
-    source: t.Optional[str]
+    source: str | None
     filename: str
 
     def __new__(
         cls,
         string: str,
         pos: int = 0,
-        source: t.Optional[str] = None,
-        filename: t.Optional[str] = None
-    ) -> 'te.Self':
+        source: str | None = None,
+        filename: str | None = None
+    ) -> Self:
 
         inst = str.__new__(cls, string)
         inst.pos = pos
@@ -101,20 +106,20 @@ class Token(str):
         inst.filename = filename or ""
         return inst
 
-    @t.overload  # type: ignore[override]
-    def __getitem__(self, index: slice) -> 'Token': ...
+    @overload  # type: ignore[override]
+    def __getitem__(self, index: slice) -> Token: ...
 
-    @t.overload
-    def __getitem__(self, index: t.SupportsIndex) -> str: ...
+    @overload
+    def __getitem__(self, index: SupportsIndex) -> str: ...
 
-    def __getitem__(self, index: t.Union[t.SupportsIndex, slice]) -> str:
+    def __getitem__(self, index: SupportsIndex | slice) -> str:
         s = str.__getitem__(self, index)
         if isinstance(index, slice):
             return Token(
                 s, self.pos + (index.start or 0), self.source, self.filename)
         return s
 
-    def __add__(self, other: t.Optional[str]) -> 'Token':
+    def __add__(self, other: str | None) -> Token:
         if other is None:
             return self
 
@@ -131,39 +136,39 @@ class Token(str):
         self,
         old: str,
         new: str,
-        count: t.SupportsIndex = -1,
+        count: SupportsIndex = -1,
         /
-    ) -> 'Token':
+    ) -> Token:
         s = str.replace(self, old, new, count)
         return Token(s, self.pos, self.source, self.filename)
 
     def split(  # type: ignore[override]
         self,
-        sep: t.Optional[str] = None,
-        maxsplit: t.SupportsIndex = -1
-    ) -> t.List['Token']:
+        sep: str | None = None,
+        maxsplit: SupportsIndex = -1
+    ) -> list[Token]:
 
         l_ = str.split(self, sep, maxsplit)
         pos = self.pos
         for i, s in enumerate(l_):
             l_[i] = Token(s, pos, self.source, self.filename)
             pos += len(s)
-        return t.cast('t.List[Token]', l_)
+        return cast('list[Token]', l_)
 
-    def strip(self, chars: t.Optional[str] = None, /) -> 'Token':
+    def strip(self, chars: str | None = None, /) -> Token:
         return self.lstrip(chars).rstrip(chars)
 
-    def lstrip(self, chars: t.Optional[str] = None, /) -> 'Token':
+    def lstrip(self, chars: str | None = None, /) -> Token:
         s = str.lstrip(self, chars)
         return Token(
             s, self.pos + len(self) - len(s), self.source, self.filename)
 
-    def rstrip(self, chars: t.Optional[str] = None, /) -> 'Token':
+    def rstrip(self, chars: str | None = None, /) -> Token:
         s = str.rstrip(self, chars)
         return Token(s, self.pos, self.source, self.filename)
 
     @property
-    def location(self) -> t.Tuple[int, int]:
+    def location(self) -> tuple[int, int]:
         if self.source is None:
             return 0, self.pos
 

@@ -1,4 +1,6 @@
-import typing as t
+from __future__ import annotations
+
+from typing import ClassVar
 
 from chameleon.astutil import Node
 
@@ -31,7 +33,7 @@ class CodeBlock(Node):
 class Value(Node):
     """Expression object value."""
 
-    _fields: t.ClassVar[t.Tuple[str, ...]]
+    _fields: ClassVar[tuple[str, ...]]
     _fields = "value", "default", "default_marker"
 
     default = None
@@ -162,7 +164,7 @@ class Cache(Node):
     ``node``.
     """
 
-    _fields: t.ClassVar[t.Tuple[str, ...]]
+    _fields: ClassVar[tuple[str, ...]]
     _fields = "expressions", "node"
 
 
@@ -177,7 +179,7 @@ class Copy(Node):
 class Assignment(Node):
     """Variable assignment."""
 
-    _fields: t.ClassVar[t.Tuple[str, ...]]
+    _fields: ClassVar[tuple[str, ...]]
     _fields = "names", "expression", "local"
 
 

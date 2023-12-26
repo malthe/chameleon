@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import traceback
-import typing as t
+from typing import TYPE_CHECKING
 
 from chameleon.config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
 from chameleon.tokenize import Token
@@ -7,8 +9,8 @@ from chameleon.utils import create_formatted_exception
 from chameleon.utils import safe_native
 
 
-if t.TYPE_CHECKING:
-    import typing_extensions as te
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 def compute_source_marker(line, column, expression, size):
@@ -145,7 +147,7 @@ class TemplateError(Exception):
 
     """
 
-    args: t.Tuple[str, Token]
+    args: tuple[str, Token]
 
     def __init__(self, msg: str, token: Token) -> None:
         if not isinstance(token, Token):
@@ -153,7 +155,7 @@ class TemplateError(Exception):
 
         Exception.__init__(self, msg, token)
 
-    def __copy__(self) -> "te.Self":
+    def __copy__(self) -> Self:
         inst = Exception.__new__(type(self))
         inst.args = self.args
         return inst
@@ -215,7 +217,7 @@ class TemplateError(Exception):
         return self.token.filename
 
     @property
-    def location(self) -> t.Tuple[int, int]:
+    def location(self) -> tuple[int, int]:
         return self.token.location
 
     @property

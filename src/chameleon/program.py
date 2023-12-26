@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from chameleon.namespaces import XML_NS
 from chameleon.namespaces import XMLNS_NS
 from chameleon.parser import ElementParser

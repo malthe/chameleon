@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 import os
-import typing as t
 
 
 log = logging.getLogger('chameleon.config')
@@ -29,7 +30,7 @@ DEBUG_MODE = environment.pop('debug', 'false').lower() in TRUE
 # If a cache directory is specified, template source code will be
 # persisted on disk and reloaded between sessions
 path = environment.pop('cache', None)
-CACHE_DIRECTORY: t.Optional[str]
+CACHE_DIRECTORY: str | None
 if path is not None:  # pragma: no cover
     CACHE_DIRECTORY = os.path.abspath(path)
     if not os.path.exists(CACHE_DIRECTORY):

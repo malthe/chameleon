@@ -1,11 +1,23 @@
-import typing as t
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Literal
+from typing import Protocol
+from typing import TypedDict
 
 
-if t.TYPE_CHECKING:
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import Collection
+    from collections.abc import Mapping
+
+    from typing_extensions import TypeAlias
+
     from chameleon.tokenize import Token
 
 
-ExpressionType = t.Literal[
+ExpressionType: TypeAlias = Literal[
     'python',
     'string',
     'not',
@@ -15,57 +27,58 @@ ExpressionType = t.Literal[
 ]
 
 
-class Tokenizer(t.Protocol):
+class Tokenizer(Protocol):
     def __call__(
         self,
         body: str,
-        filename: t.Optional[str] = None
-    ) -> 'Token': ...
+        filename: str | None = None
+    ) -> Token: ...
 
 
-class TranslationFunction(t.Protocol):
+class TranslationFunction(Protocol):
     def __call__(
         self,
         msgid: str,
         *,
-        domain: t.Optional[str] = None,
-        mapping: t.Optional[t.Mapping[str, object]] = None,
-        default: t.Optional[str] = None,
-        context: t.Optional[str] = None
+        domain: str | None = None,
+        mapping: Mapping[str, object] | None = None,
+        default: str | None = None,
+        context: str | None = None
     ) -> str: ...
 
 
-class TranslationFunctionWithTargetLanguage(t.Protocol):
+class TranslationFunctionWithTargetLanguage(Protocol):
     def __call__(
         self,
         msgid: str,
         *,
-        domain: t.Optional[str] = None,
-        mapping: t.Optional[t.Mapping[str, object]] = None,
-        default: t.Optional[str] = None,
-        context: t.Optional[str] = None,
-        target_language: t.Optional[str] = None
+        domain: str | None = None,
+        mapping: Mapping[str, object] | None = None,
+        default: str | None = None,
+        context: str | None = None,
+        target_language: str | None = None
     ) -> str: ...
 
 
-AnyTranslationFunction = t.Union[
-    TranslationFunction,
-    TranslationFunctionWithTargetLanguage
-]
+# until we drop support for 3.9 this needs to be a string literal
+AnyTranslationFunction: TypeAlias = (
+    'TranslationFunction '  # noqa: TC008
+    '| TranslationFunctionWithTargetLanguage'
+)
 
 
-class PageTemplateConfig(t.TypedDict, total=False):
+class PageTemplateConfig(TypedDict, total=False):
     auto_reload: bool
     default_expression: ExpressionType
     encoding: str
-    boolean_attributes: t.Collection[str]
+    boolean_attributes: Collection[str]
     translate: AnyTranslationFunction
     implicit_i18n_translate: bool
-    implicit_i18n_attributes: t.Set[str]
-    on_error_handler: t.Callable[[BaseException], object]
+    implicit_i18n_attributes: set[str]
+    on_error_handler: Callable[[BaseException], object]
     strict: bool
     trim_attribute_space: bool
     restricted_namespace: bool
     tokenizer: Tokenizer
-    value_repr: t.Callable[[object], str]
-    default_marker: t.Any
+    value_repr: Callable[[object], str]
+    default_marker: Any

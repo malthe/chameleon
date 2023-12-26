@@ -12,19 +12,33 @@
 
 """Support classes for generating code from abstract syntax trees."""
 
+from __future__ import annotations
+
 import ast
 import collections
 import logging
-import typing as t
 import weakref
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import ClassVar
+from typing import cast
 
 
-_F = t.TypeVar('_F', bound=t.Callable[..., t.Any])
-_AnyNode = t.Union['Node', ast.AST]
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import MutableMapping
+    from typing import TypeVar
+
+    from typing_extensions import TypeAlias
+
+    _F = TypeVar('_F', bound=Callable[..., Any])
+    _AnyNode: TypeAlias = 'Node | ast.AST'
+    _Position: TypeAlias = tuple[int, int]
+    _LineInfo: TypeAlias = 'list[tuple[int, _Position | None]]'
 
 AST_NONE = ast.Name(id='None', ctx=ast.Load())
 
-node_annotations: t.MutableMapping['_AnyNode', '_AnyNode']
+node_annotations: MutableMapping[_AnyNode, _AnyNode]
 node_annotations = weakref.WeakKeyDictionary()
 
 try:
@@ -145,7 +159,7 @@ class Node:
     """AST baseclass that gives us a convenient initialization
     method. We explicitly declare and use the ``_fields`` attribute."""
 
-    _fields: t.ClassVar[t.Tuple[str, ...]] = ()
+    _fields: ClassVar[tuple[str, ...]] = ()
 
     def __init__(self, *args, **kwargs) -> None:
         assert isinstance(self._fields, tuple)
@@ -213,10 +227,6 @@ class TokenRef(Node):
     """Represents a source-code token reference."""
 
     _fields = "pos", "length"
-
-
-_Position = t.Tuple[int, int]
-_LineInfo = t.List[t.Tuple[int, t.Optional[_Position]]]
 
 
 class ASTCodeGenerator:
@@ -717,13 +727,13 @@ class ASTCodeGenerator:
         self._write('continue')
 
     # EXPRESSIONS
-    def with_parens(f: '_F') -> '_F':  # type: ignore[misc]
+    def with_parens(f: _F) -> _F:  # type: ignore[misc]
         def _f(self, node) -> None:
             self._write('(')
             f(self, node)
             self._write(')')
 
-        return t.cast('_F', _f)
+        return cast('_F', _f)
 
     bool_operators = {ast.And: 'and', ast.Or: 'or'}
 

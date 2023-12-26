@@ -12,10 +12,16 @@
 #
 ##############################################################################
 
+from __future__ import annotations
+
 import re
-import typing as t
+from typing import TYPE_CHECKING
 
 from chameleon.exc import CompilationError
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 NAME_RE = r"[a-zA-Z][-a-zA-Z0-9_]*"
@@ -51,13 +57,13 @@ except ImportError:   # pragma: no cover
     pass
 else:   # pragma: no cover
     def fast_translate(
-        msgid: t.Optional[str],
-        domain: t.Optional[str] = None,
-        mapping: t.Optional[t.Mapping[str, object]] = None,
-        context: t.Optional[str] = None,
-        target_language: t.Optional[str] = None,
-        default: t.Optional[str] = None
-    ) -> t.Optional[str]:
+        msgid: str | None,
+        domain: str | None = None,
+        mapping: Mapping[str, object] | None = None,
+        context: str | None = None,
+        target_language: str | None = None,
+        default: str | None = None
+    ) -> str | None:
 
         if msgid is None:
             return None
@@ -84,11 +90,11 @@ else:   # pragma: no cover
 
 def simple_translate(
     msgid: str,
-    domain: t.Optional[str] = None,
-    mapping: t.Optional[t.Mapping[str, object]] = None,
-    context: t.Optional[str] = None,
-    target_language: t.Optional[str] = None,
-    default: t.Optional[str] = None
+    domain: str | None = None,
+    mapping: Mapping[str, object] | None = None,
+    context: str | None = None,
+    target_language: str | None = None,
+    default: str | None = None
 ) -> str:
 
     if default is None:
@@ -98,7 +104,7 @@ def simple_translate(
         mapping = getattr(msgid, "mapping", None)
 
     if mapping:
-        def replace(match: t.Match[str]) -> str:
+        def replace(match: re.Match[str]) -> str:
             whole, param1, param2 = match.groups()
             return str(mapping.get(param1 or param2, whole))
         return _interp_regex.sub(replace, default)

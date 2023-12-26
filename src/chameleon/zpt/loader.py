@@ -1,10 +1,21 @@
-import typing as t
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Literal
+from typing import overload
 
 from chameleon.loader import TemplateLoader as BaseLoader
 from chameleon.zpt import template
 
 
-_FormatsMapping = t.Mapping[str, t.Type[template.PageTemplateFile]]
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from collections.abc import Sequence
+
+    from typing_extensions import TypeAlias
+
+    _FormatsMapping: TypeAlias = Mapping[str, type[template.PageTemplateFile]]
 
 
 class TemplateLoader(BaseLoader):
@@ -13,14 +24,14 @@ class TemplateLoader(BaseLoader):
         "text": template.PageTextTemplateFile,
     }
 
-    default_format: t.Literal['xml'] = "xml"
+    default_format: Literal['xml'] = "xml"
 
     def __init__(
         self,
-        search_path: t.Union[t.Sequence[str], str, None] = None,
+        search_path: Sequence[str] | str | None = None,
         *,
-        formats: t.Optional[_FormatsMapping] = None,
-        **kwargs: t.Any
+        formats: _FormatsMapping | None = None,
+        **kwargs: Any
     ) -> None:
 
         if formats is not None:
@@ -28,21 +39,21 @@ class TemplateLoader(BaseLoader):
 
         super().__init__(search_path, **kwargs)
 
-    @t.overload  # type: ignore[override]
+    @overload  # type: ignore[override]
     def load(
         self,
         filename: str,
-        format: t.Union[None, t.Literal['xml']] = None
+        format: Literal['xml'] | None = None
     ) -> template.PageTemplateFile: ...
 
-    @t.overload
+    @overload
     def load(
         self,
         filename: str,
-        format: t.Literal['text']
+        format: Literal['text']
     ) -> template.PageTextTemplateFile: ...
 
-    @t.overload
+    @overload
     def load(
         self,
         filename: str,
@@ -52,7 +63,7 @@ class TemplateLoader(BaseLoader):
     def load(
         self,
         filename: str,
-        format: t.Union[str, None] = None
+        format: str | None = None
     ) -> template.PageTemplateFile:
         """Load and return a template file.
 

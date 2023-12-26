@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import hashlib
 import inspect
@@ -6,7 +8,8 @@ import os
 import pathlib
 import sys
 import tempfile
-import typing as t
+from typing import TYPE_CHECKING
+from typing import Any
 
 from chameleon.compiler import Compiler
 from chameleon.config import AUTO_RELOAD
@@ -32,8 +35,10 @@ from chameleon.utils import read_xml_encoding
 from chameleon.utils import value_repr
 
 
-if t.TYPE_CHECKING:
+if TYPE_CHECKING:
     from abc import abstractmethod
+    from collections.abc import Callable
+    from collections.abc import Collection
 
     from _typeshed import StrPath
 
@@ -46,7 +51,7 @@ except NameError:
     RecursionError = RuntimeError
 
 
-def get_package_versions() -> t.List[t.Tuple[str, str]]:
+def get_package_versions() -> list[tuple[str, str]]:
     if sys.version_info < (3, 10):
         import importlib_metadata
     else:
@@ -94,22 +99,22 @@ class BaseTemplate:
     """
 
     default_encoding = "utf-8"
-    default_content_type: t.Optional[str] = None
+    default_content_type: str | None = None
 
     # This attribute is strictly informational in this template class
     # and is used in exception formatting. It may be set on
     # initialization using the optional ``filename`` keyword argument.
-    filename: 'StrPath' = '<string>'
+    filename: StrPath = '<string>'
 
     _cooked = False
 
-    loader: t.Union[ModuleLoader, MemoryLoader]
+    loader: ModuleLoader | MemoryLoader
     if DEBUG_MODE or CACHE_DIRECTORY:
         loader = _make_module_loader()
     else:
         loader = MemoryLoader()
 
-    output_stream_factory: t.Type[t.List[str]]
+    output_stream_factory: type[list[str]]
     if DEBUG_MODE:
         output_stream_factory = DebuggingOutputStream
     else:
@@ -120,18 +125,18 @@ class BaseTemplate:
     # The ``builtins`` dictionary can be used by a template class to
     # add symbols which may not be redefined and which are (cheaply)
     # available in the template variable scope
-    builtins: t.Dict[str, t.Any] = {}
+    builtins: dict[str, Any] = {}
 
     # The ``builtins`` dictionary is updated with this dictionary at
     # cook time. Note that it can be provided at class initialization
     # using the ``extra_builtins`` keyword argument.
-    extra_builtins: t.Dict[str, t.Any] = {}
+    extra_builtins: dict[str, Any] = {}
 
     # Expression engine must be provided by subclass
-    if t.TYPE_CHECKING:
+    if TYPE_CHECKING:
         @property
         @abstractmethod
-        def engine(self) -> t.Callable[[], ExpressionEngine]: ...
+        def engine(self) -> Callable[[], ExpressionEngine]: ...
     else:
         engine = None
 
@@ -143,12 +148,12 @@ class BaseTemplate:
     # formatting.
     value_repr = staticmethod(value_repr)
 
-    source: t.Optional[str]
+    source: str | None
 
     def __init__(
         self,
-        body: t.Union[str, bytes, None] = None,
-        **config: t.Any
+        body: str | bytes | None = None,
+        **config: Any
     ) -> None:
 
         self.__dict__.update(config)
@@ -161,17 +166,17 @@ class BaseTemplate:
         if self.__dict__.get('debug') is True:
             self.loader = _make_module_loader()
 
-    def __call__(self, **kwargs: t.Any) -> str:
+    def __call__(self, **kwargs: Any) -> str:
         return self.render(**kwargs)
 
     def __repr__(self) -> str:
         return "<{} {}>".format(self.__class__.__name__, self.filename)
 
-    if t.TYPE_CHECKING:
+    if TYPE_CHECKING:
         # since we add config values to our __dict__ they can appear as
         # arbitrary attributes, to clue the type checker into arbitary
         # attribute access being a possibility, we annotate __getattr__
-        def __getattr__(self, name: str) -> t.Any: ...
+        def __getattr__(self, name: str) -> Any: ...
 
     @property
     def keep_body(self) -> bool:
@@ -203,16 +208,16 @@ class BaseTemplate:
         if self.keep_body:
             self.body = body
 
-    def cook_check(self) -> t.Optional[bool]:
+    def cook_check(self) -> bool | None:
         assert self._cooked
         return None
 
-    def parse(self, body: str) -> t.Any:
+    def parse(self, body: str) -> Any:
         raise NotImplementedError("Must be implemented by subclass.")
 
-    def render(self, **__kw: t.Any) -> str:
+    def render(self, **__kw: Any) -> str:
         econtext = Scope(__kw)
-        rcontext: t.Dict[str, t.Any] = {}
+        rcontext: dict[str, Any] = {}
         self.cook_check()
         stream = self.output_stream_factory()
         target_language = __kw.get("target_language")
@@ -255,8 +260,8 @@ class BaseTemplate:
 
         return join(stream)
 
-    def write(self, body: t.Union[str, bytes]) -> None:
-        encoding: t.Optional[str]
+    def write(self, body: str | bytes) -> None:
+        encoding: str | None
         if isinstance(body, bytes):
             body, encoding, content_type = read_bytes(
                 body, self.default_encoding
@@ -281,8 +286,8 @@ class BaseTemplate:
         self,
         body: str,
         name: str,
-        builtins: t.Collection[str]
-    ) -> t.Dict[str, t.Any]:
+        builtins: Collection[str]
+    ) -> dict[str, Any]:
 
         filename = self._get_module_name(name)
         cooked = self.loader.get(filename)
@@ -308,7 +313,7 @@ class BaseTemplate:
                 self.source = None
         return cooked
 
-    def digest(self, body: str, names: t.Collection[str]) -> str:
+    def digest(self, body: str, names: Collection[str]) -> str:
         class_name = type(self).__name__.encode('utf-8')
         sha = pkg_digest.copy()
         sha.update(body.encode('utf-8', 'ignore'))
@@ -321,7 +326,7 @@ class BaseTemplate:
 
         return digest
 
-    def _compile(self, body: str, builtins: t.Collection[str]) -> str:
+    def _compile(self, body: str, builtins: Collection[str]) -> str:
         program = self.parse(body)
         module = Module("initialize", program)
         compiler = Compiler(
@@ -342,15 +347,15 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
-    _v_last_read: t.Optional[float]
+    _v_last_read: float | None
 
     def __init__(
         self,
-        filename: 'StrPath',
-        auto_reload: t.Optional[bool] = None,
-        package_name: t.Optional[str] = None,
-        post_init_hook: t.Optional[t.Callable[[], object]] = None,
-        **config: t.Any,
+        filename: StrPath,
+        auto_reload: bool | None = None,
+        package_name: str | None = None,
+        post_init_hook: Callable[[], object] | None = None,
+        **config: Any,
     ) -> None:
 
         if package_name is None:
@@ -427,20 +432,20 @@ class BaseTemplateFile(BaseTemplate):
         mangled = mangle(filename)
         return "{}_{}.py".format(mangled, name)
 
-    def _get_filename(self) -> str:
+    def _get_filename(self) -> StrPath:
         # FIXME: Shouldn't a missing filename be an error?
         return self.__dict__.get('filename')  # type: ignore[return-value]
 
-    def _set_filename(self, filename: str) -> None:
+    def _set_filename(self, filename: StrPath) -> None:
         self.__dict__['filename'] = filename
         self._v_last_read = None
         self._cooked = False
 
-    if t.TYPE_CHECKING:
+    if TYPE_CHECKING:
         # type checkers only understand this way of defining properties
         @property
-        def filename(self) -> 'StrPath': ...
+        def filename(self) -> StrPath: ...
         @filename.setter
-        def filename(self, filename: 'StrPath') -> None: ...
+        def filename(self, filename: StrPath) -> None: ...
     else:
         filename = property(_get_filename, _set_filename)

@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import codecs
 import logging
 import os
 import re
-import typing as t
 from html import entities as htmlentitydefs
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import NoReturn
 
 
-if t.TYPE_CHECKING:
+if TYPE_CHECKING:
+    from collections.abc import Iterable
     from types import TracebackType
 
 
@@ -14,7 +19,7 @@ log = logging.getLogger('chameleon.utils')
 marker = object()
 
 
-def safe_native(s: t.Union[str, bytes], encoding: str = 'utf-8') -> str:
+def safe_native(s: str | bytes, encoding: str = 'utf-8') -> str:
     if not isinstance(s, str):
         s = bytes.decode(s, encoding, 'replace')
     return s
@@ -22,8 +27,8 @@ def safe_native(s: t.Union[str, bytes], encoding: str = 'utf-8') -> str:
 
 def raise_with_traceback(
     exc: BaseException,
-    tb: t.Optional['TracebackType']
-) -> t.NoReturn:
+    tb: TracebackType | None
+) -> NoReturn:
     exc.__traceback__ = tb
     raise exc
 
@@ -84,7 +89,7 @@ def read_encoded(data: bytes) -> str:
 def read_bytes(
     body: bytes,
     default_encoding: str
-) -> t.Tuple[str, str, t.Optional[str]]:
+) -> tuple[str, str, str | None]:
 
     for bom, prefix, encoding in _xml_prefixes:
         if body.startswith(bom):
@@ -95,7 +100,7 @@ def read_bytes(
         if prefix != encode_string('<?xml') and body.startswith(prefix):
             return body.decode(encoding), encoding, "text/xml"
 
-    content_type: t.Optional[str]
+    content_type: str | None
     if body.startswith(_xml_decl):
         content_type = "text/xml"
         encoding = read_xml_encoding(body) or default_encoding
@@ -106,9 +111,9 @@ def read_bytes(
 
 
 def detect_encoding(
-    body: t.Union[str, bytes],
+    body: str | bytes,
     default_encoding: str
-) -> t.Tuple[t.Optional[str], str]:
+) -> tuple[str | None, str]:
 
     if not isinstance(body, str):
         body = body.decode('ascii', 'ignore')
@@ -121,7 +126,7 @@ def detect_encoding(
     return None, default_encoding
 
 
-def read_xml_encoding(body: bytes) -> t.Optional[str]:
+def read_xml_encoding(body: bytes) -> str | None:
     if body.startswith(b'<?xml'):
         match = RE_ENCODING.search(body)
         if match is not None:
@@ -200,7 +205,7 @@ def create_formatted_exception(exc, cls, formatter, base=Exception):
 _concat = "".join
 
 
-def join(stream: t.Iterable[str]) -> str:
+def join(stream: Iterable[str]) -> str:
     """Concatenate stream.
 
     >>> print(join(('Hello', ' ', 'world')))
@@ -332,15 +337,7 @@ class descriptorint:
         return callableint(self.function(context))
 
 
-if t.TYPE_CHECKING:
-    # We can only subscript list at type checking time in Python 3.8
-    # so until we stop supporting that version we need to do this
-    _BaseStream = t.List[str]
-else:
-    _BaseStream = list
-
-
-class DebuggingOutputStream(_BaseStream):
+class DebuggingOutputStream(list[str]):
     def append(self, value):
         if not isinstance(value, str):
             raise TypeError(value)
@@ -349,7 +346,7 @@ class DebuggingOutputStream(_BaseStream):
         list.append(self, value)
 
 
-class Scope(dict):
+class Scope(dict[str, Any]):
     """
     >>> scope = Scope()
     >>> scope['a'] = 1
@@ -454,7 +451,7 @@ class Markup(str):
     s'<br />'
     """
 
-    def __html__(self):
+    def __html__(self) -> str:
         return str(self)
 
     def __repr__(self) -> str:
@@ -462,7 +459,7 @@ class Markup(str):
 
 
 class ImportableMarker:
-    def __init__(self, module, name) -> None:
+    def __init__(self, module: str, name: str) -> None:
         self.__module__ = module
         self.name = name
 
