@@ -66,6 +66,11 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
+    package_data={
+        'chameleon': [
+            'py.typed',
+        ],
+    },
     python_requires='>=3.9',
     install_requires=install_requires,
     extras_require={

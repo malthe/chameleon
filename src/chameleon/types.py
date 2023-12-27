@@ -10,7 +10,6 @@ from typing import TypedDict
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Collection
-    from collections.abc import Mapping
 
     from typing_extensions import TypeAlias
 
@@ -41,7 +40,7 @@ class TranslationFunction(Protocol):
         msgid: str,
         *,
         domain: str | None = None,
-        mapping: Mapping[str, object] | None = None,
+        mapping: dict[str, Any] | None = None,
         default: str | None = None,
         context: str | None = None
     ) -> str: ...
@@ -53,7 +52,7 @@ class TranslationFunctionWithTargetLanguage(Protocol):
         msgid: str,
         *,
         domain: str | None = None,
-        mapping: Mapping[str, object] | None = None,
+        mapping: dict[str, Any] | None = None,
         default: str | None = None,
         context: str | None = None,
         target_language: str | None = None
