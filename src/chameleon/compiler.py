@@ -57,8 +57,6 @@ from chameleon.utils import join
 from chameleon.utils import safe_native
 
 
-long = int
-
 log = logging.getLogger('chameleon.compiler')
 
 COMPILER_INTERNALS_OR_DISALLOWED = {
@@ -68,7 +66,6 @@ COMPILER_INTERNALS_OR_DISALLOWED = {
     "str",
     "int",
     "float",
-    "long",
     "len",
     "bool",
     "None",
@@ -155,9 +152,9 @@ emit_bool = template(is_func=True,
 
 
 emit_convert = template(is_func=True,
-                        func_args=('target', 'encoded', 'str', 'long', 'type',
+                        func_args=('target', 'encoded', 'str', 'type',
                                    'default_marker', 'default'),
-                        func_defaults=(bytes, str, long, type, None),
+                        func_defaults=(bytes, str, type, None),
                         source=r"""
     if target is None:
         pass
@@ -169,7 +166,7 @@ emit_convert = template(is_func=True,
         if __tt is encoded:
             target = decode(target)
         elif __tt is not str:
-            if __tt is int or __tt is float or __tt is long:
+            if __tt is int or __tt is float:
                 target = str(target)
             else:
                 render = getattr(target, "__html__", None)
@@ -189,8 +186,8 @@ emit_convert = template(is_func=True,
 
 emit_func_convert = template(
     is_func=True, func_args=(
-        'func', 'encoded', 'str', 'long', 'type'), func_defaults=(
-            bytes, str, long, type), source=r"""
+        'func', 'encoded', 'str', 'type'), func_defaults=(
+            bytes, str, type), source=r"""
     def func(target):
         if target is None:
             return
@@ -200,7 +197,7 @@ emit_func_convert = template(
         if __tt is encoded:
             target = decode(target)
         elif __tt is not str:
-            if __tt is int or __tt is float or __tt is long:
+            if __tt is int or __tt is float:
                 target = str(target)
             else:
                 render = getattr(target, "__html__", None)
@@ -237,8 +234,8 @@ emit_translate = template(is_func=True,
 
 emit_func_convert_and_escape = template(
     is_func=True,
-    func_args=('func', 'str', 'long', 'type', 'encoded'),
-    func_defaults=(str, long, type, bytes,),
+    func_args=('func', 'str', 'type', 'encoded'),
+    func_defaults=(str, type, bytes,),
     source=r"""
     def func(target, quote, quote_entity, default, default_marker):
         if target is None:
@@ -252,7 +249,7 @@ emit_func_convert_and_escape = template(
         if __tt is encoded:
             target = decode(target)
         elif __tt is not str:
-            if __tt is int or __tt is float or __tt is long:
+            if __tt is int or __tt is float:
                 return str(target)
             render = getattr(target, "__html__", None)
             if render is None:

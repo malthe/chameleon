@@ -28,11 +28,10 @@ from chameleon.zpt.program import MacroProgram
 
 
 if TYPE_CHECKING:
+    from _typeshed import StrPath
     from collections.abc import Callable
     from collections.abc import Collection
     from collections.abc import Iterable
-
-    from _typeshed import StrPath
     from typing_extensions import Unpack
 
     from chameleon.types import AnyTranslationFunction
@@ -216,8 +215,8 @@ class PageTemplate(BaseTemplate):
         # so it is itself not callable, we don't really care, since we only
         # ever use it as a descriptor, but to be able to override this with
         # an instance attribute we can't declare this as a descriptor and
-        # since we only need this ignore in 3.8 and 3.9 we will get an unused
-        # ignore error instead above
+        # since we only need this ignore in 3.9 we will get an unused ignore
+        # error instead above, so we use this version check to avoid that
         translate = staticmethod(simple_translate)  # type: ignore[assignment]
 
     encoding: str | None = None

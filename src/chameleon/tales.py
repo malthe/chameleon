@@ -29,7 +29,6 @@ DEFAULT_MARKER = ImportableMarker(__name__, "DEFAULT")
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
 re_continuation = re.compile(r'\\\s*$', re.MULTILINE)
-exc_clear = getattr(sys, "exc_clear", None)
 
 
 def resolve_global(value):
@@ -48,8 +47,6 @@ def test(expression, engine=None, **env):
     module = ast.Module(body)
     module = ast.fix_missing_locations(module)
     env['rcontext'] = {}
-    if exc_clear is not None:
-        env['__exc_clear'] = exc_clear
     source = TemplateCodeGenerator(module).code
     code = compile(source, '<string>', 'exec')
     exec(code, env)
@@ -159,17 +156,7 @@ class TalesExpr:
                             elts=map(resolve_global, self.exceptions),
                             ctx=ast.Load()),
                         name=None,
-                        body=body if exc_clear is None else body + [
-                            ast.Expr(
-                                ast.Call(
-                                    func=load("__exc_clear"),
-                                    args=[],
-                                    keywords=[],
-                                    starargs=None,
-                                    kwargs=None,
-                                )
-                            )
-                        ],
+                        body=body,
                     )],
                 )]
 

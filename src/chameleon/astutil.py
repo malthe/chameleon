@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import MutableMapping
     from typing import TypeVar
-
     from typing_extensions import TypeAlias
 
     _F = TypeVar('_F', bound=Callable[..., Any])

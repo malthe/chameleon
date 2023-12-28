@@ -10,7 +10,6 @@ from typing import TypedDict
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Collection
-
     from typing_extensions import TypeAlias
 
     from chameleon.tokenize import Token

@@ -36,26 +36,19 @@ from chameleon.utils import value_repr
 
 
 if TYPE_CHECKING:
+    from _typeshed import StrPath
     from abc import abstractmethod
     from collections.abc import Callable
     from collections.abc import Collection
 
-    from _typeshed import StrPath
-
     from chameleon.compiler import ExpressionEngine
 
 
-try:
-    RecursionError
-except NameError:
-    RecursionError = RuntimeError
-
-
 def get_package_versions() -> list[tuple[str, str]]:
-    if sys.version_info < (3, 10):
-        import importlib_metadata
-    else:
+    if sys.version_info >= (3, 10):
         import importlib.metadata as importlib_metadata
+    else:
+        import importlib_metadata
 
     versions = {
         x: importlib_metadata.version(x)

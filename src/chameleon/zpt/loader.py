@@ -12,7 +12,6 @@ from chameleon.zpt import template
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from collections.abc import Sequence
-
     from typing_extensions import TypeAlias
 
     _FormatsMapping: TypeAlias = Mapping[str, type[template.PageTemplateFile]]
