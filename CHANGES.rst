@@ -1,9 +1,10 @@
 Changes
 =======
 
-In next release ...
+4.4.3 (2023-12-30)
+------------------
 
-- Remove `zope.interface` 
+- Remove `zope.interface`.
 
 - Fix an issue where `auto_reload` is enabled and a file is loaded
   from a package that wasn't zip-compressed.
