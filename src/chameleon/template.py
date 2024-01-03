@@ -239,7 +239,7 @@ class BaseTemplate:
 
                     try:
                         exc = create_formatted_exception(
-                            exc, cls, formatter, RenderError
+                            exc, cls, formatter, RenderError  # type: ignore
                         )
                     except TypeError:
                         pass

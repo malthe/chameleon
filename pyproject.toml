@@ -9,10 +9,10 @@ exclude = "/tests/"
 follow_imports = "silent"
 
 [[tool.mypy.overrides]]
-# strict config for public API
+# strict config for fully typed modules and public API
 module = [
-    "chameleon.exc.RenderError",
-    "chameleon.exc.TemplateError",
+    "chameleon.exc.*",
+    "chameleon.utils.*",
     "chameleon.zpt.loader.*",
     "chameleon.zpt.template.*",
 ]
