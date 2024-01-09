@@ -1048,7 +1048,7 @@ class Compiler:
                     self.visit(node)
                 self.scopes.pop()
 
-        generator = Generator(module, source)
+        generator = Generator(module)
         tokens = [
             Token(source[pos:pos + length], pos, source)
             for pos, length in generator.tokens

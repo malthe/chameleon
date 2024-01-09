@@ -93,11 +93,10 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
     names = ()
 
-    def __init__(self, tree, source=None):
+    def __init__(self, tree):
         self.imports = {}
         self.defines = {}
         self.markers = {}
-        self.source = source
         self.tokens = []
 
         # Generate code
