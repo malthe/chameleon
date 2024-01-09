@@ -24,8 +24,6 @@ for name, value in builtins.__dict__.items():
 
     reverse_builtin_map[value] = name
 
-NATIVE_NUMBERS = int, float, bool
-
 
 def template(
     source,
@@ -169,12 +167,6 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         return load(name)
 
     def require(self, value):
-        if value is None:
-            return load("None")
-
-        if isinstance(value, NATIVE_NUMBERS):
-            return ast.Num(value)
-
         node = self.imports.get(value)
         if node is None:
             # we come up with a unique symbol based on the class name
