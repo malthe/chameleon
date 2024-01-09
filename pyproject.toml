@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+# we may want to include tests eventually
+exclude = "/tests/"
+follow_imports = "silent"
+
+[[tool.mypy.overrides]]
+# strict config for fully typed modules and public API
+module = [
+    "chameleon.exc.*",
+    "chameleon.utils.*",
+    "chameleon.zpt.loader.*",
+    "chameleon.zpt.template.*",
+]
+disallow_any_unimported = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["zope.*"]
+ignore_missing_imports = true

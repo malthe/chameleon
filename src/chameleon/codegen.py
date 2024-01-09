@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import builtins
 import textwrap
@@ -26,18 +28,19 @@ NATIVE_NUMBERS = int, float, bool
 
 
 def template(
-        source,
-        mode='exec',
-        is_func=False,
-        func_args=(),
-        func_defaults=(),
-        **kw):
+    source,
+    mode='exec',
+    is_func: bool = False,
+    func_args=(),
+    func_defaults=(),
+    **kw,
+):
     def wrapper(*vargs, **kwargs):
         symbols = dict(zip(args, vargs + defaults))
         symbols.update(kwargs)
 
         class Visitor(ast.NodeVisitor):
-            def visit_FunctionDef(self, node):
+            def visit_FunctionDef(self, node) -> None:
                 self.generic_visit(node)
 
                 name = symbols.get(node.name, self)
@@ -49,7 +52,7 @@ def template(
                         decorator_list=getattr(node, "decorator_list", []),
                     )
 
-            def visit_Name(self, node):
+            def visit_Name(self, node) -> None:
                 value = symbols.get(node.id, self)
                 if value is not self:
                     if isinstance(value, str):
@@ -175,21 +178,23 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         node = self.imports.get(value)
         if node is None:
             # we come up with a unique symbol based on the class name
-            name = "_%s" % getattr(value, '__name__', str(value)).\
-                   rsplit('.', 1)[-1]
+            name = (
+                "_%s"
+                % getattr(value, '__name__', str(value)).rsplit('.', 1)[-1]
+            )
             node = load(name)
             self.imports[value] = store(node.id)
 
         return node
 
-    def visit(self, node):
+    def visit(self, node) -> None:
         annotation = node_annotations.get(node)
         if annotation is None:
             super().visit(node)
         else:
             self.visit(annotation)
 
-    def visit_Comment(self, node):
+    def visit_Comment(self, node) -> None:
         if node.stmt is None:
             self._new_line()
         else:
@@ -199,15 +204,15 @@ class TemplateCodeGenerator(ASTCodeGenerator):
             self._new_line()
             self._write("{}#{}".format(node.space, line))
 
-    def visit_Builtin(self, node):
+    def visit_Builtin(self, node) -> None:
         name = load(node.id)
         self.visit(name)
 
-    def visit_Symbol(self, node):
+    def visit_Symbol(self, node) -> None:
         node = self.require(node.value)
         self.visit(node)
 
-    def visit_Static(self, node):
+    def visit_Static(self, node) -> None:
         if node.name is None:
             name = "_static_%s" % str(id(node.value)).replace('-', '_')
         else:
@@ -216,6 +221,6 @@ class TemplateCodeGenerator(ASTCodeGenerator):
         node = self.define(name, node.value)
         self.visit(node)
 
-    def visit_TokenRef(self, node):
+    def visit_TokenRef(self, node) -> None:
         self.tokens.append((node.pos, node.length))
         super().visit(ast.Num(n=node.pos))

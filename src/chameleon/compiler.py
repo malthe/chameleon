@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import builtins
 import collections
@@ -55,8 +57,6 @@ from chameleon.utils import join
 from chameleon.utils import safe_native
 
 
-long = int
-
 log = logging.getLogger('chameleon.compiler')
 
 COMPILER_INTERNALS_OR_DISALLOWED = {
@@ -66,7 +66,6 @@ COMPILER_INTERNALS_OR_DISALLOWED = {
     "str",
     "int",
     "float",
-    "long",
     "len",
     "bool",
     "None",
@@ -85,14 +84,12 @@ else:
     LIST = template("[]", mode="eval")
 
 
-def identifier(prefix, suffix=None):
+def identifier(prefix, suffix=None) -> str:
     return "__{}_{}".format(prefix, mangle(suffix or id(prefix)))
 
 
 def mangle(string):
-    return RE_MANGLE.sub(
-        '_', str(string)
-    ).replace('\n', '').replace('-', '_')
+    return RE_MANGLE.sub('_', str(string)).replace('\n', '').replace('-', '_')
 
 
 def load_econtext(name):
@@ -155,9 +152,9 @@ emit_bool = template(is_func=True,
 
 
 emit_convert = template(is_func=True,
-                        func_args=('target', 'encoded', 'str', 'long', 'type',
+                        func_args=('target', 'encoded', 'str', 'type',
                                    'default_marker', 'default'),
-                        func_defaults=(bytes, str, long, type, None),
+                        func_defaults=(bytes, str, type, None),
                         source=r"""
     if target is None:
         pass
@@ -169,7 +166,7 @@ emit_convert = template(is_func=True,
         if __tt is encoded:
             target = decode(target)
         elif __tt is not str:
-            if __tt is int or __tt is float or __tt is long:
+            if __tt is int or __tt is float:
                 target = str(target)
             else:
                 render = getattr(target, "__html__", None)
@@ -189,8 +186,8 @@ emit_convert = template(is_func=True,
 
 emit_func_convert = template(
     is_func=True, func_args=(
-        'func', 'encoded', 'str', 'long', 'type'), func_defaults=(
-            bytes, str, long, type), source=r"""
+        'func', 'encoded', 'str', 'type'), func_defaults=(
+            bytes, str, type), source=r"""
     def func(target):
         if target is None:
             return
@@ -200,7 +197,7 @@ emit_func_convert = template(
         if __tt is encoded:
             target = decode(target)
         elif __tt is not str:
-            if __tt is int or __tt is float or __tt is long:
+            if __tt is int or __tt is float:
                 target = str(target)
             else:
                 render = getattr(target, "__html__", None)
@@ -237,8 +234,8 @@ emit_translate = template(is_func=True,
 
 emit_func_convert_and_escape = template(
     is_func=True,
-    func_args=('func', 'str', 'long', 'type', 'encoded'),
-    func_defaults=(str, long, type, bytes,),
+    func_args=('func', 'str', 'type', 'encoded'),
+    func_defaults=(str, type, bytes,),
     source=r"""
     def func(target, quote, quote_entity, default, default_marker):
         if target is None:
@@ -252,7 +249,7 @@ emit_func_convert_and_escape = template(
         if __tt is encoded:
             target = decode(target)
         elif __tt is not str:
-            if __tt is int or __tt is float or __tt is long:
+            if __tt is int or __tt is float:
                 return str(target)
             render = getattr(target, "__html__", None)
             if render is None:
@@ -305,18 +302,27 @@ class Scope(Node):
 
 class Interpolator:
     braces_required_regex = re.compile(
-        r'(\$)?\$({(?P<expression>.*)})',
-        re.DOTALL)
+        r'(\$)?\$({(?P<expression>.*)})', re.DOTALL
+    )
 
     braces_optional_regex = re.compile(
         r'(\$)?\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))',
-        re.DOTALL)
+        re.DOTALL,
+    )
 
-    def __init__(self, expression, braces_required, translate=False,
-                 decode_htmlentities=False):
+    def __init__(
+        self,
+        expression,
+        braces_required,
+        translate: bool = False,
+        decode_htmlentities: bool = False,
+    ) -> None:
         self.expression = expression
-        self.regex = self.braces_required_regex if braces_required else \
-            self.braces_optional_regex
+        self.regex = (
+            self.braces_required_regex
+            if braces_required
+            else self.braces_optional_regex
+        )
         self.translate = translate
         self.decode_htmlentities = decode_htmlentities
 
@@ -515,8 +521,14 @@ class ExpressionEngine:
 
     supported_char_escape_set = {'&', '<', '>'}
 
-    def __init__(self, parser, char_escape=(),
-                 default=None, default_marker=None, literal_false=True):
+    def __init__(
+        self,
+        parser,
+        char_escape=(),
+        default=None,
+        default_marker=None,
+        literal_false: bool = True,
+    ) -> None:
         self._parser = parser
         self._char_escape = char_escape
         self._default = default
@@ -531,10 +543,11 @@ class ExpressionEngine:
         compiler = self.parse(string)
         return compiler(string, target)
 
-    def parse(self, string, handle_errors=True, char_escape=None):
+    def parse(self, string, handle_errors: bool = True, char_escape=None):
         expression = self._parser(string)
         compiler = self.get_compiler(
-            expression, string, handle_errors, char_escape)
+            expression, string, handle_errors, char_escape
+        )
         return ExpressionCompiler(compiler, self)
 
     def get_compiler(self, expression, string, handle_errors, char_escape):
@@ -627,7 +640,7 @@ class ExpressionEngine:
 
 
 class ExpressionCompiler:
-    def __init__(self, compiler, engine):
+    def __init__(self, compiler, engine) -> None:
         self.compiler = compiler
         self.engine = engine
 
@@ -756,7 +769,7 @@ class NameTransform:
 
     """
 
-    def __init__(self, builtins, aliases, internals):
+    def __init__(self, builtins, aliases, internals) -> None:
         self.builtins = builtins
         self.aliases = aliases
         self.internals = internals
@@ -805,7 +818,9 @@ class ExpressionTransform:
 
     loads_symbol = Symbol(pickle.loads)
 
-    def __init__(self, engine_factory, cache, visitor, strict=True):
+    def __init__(
+        self, engine_factory, cache, visitor, strict: bool = True
+    ) -> None:
         self.engine_factory = engine_factory
         self.cache = cache
         self.strict = strict
@@ -970,15 +985,22 @@ class Compiler:
     defaults = {
         'translate': Symbol(simple_translate),
         'decode': Builtin("str"),
-        'on_error_handler': Builtin("str")
+        'on_error_handler': Builtin("str"),
     }
 
     lock = threading.Lock()
 
     global_builtins = set(builtins.__dict__)
 
-    def __init__(self, engine_factory, node, filename, source,
-                 builtins={}, strict=True):
+    def __init__(
+        self,
+        engine_factory,
+        node,
+        filename,
+        source,
+        builtins={},
+        strict=True,
+    ):
         self._scopes = [set()]
         self._expression_cache = {}
         self._translations = []
@@ -987,8 +1009,7 @@ class Compiler:
         self._macros = []
         self._current_slot = []
 
-        internals = COMPILER_INTERNALS_OR_DISALLOWED | \
-            set(self.defaults)
+        internals = COMPILER_INTERNALS_OR_DISALLOWED | set(self.defaults)
 
         transform = NameTransform(
             self.global_builtins | set(builtins),
@@ -1019,14 +1040,14 @@ class Compiler:
             class Generator(TemplateCodeGenerator):
                 scopes = [Scope()]
 
-                def visit_EmitText(self, node):
+                def visit_EmitText(self, node) -> None:
                     append = load(self.scopes[-1].append or "__append")
                     for node in template(
-                        "append(s)", append=append, s=ast.Str(
-                            s=node.s)):
+                        "append(s)", append=append, s=ast.Str(s=node.s)
+                    ):
                         self.visit(node)
 
-                def visit_Scope(self, node):
+                def visit_Scope(self, node) -> None:
                     self.scopes.append(node)
                     body = list(node.body)
                     swap(body, load(node.append), "__append")
@@ -1718,7 +1739,8 @@ class Compiler:
                         defaults=[
                             load("__i18n_domain"),
                             load("__i18n_context"),
-                            load("target_language"),],
+                            load("target_language"),
+                        ],
                     ),
                     body=body or [
                         ast.Pass()],

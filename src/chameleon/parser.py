@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import re
 from collections import OrderedDict
@@ -113,7 +115,7 @@ def parse_tag(token, namespace, restricted_namespace):
     return node
 
 
-def update_namespace(attributes, namespace):
+def update_namespace(attributes, namespace) -> None:
     # possibly update namespaces; we do this in a separate step
     # because this assignment is irrespective of order
     for attribute in attributes:
@@ -150,14 +152,14 @@ def unpack_attributes(attributes, namespace, default, restricted_namespace):
     return namespaced
 
 
-def identify(string):
+def identify(string) -> str:
     if string.startswith("<"):
         if string.startswith("<!--"):
             m = match_double_hyphen.search(string[4:])
             if m is not None:
                 raise ParseError(
                     "The string '--' is not allowed in a comment.",
-                    string[4 + m.start():4 + m.end()]
+                    string[4 + m.start():4 + m.end()],
                 )
             return "comment"
         if string.startswith("<![CDATA["):

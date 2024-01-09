@@ -1,6 +1,11 @@
+from __future__ import annotations
+
+import sys
 from functools import partial
 from hashlib import sha256
 from os.path import dirname
+from typing import TYPE_CHECKING
+from typing import Any
 from zipfile import Path
 
 from chameleon.astutil import Symbol
@@ -22,10 +27,17 @@ from chameleon.template import BaseTemplateFile
 from chameleon.zpt.program import MacroProgram
 
 
-try:
-    bytes
-except NameError:
-    bytes = str
+if TYPE_CHECKING:
+    from _typeshed import StrPath
+    from collections.abc import Callable
+    from collections.abc import Collection
+    from collections.abc import Iterable
+    from typing_extensions import Unpack
+
+    from chameleon.types import AnyTranslationFunction
+    from chameleon.types import ExpressionType
+    from chameleon.types import PageTemplateConfig
+    from chameleon.types import Tokenizer
 
 
 BOOLEAN_HTML_ATTRIBUTES = [
@@ -192,20 +204,30 @@ class PageTemplate(BaseTemplate):
         'structure': StructureExpr,
     }
 
-    default_expression = 'python'
+    default_expression: ExpressionType = 'python'
     default_content_type = 'text/html'
 
-    translate = staticmethod(simple_translate)
+    translate: AnyTranslationFunction
+    if sys.version_info >= (3, 10):
+        translate = staticmethod(simple_translate)
+    else:
+        # prior to 3.10 staticmethod is just a descriptor without a __call__
+        # so it is itself not callable, we don't really care, since we only
+        # ever use it as a descriptor, but to be able to override this with
+        # an instance attribute we can't declare this as a descriptor and
+        # since we only need this ignore in 3.9 we will get an unused ignore
+        # error instead above, so we use this version check to avoid that
+        translate = staticmethod(simple_translate)  # type: ignore[assignment]
 
-    encoding = None
+    encoding: str | None = None
 
-    boolean_attributes = None
+    boolean_attributes: Collection[str] | None = None
 
     mode = "xml"
 
     implicit_i18n_translate = False
 
-    implicit_i18n_attributes = set()
+    implicit_i18n_attributes: set[str] = set()
 
     trim_attribute_space = False
 
@@ -213,27 +235,32 @@ class PageTemplate(BaseTemplate):
 
     enable_comment_interpolation = True
 
-    on_error_handler = None
+    on_error_handler: Callable[[BaseException], object] | None = None
 
     restricted_namespace = True
 
-    tokenizer = None
+    tokenizer: Tokenizer | None = None
 
     default_marker = Symbol(DEFAULT_MARKER)
 
-    def __init__(self, body, **config):
+    # TODO: Add the documented keyword arguments
+    def __init__(
+        self,
+        body: bytes | str,
+        **config: Unpack[PageTemplateConfig]
+    ):
         self.macros = Macros(self)
         super().__init__(body, **config)
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Macro:
         return self.macros[name]
 
     @property
-    def builtins(self):
+    def builtins(self) -> dict[str, Any]:  # type: ignore[override]
         return self._builtins()
 
     @property
-    def engine(self):
+    def engine(self) -> Callable[[], ExpressionEngine]:
         return partial(
             ExpressionEngine,
             self.expression_parser,
@@ -241,10 +268,10 @@ class PageTemplate(BaseTemplate):
         )
 
     @property
-    def expression_parser(self):
+    def expression_parser(self) -> ExpressionParser:
         return ExpressionParser(self.expression_types, self.default_expression)
 
-    def parse(self, body):
+    def parse(self, body: str) -> MacroProgram:
         boolean_attributes = self.boolean_attributes
 
         if self.content_type != 'text/xml':
@@ -256,7 +283,7 @@ class PageTemplate(BaseTemplate):
             # character.
             body = body.replace('\r\n', '\n').replace('\r', '\n')
 
-        return MacroProgram(
+        return MacroProgram(  # type: ignore[no-untyped-call]
             body, self.mode, self.filename,
             escape=True if self.mode == "xml" else False,
             default_marker=self.default_marker,
@@ -270,7 +297,7 @@ class PageTemplate(BaseTemplate):
             tokenizer=self.tokenizer
         )
 
-    def render(self, encoding=None, **_kw):
+    def render(self, encoding: str | None = None, **_kw: Any) -> str:
         """Render template to string.
 
         If providd, the ``encoding`` argument overrides the template
@@ -294,7 +321,7 @@ class PageTemplate(BaseTemplate):
             negotiate a language based on the provided context.
         """
 
-        translate = _kw.get('translate')
+        translate: AnyTranslationFunction | None = _kw.get('translate')
         if translate is None:
             translate = self.translate
 
@@ -305,15 +332,23 @@ class PageTemplate(BaseTemplate):
 
         encoding = encoding if encoding is not None else self.encoding
         if encoding is not None:
-            def translate(msgid, txl=translate, encoding=encoding, **kwargs):
+            def translate(
+                msgid: str | bytes,
+                txl: AnyTranslationFunction = translate,  # type: ignore
+                encoding: str = encoding,  # type: ignore[assignment]
+                **kwargs: Any
+            ) -> str:
                 if isinstance(msgid, bytes):
                     msgid = bytes.decode(msgid, encoding)
                 return txl(msgid, **kwargs)
 
-            def decode(inst, encoding=encoding):
+            def decode(
+                inst: bytes,
+                encoding: str = encoding  # type: ignore[assignment]
+            ) -> str:
                 return bytes.decode(inst, encoding, 'ignore')
         else:
-            decode = bytes.decode
+            decode = bytes.decode  # type: ignore[assignment]
 
         setdefault = _kw.setdefault
         setdefault("__translate", translate)
@@ -327,15 +362,17 @@ class PageTemplate(BaseTemplate):
 
         return super().render(**_kw)
 
-    def include(self, *args, **kwargs):
+    def include(self, *args: Any, **kwargs: Any) -> None:
         self.cook_check()
         self._render(*args, **kwargs)
 
-    def digest(self, body, names):
+    def digest(self, body: str, names: Collection[str]) -> str:
         hex = super().digest(body, names)
         if isinstance(hex, str):
-            hex = hex.encode('utf-8')
-        digest = sha256(hex)
+            hex_b = hex.encode('utf-8')
+        else:
+            hex_b = hex
+        digest = sha256(hex_b)
         digest.update(';'.join(names).encode('utf-8'))
 
         for attr in (
@@ -348,9 +385,9 @@ class PageTemplate(BaseTemplate):
                 (";{}={}".format(attr, str(v))).encode('ascii')
             )
 
-            return digest.hexdigest()[:32]
+        return digest.hexdigest()[:32]
 
-    def _builtins(self):
+    def _builtins(self) -> dict[str, Any]:
         return {
             'template': self,
             'macros': self.macros,
@@ -406,7 +443,7 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
     """
 
     expression_types = PageTemplate.expression_types.copy()
-    expression_types['load'] = partial(
+    expression_types['load'] = partial(  # type: ignore[assignment]
         ProxyExpr, '__loader',
         ignore_prefix=False
     )
@@ -414,32 +451,35 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
     prepend_relative_search_path = True
 
     def __init__(
-            self,
-            filename,
-            loader_class=TemplateLoader,
-            package_name=None,
-            search_path=None,
-            **config
-    ):
+        self,
+        filename: StrPath,
+        loader_class: type[TemplateLoader] = TemplateLoader,
+        package_name: str | None = None,
+        search_path: Iterable[str] | str | None = None,
+        **config: Unpack[PageTemplateConfig]
+    ) -> None:
+
         if search_path is None:
             search_path = []
         else:
+            # FIXME: support Path here as well?
             if isinstance(search_path, str):
                 search_path = [search_path]
             else:
                 search_path = list(search_path)
 
-        def post_init():
+        def post_init() -> None:
             # If the flag is set (this is the default), prepend the path
             # relative to the template file to the search path
             if self.prepend_relative_search_path:
+                path: StrPath
                 if isinstance(self.filename, Path):
                     path = self.filename.parent
                 else:
                     path = dirname(self.filename)
                     if package_name is not None:
                         path = "%s:%s" % (package_name, path)
-                search_path.insert(0, path)
+                search_path.insert(0, path)  # type: ignore[arg-type]
 
             loader = loader_class(search_path=search_path, **config)
             template_class = type(self)
@@ -448,14 +488,16 @@ class PageTemplateFile(PageTemplate, BaseTemplateFile):
             # class, providing the same keyword arguments.
             self._loader = loader.bind(template_class)
 
-        super().__init__(
-            filename,
+        # mypy correctly complains here because PageTemplate.__init__ applies
+        # before BaseTemplateFile, so the signature looks incompatible
+        super().__init__(  # type: ignore[call-arg]
+            filename,  # type: ignore[arg-type]
             package_name=package_name,
             post_init_hook=post_init,
             **config
         )
 
-    def _builtins(self):
+    def _builtins(self) -> dict[str, Any]:
         d = super()._builtins()
         d['__loader'] = self._loader
         return d
@@ -480,7 +522,7 @@ class PageTextTemplateFile(PageTemplateFile):
 
     mode = "text"
 
-    def render(self, **vars):
+    def render(self, **vars: Any) -> bytes:  # type: ignore[override]
         result = super().render(**vars)
         return result.encode(self.encoding or 'utf-8')
 
@@ -488,17 +530,17 @@ class PageTextTemplateFile(PageTemplateFile):
 class Macro:
     __slots__ = "include",
 
-    def __init__(self, render):
+    def __init__(self, render: Callable[..., str]) -> None:
         self.include = render
 
 
 class Macros:
     __slots__ = "template",
 
-    def __init__(self, template):
+    def __init__(self, template: BaseTemplate) -> None:
         self.template = template
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Macro:
         name = name.replace('-', '_')
         self.template.cook_check()
 
@@ -511,7 +553,7 @@ class Macros:
         return Macro(function)
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         self.template.cook_check()
 
         result = []

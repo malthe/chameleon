@@ -12,9 +12,16 @@
 #
 ##############################################################################
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from chameleon.exc import CompilationError
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 NAME_RE = r"[a-zA-Z][-a-zA-Z0-9_]*"
@@ -39,12 +46,6 @@ WHITELIST = frozenset([
 _interp_regex = re.compile(r'(?<!\$)(\$(?:(%(n)s)|{(%(n)s)}))'
                            % ({'n': NAME_RE}))
 
-
-try:  # pragma: no cover
-    str = unicode
-except NameError:
-    pass
-
 # BBB: The ``fast_translate`` function here is kept for backwards
 # compatibility reasons. Do not use!
 
@@ -55,17 +56,24 @@ try:  # pragma: no cover
 except ImportError:   # pragma: no cover
     pass
 else:   # pragma: no cover
-    def fast_translate(msgid, domain=None, mapping=None, context=None,
-                       target_language=None, default=None):
+    def fast_translate(
+        msgid: str | None,
+        domain: str | None = None,
+        mapping: Mapping[str, object] | None = None,
+        context: str | None = None,
+        target_language: str | None = None,
+        default: str | None = None
+    ) -> str | None:
+
         if msgid is None:
-            return
+            return None
 
         if target_language is not None or context is not None:
             result = translate(
                 msgid, domain=domain, mapping=mapping, context=context,
                 target_language=target_language, default=default)
             if result != msgid:
-                return result
+                return result  # type: ignore[no-any-return]
 
         if isinstance(msgid, Message):
             default = msgid.default
@@ -77,11 +85,18 @@ else:   # pragma: no cover
         if not isinstance(default, str):
             return default
 
-        return interpolate(default, mapping)
+        return interpolate(default, mapping)  # type: ignore[no-any-return]
 
 
-def simple_translate(msgid, domain=None, mapping=None, context=None,
-                     target_language=None, default=None):
+def simple_translate(
+    msgid: str,
+    domain: str | None = None,
+    mapping: Mapping[str, object] | None = None,
+    context: str | None = None,
+    target_language: str | None = None,
+    default: str | None = None
+) -> str:
+
     if default is None:
         default = getattr(msgid, "default", msgid)
 
@@ -89,7 +104,7 @@ def simple_translate(msgid, domain=None, mapping=None, context=None,
         mapping = getattr(msgid, "mapping", None)
 
     if mapping:
-        def replace(match):
+        def replace(match: re.Match[str]) -> str:
             whole, param1, param2 = match.groups()
             return str(mapping.get(param1 or param2, whole))
         return _interp_regex.sub(replace, default)

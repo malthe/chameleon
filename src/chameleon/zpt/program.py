@@ -1,12 +1,7 @@
-import re
-
-
-try:
-    str = unicode
-except NameError:
-    long = int
+from __future__ import annotations
 
 import ast
+import re
 from copy import copy
 from functools import partial
 
@@ -29,12 +24,6 @@ from chameleon.namespaces import XMLNS_NS
 from chameleon.program import ElementProgram
 from chameleon.utils import ImportableMarker
 from chameleon.utils import decode_htmlentities
-
-
-try:
-    str = unicode
-except NameError:
-    long = int
 
 
 missing = object()
@@ -63,7 +52,7 @@ def validate_attributes(attributes, namespace, whitelist):
             )
 
 
-def convert_data_attributes(ns_attrs, attrs, namespaces):
+def convert_data_attributes(ns_attrs, attrs, namespaces) -> None:
     d = 0
     for i, attr in list(enumerate(attrs)):
         name = attr['name']
@@ -114,13 +103,13 @@ class MacroProgram(ElementProgram):
     # Attributes which should have boolean behavior (on true, the
     # value takes the attribute name, on false, the attribute is
     # dropped)
-    boolean_attributes = set()
+    boolean_attributes: set[str] = set()
 
     # If provided, this should be a set of attributes for implicit
     # translation. Any attribute whose name is included in the set
     # will be translated even without explicit markup. Note that all
     # values should be lowercase strings.
-    implicit_i18n_attributes = set()
+    implicit_i18n_attributes: set[str] = set()
 
     # If set, text will be translated even without explicit markup.
     implicit_i18n_translate = False

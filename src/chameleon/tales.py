@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import ast
 import re
-import sys
 from ast import Try
 
 from chameleon.astutil import Builtin
@@ -27,7 +28,6 @@ DEFAULT_MARKER = ImportableMarker(__name__, "DEFAULT")
 split_parts = re.compile(r'(?<!\\)\|')
 match_prefix = re.compile(r'^\s*([a-z][a-z0-9\-_]*):').match
 re_continuation = re.compile(r'\\\s*$', re.MULTILINE)
-exc_clear = getattr(sys, "exc_clear", None)
 
 
 def resolve_global(value):
@@ -46,8 +46,6 @@ def test(expression, engine=None, **env):
     module = ast.Module(body)
     module = ast.fix_missing_locations(module)
     env['rcontext'] = {}
-    if exc_clear is not None:
-        env['__exc_clear'] = exc_clear
     source = TemplateCodeGenerator(module).code
     code = compile(source, '<string>', 'exec')
     exec(code, env)
@@ -157,17 +155,7 @@ class TalesExpr:
                             elts=map(resolve_global, self.exceptions),
                             ctx=ast.Load()),
                         name=None,
-                        body=body if exc_clear is None else body + [
-                            ast.Expr(
-                                ast.Call(
-                                    func=load("__exc_clear"),
-                                    args=[],
-                                    keywords=[],
-                                    starargs=None,
-                                    kwargs=None,
-                                )
-                            )
-                        ],
+                        body=body,
                     )],
                 )]
 
@@ -269,7 +257,7 @@ class PythonExpr(TalesExpr):
 class ImportExpr:
     re_dotted = re.compile(r'^[A-Za-z.]+$')
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -294,7 +282,7 @@ class NotExpr:
     False
     """
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -314,7 +302,7 @@ class StructureExpr:
 
     wrapper_class = Symbol(Markup)
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -323,7 +311,7 @@ class StructureExpr:
         return body + template(
             "target = wrapper(target)",
             target=target,
-            wrapper=self.wrapper_class
+            wrapper=self.wrapper_class,
         )
 
 
@@ -336,7 +324,7 @@ class IdentityExpr:
     42
     """
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -456,7 +444,7 @@ class StringExpr:
     'There are 11 characters in \"hello world\"'
     """
 
-    def __init__(self, expression, braces_required=False):
+    def __init__(self, expression, braces_required: bool = False) -> None:
         # The code relies on the expression being a token string
         if not isinstance(expression, Token):
             expression = Token(expression, 0)
@@ -470,7 +458,7 @@ class StringExpr:
 class ProxyExpr(TalesExpr):
     braces_required = False
 
-    def __init__(self, name, expression, ignore_prefix=True):
+    def __init__(self, name, expression, ignore_prefix: bool = True) -> None:
         super().__init__(expression)
         self.ignore_prefix = ignore_prefix
         self.name = name
@@ -509,7 +497,7 @@ class ExistsExpr:
 
     exceptions = AttributeError, LookupError, TypeError, NameError
 
-    def __init__(self, expression):
+    def __init__(self, expression) -> None:
         self.expression = expression
 
     def __call__(self, target, engine):
@@ -533,7 +521,7 @@ class ExistsExpr:
 
 
 class ExpressionParser:
-    def __init__(self, factories, default):
+    def __init__(self, factories, default) -> None:
         self.factories = factories
         self.default = default
 
@@ -558,7 +546,7 @@ class ExpressionParser:
 class SimpleEngine:
     expression = PythonExpr
 
-    def __init__(self, expression=None):
+    def __init__(self, expression=None) -> None:
         if expression is not None:
             self.expression = expression
 
@@ -568,7 +556,7 @@ class SimpleEngine:
 
 
 class SimpleCompiler:
-    def __init__(self, compiler, engine):
+    def __init__(self, compiler, engine) -> None:
         self.compiler = compiler
         self.engine = engine
 

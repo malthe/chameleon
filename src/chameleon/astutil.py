@@ -12,18 +12,36 @@
 
 """Support classes for generating code from abstract syntax trees."""
 
+from __future__ import annotations
+
 import ast
 import collections
 import logging
 import weakref
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import ClassVar
+from typing import cast
 
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import MutableMapping
+    from typing import TypeVar
+    from typing_extensions import TypeAlias
+
+    _F = TypeVar('_F', bound=Callable[..., Any])
+    _AnyNode: TypeAlias = 'Node | ast.AST'
+    _Position: TypeAlias = tuple[int, int]
+    _LineInfo: TypeAlias = 'list[tuple[int, _Position | None]]'
 
 AST_NONE = ast.Name(id='None', ctx=ast.Load())
 
+node_annotations: MutableMapping[_AnyNode, _AnyNode]
 node_annotations = weakref.WeakKeyDictionary()
 
 try:
-    node_annotations[ast.Name()] = None
+    node_annotations[ast.Name()] = None  # type: ignore[assignment]
 except TypeError:
     logging.debug(
         "Unable to create weak references to AST nodes. "
@@ -115,17 +133,19 @@ def walk(node):
         yield node
 
 
-def copy(source, target):
+def copy(source, target) -> None:
     target.__class__ = source.__class__
     target.__dict__ = source.__dict__
 
 
-def swap(body, replacement, name):
+def swap(body, replacement, name) -> None:
     root = ast.Expression(body=body)
     for node in ast.walk(root):
-        if (isinstance(node, ast.Name) and
-            isinstance(node.ctx, ast.Load) and
-                node.id == name):
+        if (
+            isinstance(node, ast.Name)
+            and isinstance(node.ctx, ast.Load)
+            and node.id == name
+        ):
             assert hasattr(replacement, '_fields')
             node_annotations.setdefault(node, replacement)
 
@@ -138,23 +158,25 @@ class Node:
     """AST baseclass that gives us a convenient initialization
     method. We explicitly declare and use the ``_fields`` attribute."""
 
-    _fields = ()
+    _fields: ClassVar[tuple[str, ...]] = ()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         assert isinstance(self._fields, tuple)
         self.__dict__.update(kwargs)
         for name, value in zip(self._fields, args):
             setattr(self, name, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Poor man's single-line pretty printer."""
 
         name = type(self).__name__
         return '<{}{} at {:x}>'.format(
             name,
-            "".join(" {}={!r}".format(name, getattr(self, name, "\"?\""))
-                    for name in self._fields),
-            id(self)
+            "".join(
+                " {}={!r}".format(name, getattr(self, name, "\"?\""))
+                for name in self._fields
+            ),
+            id(self),
         )
 
     def extract(self, condition):
@@ -231,14 +253,13 @@ class ASTCodeGenerator:
 
         # strip trivial lines
         self.code = "\n".join(
-            line.strip() and line or ""
-            for line in self.lines
+            line.strip() and line or "" for line in self.lines
         )
 
-    def _change_indent(self, delta):
+    def _change_indent(self, delta) -> None:
         self.indent += delta
 
-    def _new_line(self):
+    def _new_line(self) -> None:
         if self.line is not None:
             self.lines.append(self.line)
             self.lines_info.append(self.line_info)
@@ -247,10 +268,15 @@ class ASTCodeGenerator:
             self.line_info = []
             self.last = None
         else:
-            self.line_info = [(0, self.blame_stack[-1],)]
+            self.line_info = [
+                (
+                    0,
+                    self.blame_stack[-1],
+                )
+            ]
             self.last = self.blame_stack[-1]
 
-    def _write(self, s):
+    def _write(self, s) -> None:
         if len(s) == 0:
             return
         if len(self.blame_stack) == 0:
@@ -263,7 +289,7 @@ class ASTCodeGenerator:
                 self.line_info.append((len(self.line), self.last))
         self.line += s
 
-    def flush(self):
+    def flush(self) -> None:
         if self.line:
             self._new_line()
 
@@ -273,22 +299,31 @@ class ASTCodeGenerator:
         if isinstance(node, tuple):
             return tuple([self.visit(n) for n in node])
         try:
-            self.blame_stack.append((node.lineno, node.col_offset,))
+            self.blame_stack.append(
+                (
+                    node.lineno,
+                    node.col_offset,
+                )
+            )
             info = True
         except AttributeError:
             info = False
         visitor = getattr(self, 'visit_%s' % node.__class__.__name__, None)
         if visitor is None:
-            raise Exception('No handler for ``{}`` ({}).'.format(
-                node.__class__.__name__, repr(node)))
+            raise Exception(
+                'No handler for ``{}`` ({}).'.format(
+                    node.__class__.__name__, repr(node)
+                )
+            )
         ret = visitor(node)
         if info:
             self.blame_stack.pop()
         return ret
 
-    def visit_Module(self, node):
+    def visit_Module(self, node) -> None:
         for n in node.body:
             self.visit(n)
+
     visit_Interactive = visit_Module
     visit_Suite = visit_Module
 
@@ -297,7 +332,7 @@ class ASTCodeGenerator:
 
     # arguments = (expr* args, identifier? vararg,
     #              identifier? kwarg, expr* defaults)
-    def visit_arguments(self, node):
+    def visit_arguments(self, node) -> None:
         first = True
         no_default_count = len(node.args) - len(node.defaults)
         for i, arg in enumerate(node.args):
@@ -322,12 +357,12 @@ class ASTCodeGenerator:
                 first = False
             self._write('**' + node.kwarg)
 
-    def visit_arg(self, node):
+    def visit_arg(self, node) -> None:
         self._write(node.arg)
 
     # FunctionDef(identifier name, arguments args,
     #                           stmt* body, expr* decorators)
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node) -> None:
         self._new_line()
         for decorator in getattr(node, 'decorator_list', ()):
             self._new_line()
@@ -343,7 +378,7 @@ class ASTCodeGenerator:
         self._change_indent(-1)
 
     # ClassDef(identifier name, expr* bases, stmt* body)
-    def visit_ClassDef(self, node):
+    def visit_ClassDef(self, node) -> None:
         self._new_line()
         self._write('class ' + node.name)
         if node.bases:
@@ -360,7 +395,7 @@ class ASTCodeGenerator:
         self._change_indent(-1)
 
     # Return(expr? value)
-    def visit_Return(self, node):
+    def visit_Return(self, node) -> None:
         self._new_line()
         self._write('return')
         if getattr(node, 'value', None):
@@ -368,7 +403,7 @@ class ASTCodeGenerator:
             self.visit(node.value)
 
     # Delete(expr* targets)
-    def visit_Delete(self, node):
+    def visit_Delete(self, node) -> None:
         self._new_line()
         self._write('del ')
         self.visit(node.targets[0])
@@ -377,7 +412,7 @@ class ASTCodeGenerator:
             self.visit(target)
 
     # Assign(expr* targets, expr value)
-    def visit_Assign(self, node):
+    def visit_Assign(self, node) -> None:
         self._new_line()
         for target in node.targets:
             self.visit(target)
@@ -385,14 +420,14 @@ class ASTCodeGenerator:
         self.visit(node.value)
 
     # AugAssign(expr target, operator op, expr value)
-    def visit_AugAssign(self, node):
+    def visit_AugAssign(self, node) -> None:
         self._new_line()
         self.visit(node.target)
         self._write(' ' + self.binary_operators[node.op.__class__] + '= ')
         self.visit(node.value)
 
     # JoinedStr(expr* values)
-    def visit_JoinedStr(self, node):
+    def visit_JoinedStr(self, node) -> None:
         if node.values:
             self._write('"".join((')
             for value in node.values:
@@ -403,7 +438,7 @@ class ASTCodeGenerator:
             self._write('""')
 
     # FormattedValue(expr value)
-    def visit_FormattedValue(self, node):
+    def visit_FormattedValue(self, node) -> None:
         if node.conversion == ord('r'):
             self._write('repr')
         elif node.conversion == ord('a'):
@@ -419,7 +454,7 @@ class ASTCodeGenerator:
         self._write(')')
 
     # Print(expr? dest, expr* values, bool nl)
-    def visit_Print(self, node):
+    def visit_Print(self, node) -> None:
         self._new_line()
         self._write('print')
         if getattr(node, 'dest', None):
@@ -438,7 +473,7 @@ class ASTCodeGenerator:
             self._write(',')
 
     # For(expr target, expr iter, stmt* body, stmt* orelse)
-    def visit_For(self, node):
+    def visit_For(self, node) -> None:
         self._new_line()
         self._write('for ')
         self.visit(node.target)
@@ -458,7 +493,7 @@ class ASTCodeGenerator:
             self._change_indent(-1)
 
     # While(expr test, stmt* body, stmt* orelse)
-    def visit_While(self, node):
+    def visit_While(self, node) -> None:
         self._new_line()
         self._write('while ')
         self.visit(node.test)
@@ -476,7 +511,7 @@ class ASTCodeGenerator:
             self._change_indent(-1)
 
     # If(expr test, stmt* body, stmt* orelse)
-    def visit_If(self, node):
+    def visit_If(self, node) -> None:
         self._new_line()
         self._write('if ')
         self.visit(node.test)
@@ -494,7 +529,7 @@ class ASTCodeGenerator:
             self._change_indent(-1)
 
     # With(expr context_expr, expr? optional_vars, stmt* body)
-    def visit_With(self, node):
+    def visit_With(self, node) -> None:
         self._new_line()
         self._write('with ')
         self.visit(node.context_expr)
@@ -529,7 +564,7 @@ class ASTCodeGenerator:
         self.visit(node.tback)
 
     # Try(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
-    def visit_Try(self, node):
+    def visit_Try(self, node) -> None:
         self._new_line()
         self._write('try:')
         self._change_indent(1)
@@ -557,7 +592,7 @@ class ASTCodeGenerator:
             self._change_indent(-1)
 
     # TryExcept(stmt* body, excepthandler* handlers, stmt* orelse)
-    def visit_TryExcept(self, node):
+    def visit_TryExcept(self, node) -> None:
         self._new_line()
         self._write('try:')
         self._change_indent(1)
@@ -576,7 +611,7 @@ class ASTCodeGenerator:
             self._change_indent(-1)
 
     # excepthandler = (expr? type, expr? name, stmt* body)
-    def visit_ExceptHandler(self, node):
+    def visit_ExceptHandler(self, node) -> None:
         self._new_line()
         self._write('except')
         if getattr(node, 'type', None):
@@ -590,10 +625,11 @@ class ASTCodeGenerator:
         for statement in node.body:
             self.visit(statement)
         self._change_indent(-1)
+
     visit_excepthandler = visit_ExceptHandler
 
     # TryFinally(stmt* body, stmt* finalbody)
-    def visit_TryFinally(self, node):
+    def visit_TryFinally(self, node) -> None:
         self._new_line()
         self._write('try:')
         self._change_indent(1)
@@ -610,7 +646,7 @@ class ASTCodeGenerator:
             self._change_indent(-1)
 
     # Assert(expr test, expr? msg)
-    def visit_Assert(self, node):
+    def visit_Assert(self, node) -> None:
         self._new_line()
         self._write('assert ')
         self.visit(node.test)
@@ -618,14 +654,14 @@ class ASTCodeGenerator:
             self._write(', ')
             self.visit(node.msg)
 
-    def visit_alias(self, node):
+    def visit_alias(self, node) -> None:
         self._write(node.name)
         if getattr(node, 'asname', None):
             self._write(' as ')
             self._write(node.asname)
 
     # Import(alias* names)
-    def visit_Import(self, node):
+    def visit_Import(self, node) -> None:
         self._new_line()
         self._write('import ')
         self.visit(node.names[0])
@@ -634,7 +670,7 @@ class ASTCodeGenerator:
             self.visit(name)
 
     # ImportFrom(identifier module, alias* names, int? level)
-    def visit_ImportFrom(self, node):
+    def visit_ImportFrom(self, node) -> None:
         self._new_line()
         self._write('from ')
         if node.level:
@@ -647,7 +683,7 @@ class ASTCodeGenerator:
             self.visit(name)
 
     # Exec(expr body, expr? globals, expr? locals)
-    def visit_Exec(self, node):
+    def visit_Exec(self, node) -> None:
         self._new_line()
         self._write('exec ')
         self.visit(node.body)
@@ -661,7 +697,7 @@ class ASTCodeGenerator:
         self.visit(node.locals)
 
     # Global(identifier* names)
-    def visit_Global(self, node):
+    def visit_Global(self, node) -> None:
         self._new_line()
         self._write('global ')
         self.visit(node.names[0])
@@ -670,38 +706,39 @@ class ASTCodeGenerator:
             self.visit(name)
 
     # Expr(expr value)
-    def visit_Expr(self, node):
+    def visit_Expr(self, node) -> None:
         self._new_line()
         self.visit(node.value)
 
     # Pass
-    def visit_Pass(self, node):
+    def visit_Pass(self, node) -> None:
         self._new_line()
         self._write('pass')
 
     # Break
-    def visit_Break(self, node):
+    def visit_Break(self, node) -> None:
         self._new_line()
         self._write('break')
 
     # Continue
-    def visit_Continue(self, node):
+    def visit_Continue(self, node) -> None:
         self._new_line()
         self._write('continue')
 
     # EXPRESSIONS
-    def with_parens(f):
-        def _f(self, node):
+    def with_parens(f: _F) -> _F:  # type: ignore[misc]
+        def _f(self, node) -> None:
             self._write('(')
             f(self, node)
             self._write(')')
-        return _f
+
+        return cast('_F', _f)
 
     bool_operators = {ast.And: 'and', ast.Or: 'or'}
 
     # BoolOp(boolop op, expr* values)
     @with_parens
-    def visit_BoolOp(self, node):
+    def visit_BoolOp(self, node) -> None:
         joiner = ' ' + self.bool_operators[node.op.__class__] + ' '
         self.visit(node.values[0])
         for value in node.values[1:]:
@@ -720,12 +757,12 @@ class ASTCodeGenerator:
         ast.BitOr: '|',
         ast.BitXor: '^',
         ast.BitAnd: '&',
-        ast.FloorDiv: '//'
+        ast.FloorDiv: '//',
     }
 
     # BinOp(expr left, operator op, expr right)
     @with_parens
-    def visit_BinOp(self, node):
+    def visit_BinOp(self, node) -> None:
         self.visit(node.left)
         self._write(' ' + self.binary_operators[node.op.__class__] + ' ')
         self.visit(node.right)
@@ -738,13 +775,13 @@ class ASTCodeGenerator:
     }
 
     # UnaryOp(unaryop op, expr operand)
-    def visit_UnaryOp(self, node):
+    def visit_UnaryOp(self, node) -> None:
         self._write(self.unary_operators[node.op.__class__] + ' ')
         self.visit(node.operand)
 
     # Lambda(arguments args, expr body)
     @with_parens
-    def visit_Lambda(self, node):
+    def visit_Lambda(self, node) -> None:
         self._write('lambda ')
         self.visit(node.args)
         self._write(': ')
@@ -752,7 +789,7 @@ class ASTCodeGenerator:
 
     # IfExp(expr test, expr body, expr orelse)
     @with_parens
-    def visit_IfExp(self, node):
+    def visit_IfExp(self, node) -> None:
         self.visit(node.body)
         self._write(' if ')
         self.visit(node.test)
@@ -760,7 +797,7 @@ class ASTCodeGenerator:
         self.visit(node.orelse)
 
     # Dict(expr* keys, expr* values)
-    def visit_Dict(self, node):
+    def visit_Dict(self, node) -> None:
         self._write('{')
         for key, value in zip(node.keys, node.values):
             self.visit(key)
@@ -769,7 +806,7 @@ class ASTCodeGenerator:
             self._write(', ')
         self._write('}')
 
-    def visit_Set(self, node):
+    def visit_Set(self, node) -> None:
         self._write('{')
         elts = list(node.elts)
         last = elts.pop()
@@ -780,7 +817,7 @@ class ASTCodeGenerator:
         self._write('}')
 
     # DictComp(expr key, expr value, comprehension* generators)
-    def visit_DictComp(self, node):
+    def visit_DictComp(self, node) -> None:
         self._write('{')
         self.visit(node.key)
         self._write(': ')
@@ -797,7 +834,7 @@ class ASTCodeGenerator:
         self._write('}')
 
     # ListComp(expr elt, comprehension* generators)
-    def visit_ListComp(self, node):
+    def visit_ListComp(self, node) -> None:
         self._write('[')
         self.visit(node.elt)
         for generator in node.generators:
@@ -812,7 +849,7 @@ class ASTCodeGenerator:
         self._write(']')
 
     # GeneratorExp(expr elt, comprehension* generators)
-    def visit_GeneratorExp(self, node):
+    def visit_GeneratorExp(self, node) -> None:
         self._write('(')
         self.visit(node.elt)
         for generator in node.generators:
@@ -827,7 +864,7 @@ class ASTCodeGenerator:
         self._write(')')
 
     # SetComp(expr elt, comprehension* generators)
-    def visit_SetComp(self, node):
+    def visit_SetComp(self, node) -> None:
         self._write('{')
         self.visit(node.elt)
         for generator in node.generators:
@@ -842,7 +879,7 @@ class ASTCodeGenerator:
                 self._write('}')
 
     # Yield(expr? value)
-    def visit_Yield(self, node):
+    def visit_Yield(self, node) -> None:
         self._write('yield')
         if getattr(node, 'value', None):
             self._write(' ')
@@ -863,7 +900,7 @@ class ASTCodeGenerator:
 
     # Compare(expr left, cmpop* ops, expr* comparators)
     @with_parens
-    def visit_Compare(self, node):
+    def visit_Compare(self, node) -> None:
         self.visit(node.left)
         for op, comparator in zip(node.ops, node.comparators):
             self._write(' ' + self.comparison_operators[op.__class__] + ' ')
@@ -871,7 +908,7 @@ class ASTCodeGenerator:
 
     # Call(expr func, expr* args, keyword* keywords,
     #                         expr? starargs, expr? kwargs)
-    def visit_Call(self, node):
+    def visit_Call(self, node) -> None:
         self.visit(node.func)
         self._write('(')
         first = True
@@ -896,37 +933,37 @@ class ASTCodeGenerator:
         self._write(')')
 
     # Repr(expr value)
-    def visit_Repr(self, node):
+    def visit_Repr(self, node) -> None:
         self._write('`')
         self.visit(node.value)
         self._write('`')
 
     # Constant(object value)
-    def visit_Constant(self, node):
+    def visit_Constant(self, node) -> None:
         if node.value is Ellipsis:
             self._write('...')
         else:
             self._write(repr(node.value))
 
     # Num(object n)
-    def visit_Num(self, node):
+    def visit_Num(self, node) -> None:
         self._write(repr(node.n))
 
     # Str(string s)
-    def visit_Str(self, node):
+    def visit_Str(self, node) -> None:
         self._write(repr(node.s))
 
-    def visit_Ellipsis(self, node):
+    def visit_Ellipsis(self, node) -> None:
         self._write('...')
 
     # Attribute(expr value, identifier attr, expr_context ctx)
-    def visit_Attribute(self, node):
+    def visit_Attribute(self, node) -> None:
         self.visit(node.value)
         self._write('.')
         self._write(node.attr)
 
     # Subscript(expr value, slice slice, expr_context ctx)
-    def visit_Subscript(self, node):
+    def visit_Subscript(self, node) -> None:
         self.visit(node.value)
         self._write('[')
         if isinstance(node.slice, ast.Tuple) and node.slice.elts:
@@ -944,7 +981,7 @@ class ASTCodeGenerator:
         self._write(']')
 
     # Slice(expr? lower, expr? upper, expr? step)
-    def visit_Slice(self, node, subscription=False):
+    def visit_Slice(self, node, subscription: bool = False) -> None:
         if subscription:
             if getattr(node, 'lower', None) is not None:
                 self.visit(node.lower)
@@ -964,11 +1001,11 @@ class ASTCodeGenerator:
             self._write(')')
 
     # Index(expr value)
-    def visit_Index(self, node):
+    def visit_Index(self, node) -> None:
         self.visit(node.value)
 
     # ExtSlice(slice* dims)
-    def visit_ExtSlice(self, node):
+    def visit_ExtSlice(self, node) -> None:
         self.visit(node.dims[0])
         if len(node.dims) == 1:
             self._write(', ')
@@ -978,16 +1015,16 @@ class ASTCodeGenerator:
                 self.visit(dim)
 
     # Starred(expr value, expr_context ctx)
-    def visit_Starred(self, node):
+    def visit_Starred(self, node) -> None:
         self._write('*')
         self.visit(node.value)
 
     # Name(identifier id, expr_context ctx)
-    def visit_Name(self, node):
+    def visit_Name(self, node) -> None:
         self._write(node.id)
 
     # List(expr* elts, expr_context ctx)
-    def visit_List(self, node):
+    def visit_List(self, node) -> None:
         self._write('[')
         for elt in node.elts:
             self.visit(elt)
@@ -995,7 +1032,7 @@ class ASTCodeGenerator:
         self._write(']')
 
     # Tuple(expr *elts, expr_context ctx)
-    def visit_Tuple(self, node):
+    def visit_Tuple(self, node) -> None:
         self._write('(')
         for elt in node.elts:
             self.visit(elt)
@@ -1003,12 +1040,12 @@ class ASTCodeGenerator:
         self._write(')')
 
     # NameConstant(singleton value)
-    def visit_NameConstant(self, node):
+    def visit_NameConstant(self, node) -> None:
         self._write(str(node.value))
 
 
 class AnnotationAwareVisitor(ast.NodeVisitor):
-    def visit(self, node):
+    def visit(self, node) -> None:
         annotation = node_annotations.get(node)
         if annotation is not None:
             assert hasattr(annotation, '_fields')
@@ -1033,11 +1070,11 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
         self.visit(node)
         return self.transformed
 
-    def visit_arg(self, node):
+    def visit_arg(self, node) -> None:
         scope = self.scopes[-1]
         scope.add(node.arg)
 
-    def visit_Name(self, node):
+    def visit_Name(self, node) -> None:
         scope = self.scopes[-1]
         if isinstance(node.ctx, ast.Param):
             scope.add(node.id)
@@ -1045,14 +1082,14 @@ class NameLookupRewriteVisitor(AnnotationAwareVisitor):
             self.transformed.add(node.id)
             self.apply_transform(node)
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node) -> None:
         self.scopes[-1].add(node.name)
 
-    def visit_alias(self, node):
+    def visit_alias(self, node) -> None:
         name = node.asname if node.asname is not None else node.name
         self.scopes[-1].add(name)
 
-    def visit_Lambda(self, node):
+    def visit_Lambda(self, node) -> None:
         self.scopes.append(set())
         try:
             self.visit(node.args)
@@ -1065,6 +1102,6 @@ class ItemLookupOnAttributeErrorVisitor(AnnotationAwareVisitor):
     def __init__(self, transform):
         self.transform = transform
 
-    def visit_Attribute(self, node):
+    def visit_Attribute(self, node) -> None:
         self.generic_visit(node)
         self.apply_transform(node)

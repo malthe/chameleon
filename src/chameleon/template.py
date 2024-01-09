@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import hashlib
 import inspect
@@ -6,6 +8,8 @@ import os
 import pathlib
 import sys
 import tempfile
+from typing import TYPE_CHECKING
+from typing import Any
 
 from chameleon.compiler import Compiler
 from chameleon.config import AUTO_RELOAD
@@ -31,18 +35,20 @@ from chameleon.utils import read_xml_encoding
 from chameleon.utils import value_repr
 
 
-try:
-    RecursionError
-except NameError:
-    RecursionError = RuntimeError
+if TYPE_CHECKING:
+    from _typeshed import StrPath
+    from abc import abstractmethod
+    from collections.abc import Callable
+    from collections.abc import Collection
+
+    from chameleon.compiler import ExpressionEngine
 
 
-def get_package_versions():
-    try:
-        # try backport first as packages_distributions was added in Python 3.10
-        import importlib_metadata
-    except ImportError:
+def get_package_versions() -> list[tuple[str, str]]:
+    if sys.version_info >= (3, 10):
         import importlib.metadata as importlib_metadata
+    else:
+        import importlib_metadata
 
     versions = {
         x: importlib_metadata.version(x)
@@ -59,7 +65,7 @@ for name, version in get_package_versions():
 log = logging.getLogger('chameleon.template')
 
 
-def _make_module_loader():
+def _make_module_loader() -> ModuleLoader:
     remove = False
     if CACHE_DIRECTORY:
         path = CACHE_DIRECTORY
@@ -86,20 +92,22 @@ class BaseTemplate:
     """
 
     default_encoding = "utf-8"
-    default_content_type = None
+    default_content_type: str | None = None
 
     # This attribute is strictly informational in this template class
     # and is used in exception formatting. It may be set on
     # initialization using the optional ``filename`` keyword argument.
-    filename = '<string>'
+    filename: StrPath = '<string>'
 
     _cooked = False
 
+    loader: ModuleLoader | MemoryLoader
     if DEBUG_MODE or CACHE_DIRECTORY:
         loader = _make_module_loader()
     else:
         loader = MemoryLoader()
 
+    output_stream_factory: type[list[str]]
     if DEBUG_MODE:
         output_stream_factory = DebuggingOutputStream
     else:
@@ -110,15 +118,20 @@ class BaseTemplate:
     # The ``builtins`` dictionary can be used by a template class to
     # add symbols which may not be redefined and which are (cheaply)
     # available in the template variable scope
-    builtins = {}
+    builtins: dict[str, Any] = {}
 
     # The ``builtins`` dictionary is updated with this dictionary at
     # cook time. Note that it can be provided at class initialization
     # using the ``extra_builtins`` keyword argument.
-    extra_builtins = {}
+    extra_builtins: dict[str, Any] = {}
 
     # Expression engine must be provided by subclass
-    engine = None
+    if TYPE_CHECKING:
+        @property
+        @abstractmethod
+        def engine(self) -> Callable[[], ExpressionEngine]: ...
+    else:
+        engine = None
 
     # When ``strict`` is set, expressions must be valid at compile
     # time. When not set, this is only required at evaluation time.
@@ -128,7 +141,14 @@ class BaseTemplate:
     # formatting.
     value_repr = staticmethod(value_repr)
 
-    def __init__(self, body=None, **config):
+    source: str | None
+
+    def __init__(
+        self,
+        body: str | bytes | None = None,
+        **config: Any
+    ) -> None:
+
         self.__dict__.update(config)
 
         if body is not None:
@@ -139,25 +159,31 @@ class BaseTemplate:
         if self.__dict__.get('debug') is True:
             self.loader = _make_module_loader()
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs: Any) -> str:
         return self.render(**kwargs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<{} {}>".format(self.__class__.__name__, self.filename)
 
+    if TYPE_CHECKING:
+        # since we add config values to our __dict__ they can appear as
+        # arbitrary attributes, to clue the type checker into arbitary
+        # attribute access being a possibility, we annotate __getattr__
+        def __getattr__(self, name: str) -> Any: ...
+
     @property
-    def keep_body(self):
+    def keep_body(self) -> bool:
         # By default, we only save the template body if we're
         # in debugging mode (to save memory).
-        return self.__dict__.get('keep_body', DEBUG_MODE)
+        return self.__dict__.get('keep_body', DEBUG_MODE)  # type: ignore
 
     @property
-    def keep_source(self):
+    def keep_source(self) -> bool:
         # By default, we only save the generated source code if we're
         # in debugging mode (to save memory).
-        return self.__dict__.get('keep_source', DEBUG_MODE)
+        return self.__dict__.get('keep_source', DEBUG_MODE)  # type: ignore
 
-    def cook(self, body):
+    def cook(self, body: str) -> None:
         builtins_dict = self.builtins.copy()
         builtins_dict.update(self.extra_builtins)
         names, builtins = zip(*sorted(builtins_dict.items()))
@@ -175,15 +201,16 @@ class BaseTemplate:
         if self.keep_body:
             self.body = body
 
-    def cook_check(self):
+    def cook_check(self) -> bool | None:
         assert self._cooked
+        return None
 
-    def parse(self, body):
+    def parse(self, body: str) -> Any:
         raise NotImplementedError("Must be implemented by subclass.")
 
-    def render(self, **__kw):
+    def render(self, **__kw: Any) -> str:
         econtext = Scope(__kw)
-        rcontext = {}
+        rcontext: dict[str, Any] = {}
         self.cook_check()
         stream = self.output_stream_factory()
         target_language = __kw.get("target_language")
@@ -212,11 +239,12 @@ class BaseTemplate:
 
                     try:
                         exc = create_formatted_exception(
-                            exc, cls, formatter, RenderError
+                            exc, cls, formatter, RenderError  # type: ignore
                         )
                     except TypeError:
                         pass
 
+                    assert exc is not None
                     raise_with_traceback(exc, tb)
 
                 raise
@@ -225,7 +253,8 @@ class BaseTemplate:
 
         return join(stream)
 
-    def write(self, body):
+    def write(self, body: str | bytes) -> None:
+        encoding: str | None
         if isinstance(body, bytes):
             body, encoding, content_type = read_bytes(
                 body, self.default_encoding
@@ -243,10 +272,16 @@ class BaseTemplate:
 
         self.cook(body)
 
-    def _get_module_name(self, name):
+    def _get_module_name(self, name: str) -> str:
         return "%s.py" % name
 
-    def _cook(self, body, name, builtins):
+    def _cook(
+        self,
+        body: str,
+        name: str,
+        builtins: Collection[str]
+    ) -> dict[str, Any]:
+
         filename = self._get_module_name(name)
         cooked = self.loader.get(filename)
         if cooked is None:
@@ -259,17 +294,19 @@ class BaseTemplate:
                     self.source = source
                 cooked = self.loader.build(source, filename)
             except TemplateError as exc:
-                exc.token.filename = self.filename
+                # normalize to str
+                exc.token.filename = str(self.filename)
                 raise
         elif self.keep_source:
-            module = sys.modules.get(cooked.get('__name__'))
+            module_name = cooked.get('__name__')
+            module = sys.modules.get(module_name) if module_name else None
             if module is not None:
                 self.source = inspect.getsource(module)
             else:
                 self.source = None
         return cooked
 
-    def digest(self, body, names):
+    def digest(self, body: str, names: Collection[str]) -> str:
         class_name = type(self).__name__.encode('utf-8')
         sha = pkg_digest.copy()
         sha.update(body.encode('utf-8', 'ignore'))
@@ -282,7 +319,7 @@ class BaseTemplate:
 
         return digest
 
-    def _compile(self, body, builtins):
+    def _compile(self, body: str, builtins: Collection[str]) -> str:
         program = self.parse(body)
         module = Module("initialize", program)
         compiler = Compiler(
@@ -303,13 +340,17 @@ class BaseTemplateFile(BaseTemplate):
     # performance hit
     auto_reload = AUTO_RELOAD
 
+    _v_last_read: float | None
+
     def __init__(
-            self,
-            filename,
-            auto_reload=None,
-            package_name=None,
-            post_init_hook=None,
-            **config):
+        self,
+        filename: StrPath,
+        auto_reload: bool | None = None,
+        package_name: str | None = None,
+        post_init_hook: Callable[[], object] | None = None,
+        **config: Any,
+    ) -> None:
+
         if package_name is None:
             # Normalize filename
             filename = os.path.abspath(
@@ -330,7 +371,7 @@ class BaseTemplateFile(BaseTemplate):
         if EAGER_PARSING:
             self.cook_check()
 
-    def cook_check(self):
+    def cook_check(self) -> bool:
         if self.auto_reload:
             mtime = self.mtime()
 
@@ -346,7 +387,7 @@ class BaseTemplateFile(BaseTemplate):
 
         return False
 
-    def mtime(self):
+    def mtime(self) -> float:
         filename = self.filename
         if self.package_name is not None:
             with import_package_resource(self.package_name) as path:
@@ -363,7 +404,7 @@ class BaseTemplateFile(BaseTemplate):
         except OSError:
             return 0
 
-    def read(self):
+    def read(self) -> str:
         if self.package_name is not None:
             with import_package_resource(self.package_name) as files:
                 path = files.joinpath(self.filename)
@@ -372,26 +413,32 @@ class BaseTemplateFile(BaseTemplate):
             with open(self.filename, "rb") as f:
                 data = f.read()
 
-        body, encoding, content_type = read_bytes(
-            data, self.default_encoding
-        )
+        body, encoding, content_type = read_bytes(data, self.default_encoding)
 
         self.content_type = content_type or self.default_content_type
         self.content_encoding = encoding
 
         return body
 
-    def _get_module_name(self, name):
+    def _get_module_name(self, name: str) -> str:
         filename = os.path.basename(str(self.filename))
         mangled = mangle(filename)
         return "{}_{}.py".format(mangled, name)
 
-    def _get_filename(self):
-        return self.__dict__.get('filename')
+    def _get_filename(self) -> StrPath:
+        # FIXME: Shouldn't a missing filename be an error?
+        return self.__dict__.get('filename')  # type: ignore[return-value]
 
-    def _set_filename(self, filename):
+    def _set_filename(self, filename: StrPath) -> None:
         self.__dict__['filename'] = filename
         self._v_last_read = None
         self._cooked = False
 
-    filename = property(_get_filename, _set_filename)
+    if TYPE_CHECKING:
+        # type checkers only understand this way of defining properties
+        @property
+        def filename(self) -> StrPath: ...
+        @filename.setter
+        def filename(self, filename: StrPath) -> None: ...
+    else:
+        filename = property(_get_filename, _set_filename)

@@ -15,9 +15,7 @@ except BaseException:  # doesn't work under tox/pip
     README = ''
     CHANGES = ''
 
-install_requires = [
-    'importlib-metadata;python_version<"3.10"',
-    'importlib-resources;python_version<"3.9"']
+install_requires = ['importlib-metadata;python_version<"3.10"']
 
 
 class Benchmark(test):
@@ -49,7 +47,6 @@ setup(
         "Intended Audience :: Developers",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
@@ -69,7 +66,12 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    python_requires='>=3.8',
+    package_data={
+        'chameleon': [
+            'py.typed',
+        ],
+    },
+    python_requires='>=3.9',
     install_requires=install_requires,
     extras_require={
         'docs': {

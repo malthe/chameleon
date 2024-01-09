@@ -12,6 +12,8 @@
 #
 ##############################################################################
 
+from __future__ import annotations
+
 import copy
 import re
 
@@ -217,28 +219,20 @@ class RepeatItem:
 
     __allow_access_to_unprotected_subobjects__ = True
 
-    def __init__(self, iterator, length):
+    def __init__(self, iterator, length) -> None:
         self.length = length
         self._iterator = iterator
 
     def __iter__(self):
         return self._iterator
 
-    try:
-        iter(()).__len__
-    except AttributeError:
-        @descriptorint
-        def index(self):
-            try:
-                remaining = self._iterator.__length_hint__()
-            except AttributeError:
-                remaining = len(tuple(copy.copy(self._iterator)))
-            return self.length - remaining - 1
-    else:
-        @descriptorint
-        def index(self):
-            remaining = self._iterator.__len__()
-            return self.length - remaining - 1
+    @descriptorint
+    def index(self):
+        try:
+            remaining = self._iterator.__length_hint__()
+        except AttributeError:
+            remaining = len(tuple(copy.copy(self._iterator)))
+        return self.length - remaining - 1
 
     @descriptorint
     def start(self):
@@ -425,7 +419,7 @@ class RepeatDict:
 
     __slots__ = "__setitem__", "__getitem__"
 
-    def __init__(self, d):
+    def __init__(self, d) -> None:
         self.__setitem__ = d.__setitem__
         self.__getitem__ = d.__getitem__
 

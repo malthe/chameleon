@@ -1,7 +1,4 @@
-try:
-    str = unicode
-except NameError:
-    long = int
+from __future__ import annotations
 
 from chameleon.namespaces import XML_NS
 from chameleon.namespaces import XMLNS_NS
@@ -23,14 +20,15 @@ class ElementProgram:
 
     restricted_namespace = True
 
-    def __init__(self, source, mode="xml", filename=None, tokenizer=None):
+    def __init__(
+        self, source, mode="xml", filename=None, tokenizer=None
+    ) -> None:
         if tokenizer is None:
             tokenizer = self.tokenizers[mode]
         tokens = tokenizer(source, filename)
         parser = ElementParser(
-            tokens,
-            self.DEFAULT_NAMESPACES,
-            self.restricted_namespace)
+            tokens, self.DEFAULT_NAMESPACES, self.restricted_namespace
+        )
 
         self.body = []
 

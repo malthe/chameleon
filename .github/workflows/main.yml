@@ -33,7 +33,6 @@ jobs:
         config:
         # [Python version, tox env]
         - ["3.9",   "lint"]
-        - ["3.8",   "py38"]
         - ["3.9",   "py39"]
         - ["3.10",  "py310"]
         - ["3.11",  "py311"]
@@ -42,6 +41,7 @@ jobs:
         - ["pypy-3.9", "pypy3"]
         - ["3.9",   "docs"]
         - ["3.9",   "coverage"]
+        - ["3.12",   "mypy"]
 
     runs-on: ${{ matrix.os[1] }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name

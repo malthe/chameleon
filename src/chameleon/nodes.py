@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import ClassVar
+
 from chameleon.astutil import Node
 
 
@@ -29,6 +33,7 @@ class CodeBlock(Node):
 class Value(Node):
     """Expression object value."""
 
+    _fields: ClassVar[tuple[str, ...]]
     _fields = "value", "default", "default_marker"
 
     default = None
@@ -42,7 +47,10 @@ class Value(Node):
             line, column = 0, 0
 
         return "<%s %r (%d:%d)>" % (
-            type(self).__name__, self.value, line, column
+            type(self).__name__,
+            self.value,
+            line,
+            column,
         )
 
 
@@ -50,7 +58,11 @@ class Substitution(Value):
     """Expression value for text substitution."""
 
     _fields = (
-        "value", "char_escape", "default", "default_marker", "literal_false"
+        "value",
+        "char_escape",
+        "default",
+        "default_marker",
+        "literal_false",
     )
 
     default = None
@@ -64,7 +76,7 @@ class Boolean(Value):
 class Negate(Node):
     """Wraps an expression with a negation."""
 
-    _fields = "value",
+    _fields = ("value",)
 
 
 class Element(Node):
@@ -83,7 +95,14 @@ class Attribute(Node):
     """Element attribute."""
 
     _fields = (
-        "name", "expression", "quote", "eq", "space", "default", "filters")
+        "name",
+        "expression",
+        "quote",
+        "eq",
+        "space",
+        "default",
+        "filters",
+    )
 
 
 class Start(Node):
@@ -123,7 +142,7 @@ class Equals(Op):
 class Logical(Node):
     """Logical operator."""
 
-    _fields = "expressions",
+    _fields = ("expressions",)
 
 
 class And(Logical):
@@ -145,6 +164,7 @@ class Cache(Node):
     ``node``.
     """
 
+    _fields: ClassVar[tuple[str, ...]]
     _fields = "expressions", "node"
 
 
@@ -153,12 +173,13 @@ class Cancel(Cache):
 
 
 class Copy(Node):
-    _fields = "expression",
+    _fields = ("expression",)
 
 
 class Assignment(Node):
     """Variable assignment."""
 
+    _fields: ClassVar[tuple[str, ...]]
     _fields = "names", "expression", "local"
 
 
@@ -194,24 +215,32 @@ class Program(Node):
 
 
 class Module(Node):
-    _fields = "name", "program",
+    _fields = (
+        "name",
+        "program",
+    )
 
 
 class Context(Node):
-    _fields = "node",
+    _fields = ("node",)
 
 
 class Text(Node):
     """Static text output."""
 
-    _fields = "value",
+    _fields = ("value",)
 
 
 class Interpolation(Node):
     """String interpolation output."""
 
     _fields = (
-        "value", "braces_required", "translation", "default", "default_marker")
+        "value",
+        "braces_required",
+        "translation",
+        "default",
+        "default_marker",
+    )
 
 
 class Replace(Node):
@@ -257,7 +286,7 @@ class OnError(Node):
 class UseInternalMacro(Node):
     """Use internal macro (defined inside same program)."""
 
-    _fields = "name",
+    _fields = ("name",)
 
 
 class FillSlot(Node):

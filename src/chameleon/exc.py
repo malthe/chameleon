@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 import traceback
+from typing import TYPE_CHECKING
+from typing import Any
 
 from chameleon.config import SOURCE_EXPRESSION_MARKER_LENGTH as LENGTH
 from chameleon.tokenize import Token
@@ -6,7 +10,20 @@ from chameleon.utils import create_formatted_exception
 from chameleon.utils import safe_native
 
 
-def compute_source_marker(line, column, expression, size):
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import Iterable
+    from collections.abc import Iterator
+    from collections.abc import Mapping
+    from typing_extensions import Self
+
+
+def compute_source_marker(
+    line: str,
+    column: int,
+    expression: str,
+    size: int
+) -> tuple[str, str]:
     """Computes source marker location string.
 
     >>> def test(l, c, e, s):
@@ -69,9 +86,9 @@ def compute_source_marker(line, column, expression, size):
         size = len(expression)
     else:
         window = (size - len(expression)) / 2.0
-        offset = column - window
-        offset -= min(3, max(0, column + window + len(expression) - len(s)))
-        offset = int(offset)
+        f_offset = column - window
+        f_offset -= min(3, max(0, column + window + len(expression) - len(s)))
+        offset = int(f_offset)
 
     if offset > 0:
         s = s[offset:]
@@ -90,7 +107,13 @@ def compute_source_marker(line, column, expression, size):
     return s, column * " " + marker
 
 
-def iter_source_marker_lines(source, expression, line, column):
+def iter_source_marker_lines(
+    source: Iterable[str],
+    expression: str,
+    line: int,
+    column: int
+) -> Iterator[str]:
+
     for i, l in enumerate(source):
         if i + 1 != line:
             continue
@@ -104,7 +127,7 @@ def iter_source_marker_lines(source, expression, line, column):
         break
 
 
-def ellipsify(string, limit):
+def ellipsify(string: str, limit: int) -> str:
     if len(string) > limit:
         return "... " + string[-(limit - 4):]
 
@@ -140,18 +163,20 @@ class TemplateError(Exception):
 
     """
 
-    def __init__(self, msg, token):
+    args: tuple[str, Token]
+
+    def __init__(self, msg: str, token: Token) -> None:
         if not isinstance(token, Token):
             token = Token(token, 0)
 
         Exception.__init__(self, msg, token)
 
-    def __copy__(self):
+    def __copy__(self) -> Self:
         inst = Exception.__new__(type(self))
         inst.args = self.args
         return inst
 
-    def __str__(self):
+    def __str__(self) -> str:
         text = "%s\n\n" % self.args[0]
         text += " - String:     \"%s\"" % safe_native(self.token)
 
@@ -159,15 +184,16 @@ class TemplateError(Exception):
             text += "\n"
             text += " - Filename:   %s" % self.filename
 
-        line, column = self.location
+        lineno, column = self.location
         text += "\n"
-        text += " - Location:   (line %d: col %d)" % (line, column)
+        text += " - Location:   (line %d: col %d)" % (lineno, column)
 
-        if line and column:
+        lines: Iterable[str]
+        if lineno and column:
             if self.token.source:
                 lines = iter_source_marker_lines(
                     self.token.source.splitlines(),
-                    self.token, line, column
+                    self.token, lineno, column
                 )
             elif self.filename and not self.filename.startswith('<'):
                 try:
@@ -175,8 +201,8 @@ class TemplateError(Exception):
                 except OSError:
                     pass
                 else:
-                    iter_source_marker_lines(
-                        iter(f), self.token, line, column
+                    lines = iter_source_marker_lines(
+                        iter(f), self.token, lineno, column
                     )
                     try:
                         lines = list(lines)
@@ -191,7 +217,7 @@ class TemplateError(Exception):
 
         return text
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             return "{}('{}', '{}')".format(
                 self.__class__.__name__, self.args[0], safe_native(self.token)
@@ -200,19 +226,19 @@ class TemplateError(Exception):
             return object.__repr__(self)
 
     @property
-    def token(self):
+    def token(self) -> Token:
         return self.args[1]
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         return self.token.filename
 
     @property
-    def location(self):
+    def location(self) -> tuple[int, int]:
         return self.token.location
 
     @property
-    def offset(self):
+    def offset(self) -> int:
         return getattr(self.token, "pos", 0)
 
 
@@ -253,7 +279,14 @@ class ExpressionError(LanguageError):
 
 
 class ExceptionFormatter:
-    def __init__(self, errors, econtext, rcontext, value_repr):
+    def __init__(
+        self,
+        errors: list[tuple[str, int, int, str, BaseException]],
+        econtext: Mapping[str, object],
+        rcontext: dict[str, Any],
+        value_repr: Callable[[object], str]
+    ) -> None:
+
         kwargs = rcontext.copy()
         kwargs.update(econtext)
 
@@ -265,16 +298,16 @@ class ExceptionFormatter:
         self._kwargs = kwargs
         self._value_repr = value_repr
 
-    def __call__(self):
+    def __call__(self) -> str:
         # Format keyword arguments; consecutive arguments are indented
         # for readability
-        formatted = [
+        formatted_args = [
             "{}: {}".format(name, self._value_repr(value))
             for name, value in self._kwargs.items()
         ]
 
-        for index, string in enumerate(formatted[1:]):
-            formatted[index + 1] = " " * 15 + string
+        for index, string in enumerate(formatted_args[1:]):
+            formatted_args[index + 1] = " " * 15 + string
 
         out = []
 
@@ -310,14 +343,14 @@ class ExceptionFormatter:
                     finally:
                         f.close()
 
-        out.append(" - Arguments:  %s" % "\n".join(formatted))
+        out.append(" - Arguments:  %s" % "\n".join(formatted_args))
 
         if isinstance(exc.__str__, ExceptionFormatter):
             # This is a nested error that has already been wrapped
             # We must unwrap it before trying to format it to prevent
             # recursion
             exc = create_formatted_exception(
-                exc, type(exc), exc._original__str__)
+                exc, type(exc), exc._original__str__)  # type: ignore
         formatted = traceback.format_exception_only(type(exc), exc)[-1]
         formatted_class = "%s:" % type(exc).__name__
 
