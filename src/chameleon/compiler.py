@@ -971,7 +971,6 @@ class ExpressionTransform:
         return [ast.Assign(targets=[target], value=value)]
 
     def visit_Symbol(self, node, target):
-        annotated(node)
         return template("TARGET = SYMBOL", TARGET=target, SYMBOL=node)
 
 
