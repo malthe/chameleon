@@ -23,7 +23,6 @@ from chameleon.astutil import Symbol
 from chameleon.astutil import TokenRef
 from chameleon.astutil import annotated
 from chameleon.astutil import load
-from chameleon.astutil import node_annotations
 from chameleon.astutil import param
 from chameleon.astutil import store
 from chameleon.astutil import subscript
@@ -1025,51 +1024,39 @@ class Compiler:
             strict=strict,
         )
 
-        if isinstance(node_annotations, dict):
-            self.lock.acquire()
-            backup = node_annotations.copy()
-        else:
-            backup = None
+        module = ast.Module([])
+        module.body += self.visit(node)
+        ast.fix_missing_locations(module)
 
-        try:
-            module = ast.Module([])
-            module.body += self.visit(node)
-            ast.fix_missing_locations(module)
+        class Generator(TemplateCodeGenerator):
+            scopes = [Scope()]
 
-            class Generator(TemplateCodeGenerator):
-                scopes = [Scope()]
+            def visit_EmitText(self, node) -> None:
+                append = load(self.scopes[-1].append or "__append")
+                for node in template(
+                    "append(s)", append=append, s=ast.Str(s=node.s)
+                ):
+                    self.visit(node)
 
-                def visit_EmitText(self, node) -> None:
-                    append = load(self.scopes[-1].append or "__append")
-                    for node in template(
-                        "append(s)", append=append, s=ast.Str(s=node.s)
-                    ):
-                        self.visit(node)
+            def visit_Scope(self, node) -> None:
+                self.scopes.append(node)
+                body = list(node.body)
+                swap(body, load(node.append), "__append")
+                if node.stream:
+                    swap(body, load(node.stream), "__stream")
+                for node in body:
+                    self.visit(node)
+                self.scopes.pop()
 
-                def visit_Scope(self, node) -> None:
-                    self.scopes.append(node)
-                    body = list(node.body)
-                    swap(body, load(node.append), "__append")
-                    if node.stream:
-                        swap(body, load(node.stream), "__stream")
-                    for node in body:
-                        self.visit(node)
-                    self.scopes.pop()
-
-            generator = Generator(module, source)
-            tokens = [
-                Token(source[pos:pos + length], pos, source)
-                for pos, length in generator.tokens
-            ]
-            token_map_def = "__tokens = {" + ", ".join("%d: %r" % (
-                token.pos,
-                (token, ) + token.location
-            ) for token in tokens) + "}"
-        finally:
-            if backup is not None:
-                node_annotations.clear()
-                node_annotations.update(backup)
-                self.lock.release()
+        generator = Generator(module, source)
+        tokens = [
+            Token(source[pos:pos + length], pos, source)
+            for pos, length in generator.tokens
+        ]
+        token_map_def = "__tokens = {" + ", ".join("%d: %r" % (
+            token.pos,
+            (token, ) + token.location
+        ) for token in tokens) + "}"
 
         self.code = "\n".join((
             "__filename = %r\n" % filename,

@@ -3,7 +3,8 @@ Changes
 
 In next release ...
 
--
+- Drop support for platforms where AST nodes aren't weakref-capable
+  (e.g., older PyPy).
 
 
 4.4.4 (2024-01-18)

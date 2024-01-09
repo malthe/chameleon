@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import ast
 import collections
-import logging
 import weakref
 from typing import TYPE_CHECKING
 from typing import Any
@@ -39,16 +38,6 @@ AST_NONE = ast.Name(id='None', ctx=ast.Load())
 
 node_annotations: MutableMapping[_AnyNode, _AnyNode]
 node_annotations = weakref.WeakKeyDictionary()
-
-try:
-    node_annotations[ast.Name()] = None  # type: ignore[assignment]
-except TypeError:
-    logging.debug(
-        "Unable to create weak references to AST nodes. "
-        "A lock will be used around compilation loop."
-    )
-
-    node_annotations = {}
 
 __docformat__ = 'restructuredtext en'
 
