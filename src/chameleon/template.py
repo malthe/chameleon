@@ -35,6 +35,9 @@ from chameleon.utils import read_xml_encoding
 from chameleon.utils import value_repr
 
 
+PROGRAM_NAME = "initialize"
+
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
     from abc import abstractmethod
@@ -200,8 +203,8 @@ class BaseTemplate:
         digest = self.digest(body, names)
         program = self._cook(body, digest, names)
 
-        initialize = program['initialize']
-        functions = initialize(*builtins)
+        init = program[PROGRAM_NAME]
+        functions = init(*builtins)
 
         for name, function in functions.items():
             setattr(self, "_" + name, function)
@@ -331,7 +334,7 @@ class BaseTemplate:
 
     def _compile(self, body: str, builtins: Collection[str]) -> str:
         program = self.parse(body)
-        module = Module("initialize", program)
+        module = Module(PROGRAM_NAME, program)
         compiler = Compiler(
             self.engine, module, str(self.filename), body,
             builtins, strict=self.strict
