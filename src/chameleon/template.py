@@ -37,16 +37,25 @@ except NameError:
     RecursionError = RuntimeError
 
 
-def get_package_versions():
-    try:
-        # try backport first as packages_distributions was added in Python 3.10
-        import importlib_metadata
-    except ImportError:
-        import importlib.metadata as importlib_metadata
+if sys.version_info >= (3, 10):
+    import importlib.metadata as importlib_metadata
+else:
+    import importlib_metadata
 
+
+def safe_get_package_version(name):
+    try:
+        return importlib_metadata.version(name)
+    except importlib_metadata.PackageNotFoundError:
+        return None
+
+
+def get_package_versions():
+    distributions = importlib_metadata.packages_distributions().values()
     versions = {
-        x: importlib_metadata.version(x)
-        for x in sum(importlib_metadata.packages_distributions().values(), [])}
+        x: safe_get_package_version(x) or ""
+        for x in sum(distributions, [])
+    }
     return sorted(versions.items())
 
 
