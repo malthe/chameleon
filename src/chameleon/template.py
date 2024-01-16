@@ -336,8 +336,12 @@ class BaseTemplate:
         program = self.parse(body)
         module = Module(PROGRAM_NAME, program)
         compiler = Compiler(
-            self.engine, module, str(self.filename), body,
-            builtins, strict=self.strict
+            self.engine,
+            module,
+            str(self.filename),
+            body,
+            builtins=builtins,
+            strict=self.strict
         )
         return compiler.code
 

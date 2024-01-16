@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ast
 import re
-from ast import Try
 
 from chameleon.astutil import Builtin
 from chameleon.astutil import ItemLookupOnAttributeErrorVisitor
@@ -148,15 +147,17 @@ class TalesExpr:
             if i == 0:
                 body = assignment
             else:
-                body = [Try(
+                body = [ast.Try(
                     body=assignment,
                     handlers=[ast.ExceptHandler(
                         type=ast.Tuple(
-                            elts=map(resolve_global, self.exceptions),
+                            elts=list(map(resolve_global, self.exceptions)),
                             ctx=ast.Load()),
                         name=None,
                         body=body,
                     )],
+                    finalbody=[],
+                    orelse=[],
                 )]
 
         return body
@@ -505,16 +506,17 @@ class ExistsExpr:
         compiler = engine.parse(self.expression, False)
         body = compiler.assign_value(ignore)
 
-        classes = map(resolve_global, self.exceptions)
+        classes = list(map(resolve_global, self.exceptions))
 
         return [
-            Try(
+            ast.Try(
                 body=body,
                 handlers=[ast.ExceptHandler(
                     type=ast.Tuple(elts=classes, ctx=ast.Load()),
                     name=None,
                     body=template("target = 0", target=target),
                 )],
+                finalbody=[],
                 orelse=template("target = 1", target=target)
             )
         ]

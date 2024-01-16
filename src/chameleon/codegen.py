@@ -1,11 +1,23 @@
 from __future__ import annotations
 
-import ast
 import builtins
+import re
 import textwrap
 import types
+from ast import AST
+from ast import Assign
+from ast import Constant
+from ast import Expr
+from ast import FunctionDef
+from ast import Import
+from ast import ImportFrom
+from ast import Module
+from ast import NodeTransformer
+from ast import NodeVisitor
+from ast import Num
+from ast import alias
+from ast import unparse
 
-from chameleon.astutil import ASTCodeGenerator
 from chameleon.astutil import Builtin
 from chameleon.astutil import Symbol
 from chameleon.astutil import load
@@ -37,17 +49,18 @@ def template(
         symbols = dict(zip(args, vargs + defaults))
         symbols.update(kwargs)
 
-        class Visitor(ast.NodeVisitor):
+        class Visitor(NodeVisitor):
             def visit_FunctionDef(self, node) -> None:
                 self.generic_visit(node)
 
                 name = symbols.get(node.name, self)
                 if name is not self:
-                    node_annotations[node] = ast.FunctionDef(
+                    node_annotations[node] = FunctionDef(
                         name=name,
                         args=node.args,
                         body=node.body,
                         decorator_list=getattr(node, "decorator_list", []),
+                        lineno=None,
                     )
 
             def visit_Name(self, node) -> None:
@@ -80,76 +93,41 @@ def template(
         return wrapper(**kw)
 
 
-class TemplateCodeGenerator(ASTCodeGenerator):
-    """Extends the standard Python code generator class with handlers
-    for the helper node classes:
+class TemplateCodeGenerator(NodeTransformer):
+    """Generate code from AST tree.
 
-    - Symbol (an importable value)
-    - Static (value that can be made global)
-    - Builtin (from the builtins module)
-    - Marker (short-hand for a unique static object)
-
+    The syntax tree has been extended with internal nodes. We first
+    transform the tree to process the internal nodes before generating
+    the code string.
     """
 
     names = ()
 
     def __init__(self, tree):
-        self.imports = {}
+        self.comments = []
         self.defines = {}
-        self.markers = {}
+        self.imports = {}
         self.tokens = []
 
-        # Generate code
-        super().__init__(tree)
+        # Run transform.
+        tree = self.visit(tree)
 
-    def visit_Module(self, node):
-        super().visit_Module(node)
+        # Generate code.
+        code = unparse(tree)
 
-        # Make sure we terminate the line printer
-        self.flush()
+        # Fix-up comments.
+        comments = iter(self.comments)
+        code = re.sub(
+            r'^(\s*)\.\.\.$',
+            lambda m: "\n".join(
+                (m.group(1) + "#" + line)
+                for line in next(comments).replace("\r", "\n").split("\n")
+            ),
+            code,
+            flags=re.MULTILINE
+        )
 
-        # Clear lines array for import visits
-        body = self.lines
-        self.lines = []
-
-        while self.defines:
-            name, node = self.defines.popitem()
-            assignment = ast.Assign(targets=[store(name)], value=node)
-            self.visit(assignment)
-
-        # Make sure we terminate the line printer
-        self.flush()
-
-        # Clear lines array for import visits
-        defines = self.lines
-        self.lines = []
-
-        while self.imports:
-            value, node = self.imports.popitem()
-
-            if isinstance(value, types.ModuleType):
-                stmt = ast.Import(
-                    names=[ast.alias(name=value.__name__, asname=node.id)])
-            elif hasattr(value, '__name__'):
-                path = reverse_builtin_map.get(value)
-                if path is None:
-                    path = value.__module__
-                    name = value.__name__
-                stmt = ast.ImportFrom(
-                    module=path,
-                    names=[ast.alias(name=name, asname=node.id)],
-                    level=0,
-                )
-            else:
-                raise TypeError(value)
-
-            self.visit(stmt)
-
-        # Clear last import
-        self.flush()
-
-        # Stich together lines
-        self.lines += defines + body
+        self.code = code
 
     def define(self, name, node):
         assert node is not None
@@ -178,40 +156,64 @@ class TemplateCodeGenerator(ASTCodeGenerator):
 
         return node
 
-    def visit(self, node) -> None:
+    def visit(self, node) -> AST:
         annotation = node_annotations.get(node)
         if annotation is None:
-            super().visit(node)
-        else:
-            self.visit(annotation)
+            return super().visit(node)
+        return self.visit(annotation)
 
-    def visit_Comment(self, node) -> None:
-        if node.stmt is None:
-            self._new_line()
-        else:
-            self.visit(node.stmt)
+    def visit_Module(self, module) -> AST:
+        assert isinstance(module, Module)
+        module = super().generic_visit(module)
+        preamble: list[AST] = []
 
-        for line in node.text.replace('\r', '\n').split('\n'):
-            self._new_line()
-            self._write("{}#{}".format(node.space, line))
+        for name, node in self.defines.items():
+            assignment = Assign(targets=[store(name)], value=node, lineno=None)
+            preamble.append(assignment)
 
-    def visit_Builtin(self, node) -> None:
+        for value, node in self.imports.items():
+            stmt: AST
+
+            if isinstance(value, types.ModuleType):
+                stmt = Import(
+                    names=[alias(name=value.__name__, asname=node.id)])
+            elif hasattr(value, '__name__'):
+                path = reverse_builtin_map.get(value)
+                if path is None:
+                    path = value.__module__
+                    name = value.__name__
+                stmt = ImportFrom(
+                    module=path,
+                    names=[alias(name=name, asname=node.id)],
+                    level=0,
+                )
+            else:
+                raise TypeError(value)
+
+            preamble.append(stmt)
+
+        preamble = [self.visit(stmt) for stmt in preamble]
+        return Module(preamble + module.body, ())
+
+    def visit_Comment(self, node) -> AST:
+        self.comments.append(node.text)
+        return Expr(Constant(...))
+
+    def visit_Builtin(self, node) -> AST:
         name = load(node.id)
-        self.visit(name)
+        return self.visit(name)
 
-    def visit_Symbol(self, node) -> None:
-        node = self.require(node.value)
-        self.visit(node)
+    def visit_Symbol(self, node) -> AST:
+        return self.require(node.value)
 
-    def visit_Static(self, node) -> None:
+    def visit_Static(self, node) -> AST:
         if node.name is None:
             name = "_static_%s" % str(id(node.value)).replace('-', '_')
         else:
             name = node.name
-
         node = self.define(name, node.value)
-        self.visit(node)
+        return self.visit(node)
 
-    def visit_TokenRef(self, node) -> None:
+    def visit_TokenRef(self, node) -> AST:
         self.tokens.append((node.pos, node.length))
-        super().visit(ast.Num(n=node.pos))
+        return self.visit(Num(n=node.pos))

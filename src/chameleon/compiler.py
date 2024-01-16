@@ -11,7 +11,6 @@ import re
 import sys
 import textwrap
 import threading
-from ast import Try
 
 from chameleon.astutil import AST_NONE
 from chameleon.astutil import Builtin
@@ -26,10 +25,8 @@ from chameleon.astutil import load
 from chameleon.astutil import param
 from chameleon.astutil import store
 from chameleon.astutil import subscript
-from chameleon.astutil import swap
 from chameleon.codegen import TemplateCodeGenerator
 from chameleon.codegen import template
-from chameleon.config import DEBUG_MODE
 from chameleon.exc import ExpressionError
 from chameleon.exc import TranslationError
 from chameleon.i18n import simple_translate
@@ -48,7 +45,6 @@ from chameleon.parser import groupdict
 from chameleon.tal import NAME
 from chameleon.tal import ErrorInfo
 from chameleon.tokenize import Token
-from chameleon.utils import DebuggingOutputStream
 from chameleon.utils import ListDictProxy
 from chameleon.utils import char2entity
 from chameleon.utils import decode_htmlentities
@@ -76,11 +72,6 @@ COMPILER_INTERNALS_OR_DISALLOWED = {
 
 RE_MANGLE = re.compile(r'[^\w_]')
 RE_NAME = re.compile('^%s$' % NAME)
-
-if DEBUG_MODE:
-    LIST = template("cls()", cls=DebuggingOutputStream, mode="eval")
-else:
-    LIST = template("[]", mode="eval")
 
 
 def identifier(prefix, suffix=None) -> str:
@@ -290,7 +281,10 @@ class EmitText(Node):
 
 
 class Scope(Node):
-    """"Set a local output scope."""
+    """Set a local output scope.
+
+    This is used for the translation machinery.
+    """
 
     _fields = "body", "append", "stream"
 
@@ -736,7 +730,7 @@ class NameTransform:
 
     >>> def test(node):
     ...     rewritten = nt(node)
-    ...     module = ast.Module([ast.fix_missing_locations(rewritten)])
+    ...     module = ast.Module([ast.fix_missing_locations(rewritten)], [])
     ...     codegen = TemplateCodeGenerator(module)
     ...     return codegen.code
 
@@ -998,6 +992,7 @@ class Compiler:
         source,
         builtins={},
         strict=True,
+        stream_factory=list,
     ):
         self._scopes = [set()]
         self._expression_cache = {}
@@ -1006,6 +1001,17 @@ class Compiler:
         self._aliases = [{}]
         self._macros = []
         self._current_slot = []
+
+        # Prepare stream factory (callable)
+        self._new_list = (
+            ast.List([], ast.Load()) if stream_factory is list else
+            ast.Call(
+                ast.Symbol(stream_factory),
+                args=[],
+                kwargs=[],
+                lineno=None,
+            )
+        )
 
         internals = COMPILER_INTERNALS_OR_DISALLOWED | set(self.defaults)
 
@@ -1024,29 +1030,39 @@ class Compiler:
             strict=strict,
         )
 
-        module = ast.Module([])
+        module = ast.Module([], [])
         module.body += self.visit(node)
         ast.fix_missing_locations(module)
 
         class Generator(TemplateCodeGenerator):
             scopes = [Scope()]
 
-            def visit_EmitText(self, node) -> None:
+            def visit_EmitText(self, node) -> ast.AST:
                 append = load(self.scopes[-1].append or "__append")
-                for node in template(
-                    "append(s)", append=append, s=ast.Str(s=node.s)
-                ):
-                    self.visit(node)
+                node = ast.Expr(ast.Call(
+                    func=append,
+                    args=[ast.Str(s=node.s)],
+                    keywords=[],
+                    starargs=None,
+                    kwargs=None
+                ))
+                return self.visit(node)
 
-            def visit_Scope(self, node) -> None:
+            def visit_Name(self, node) -> ast.AST:
+                if isinstance(node.ctx, ast.Load):
+                    scope = self.scopes[-1]
+                    for name in ("append", "stream"):
+                        if node.id == f"__{name}":
+                            identifier = getattr(scope, name, None)
+                            if identifier:
+                                return load(identifier)
+                return node
+
+            def visit_Scope(self, node) -> list[ast.AST]:
                 self.scopes.append(node)
-                body = list(node.body)
-                swap(body, load(node.append), "__append")
-                if node.stream:
-                    swap(body, load(node.stream), "__stream")
-                for node in body:
-                    self.visit(node)
+                stmts = list(map(self.visit, node.body))
                 self.scopes.pop()
+                return stmts
 
         generator = Generator(module)
         tokens = [
@@ -1094,7 +1110,6 @@ class Compiler:
 
     def visit_Module(self, node):
         body = []
-
         body += template("import re")
         body += template("import functools")
         body += template("from itertools import chain as __chain")
@@ -1102,7 +1117,7 @@ class Compiler:
         body += template("__default = intern('__default__')")
         body += template("__marker = object()")
         body += template(
-            r"g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
+            "g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
         )
         body += template(
             r"g_re_needs_escape = re.compile(r'[&<>\"\']').search")
@@ -1116,11 +1131,16 @@ class Compiler:
         program = self.visit(node.program)
 
         body += [ast.FunctionDef(
-            name=node.name, args=ast.arguments(
+            name=node.name,
+            args=ast.arguments(
                 args=[param(b) for b in self._builtins],
-                defaults=(),
+                defaults=[],
+                kwonlyargs=[],
+                posonlyargs=[],
             ),
-            body=program
+            body=program,
+            decorator_list=[],
+            lineno=None,
         )]
 
         return body
@@ -1173,7 +1193,7 @@ class Compiler:
         self._slots = set()
 
         # Visit macro body
-        nodes = itertools.chain(*tuple(map(self.visit, node.body)))
+        nodes = list(itertools.chain(*tuple(map(self.visit, node.body))))
 
         # Slot resolution
         for name in self._slots:
@@ -1196,9 +1216,11 @@ class Compiler:
 
         # Wrap visited nodes in try-except error handler.
         body += [
-            Try(
+            ast.Try(
                 body=nodes,
-                handlers=[ast.ExceptHandler(body=exc_handler)]
+                handlers=[ast.ExceptHandler(body=exc_handler)],
+                finalbody=[],
+                orelse=[],
             )
         ]
 
@@ -1216,8 +1238,12 @@ class Compiler:
                     param("target_language"),
                 ],
                 defaults=[load("None"), load("None"), load("None")],
+                kwonlyargs=[],
+                posonlyargs=[],
             ),
-            body=body
+            body=body,
+            decorator_list=[],
+            lineno=None,
         )
 
         yield function
@@ -1266,16 +1292,18 @@ class Compiler:
             key=ast.Str(s=node.name),
         )
 
-        body += [Try(
+        body += [ast.Try(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
                 type=ast.Tuple(elts=[Builtin("Exception")], ctx=ast.Load()),
-                name=store("__exc"),
+                name="__exc",
                 body=(error_assignment +
                       template("del __stream[fallback:]", fallback=fallback) +
                       fallback_body
                       ),
-            )]
+            )],
+            finalbody=[],
+            orelse=[],
         )]
 
         return body
@@ -1424,7 +1452,8 @@ class Compiler:
         # Prepare new stream
         append = identifier("append", id(node))
         stream = identifier("stream", id(node))
-        body += template("s = new_list", s=stream, new_list=LIST) + \
+
+        body += template("s = new_list", s=stream, new_list=self._new_list) + \
             template("a = s.append", a=append, s=stream)
 
         # Visit body to generate the message body
@@ -1672,7 +1701,7 @@ class Compiler:
 
         # prepare new stream
         stream, append = self._get_translation_identifiers(node.name)
-        body += template("s = new_list", s=stream, new_list=LIST) + \
+        body += template("s = new_list", s=stream, new_list=self._new_list) + \
             template("a = s.append", a=append, s=stream)
 
         # generate code
@@ -1727,9 +1756,12 @@ class Compiler:
                             load("__i18n_context"),
                             load("target_language"),
                         ],
+                        kwonlyargs=[],
+                        posonlyargs=[],
                     ),
-                    body=body or [
-                        ast.Pass()],
+                    body=body or [ast.Pass()],
+                    decorator_list=[],
+                    lineno=None,
                 ))
 
             key = ast.Str(s=key)
@@ -1742,9 +1774,10 @@ class Compiler:
             if node.extend:
                 append = template("_slots.appendleft(NAME)", NAME=fun)
 
-                assignment = [Try(
+                assignment = [ast.Try(
                     body=template("_slots = getname(KEY)", KEY=key),
                     handlers=[ast.ExceptHandler(body=assignment)],
+                    finalbody=[],
                     orelse=append,
                 )]
 
@@ -1847,6 +1880,7 @@ class Compiler:
             target=store("__item"),
             iter=load("__iterator"),
             body=assignment + inner,
+            orelse=[],
         )]
 
         # Finally, clean up assignment if it's local

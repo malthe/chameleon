@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+- Parsing the AST back to Python code now uses the built-in
+  `ast.unparse` function. This change is not directly surfaced but
+  means that the unparsing code is now more correctly tracking changes
+  to the interpreter.
+
 - Drop support for platforms where AST nodes aren't weakref-capable
   (e.g., older PyPy).
 
