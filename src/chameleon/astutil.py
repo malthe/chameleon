@@ -205,10 +205,7 @@ class Static(Node):
 
 
 class Comment(Node):
-    _fields = "text", "space", "stmt"
-
-    stmt = None
-    space = ""
+    _fields = "text",
 
 
 class TokenRef(Node):
