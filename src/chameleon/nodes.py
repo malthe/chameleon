@@ -210,10 +210,6 @@ class Macro(Node):
     _fields = "name", "body"
 
 
-class Program(Node):
-    _fields = "name", "body"
-
-
 class Module(Node):
     _fields = (
         "name",
