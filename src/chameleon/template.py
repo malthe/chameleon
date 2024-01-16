@@ -120,7 +120,7 @@ class BaseTemplate:
     else:
         loader = MemoryLoader()
 
-    output_stream_factory: type[list[str]]
+    output_stream_factory: type[list]
     if DEBUG_MODE:
         output_stream_factory = DebuggingOutputStream
     else:
