@@ -722,36 +722,36 @@ class NameTransform:
     ...     ('econtext', ),
     ... )
 
-    >>> def test(node):
-    ...     rewritten = nt(node)
+    >>> def test(name):
+    ...     rewritten = nt(load(name))
     ...     module = ast.Module([ast.fix_missing_locations(rewritten)], [])
     ...     codegen = TemplateCodeGenerator(module)
     ...     return codegen.code
 
     Any odd name:
 
-    >>> test(load('frobnitz'))
+    >>> test('frobnitz')
     "getname('frobnitz')"
 
     A 'builtin' name will first be looked up via ``get`` allowing fall
     back to the global builtin value:
 
-    >>> test(load('foo'))
+    >>> test('foo')
     "get('foo', foo)"
 
     Internal names (with two leading underscores) are left alone:
 
-    >>> test(load('__internal'))
+    >>> test('__internal')
     '__internal'
 
     Compiler internals or disallowed names:
 
-    >>> test(load('econtext'))
+    >>> test('econtext')
     'econtext'
 
     Aliased names:
 
-    >>> test(load('boo'))
+    >>> test('boo')
     'boz'
 
     """
