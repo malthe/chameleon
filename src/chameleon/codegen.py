@@ -14,7 +14,6 @@ from ast import ImportFrom
 from ast import Module
 from ast import NodeTransformer
 from ast import NodeVisitor
-from ast import Num
 from ast import alias
 from ast import unparse
 
