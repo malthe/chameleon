@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Always cook templates in debug mode, even when using
+  `CHAMELEON_CACHE` option to persist generated code on disk.
+
 - Parsing the AST back to Python code now uses the built-in
   `ast.unparse` function. This change is not directly surfaced but
   means that the unparsing code is now more correctly tracking changes
