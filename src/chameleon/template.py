@@ -296,8 +296,7 @@ class BaseTemplate:
     ) -> dict[str, Any]:
 
         filename = self._get_module_name(name)
-        cooked = self.loader.get(filename)
-        if cooked is None or DEBUG_MODE:
+        if DEBUG_MODE or (cooked := self.loader.get(filename)) is None:
             try:
                 source = self._compile(body, builtins)
                 if self.debug:
