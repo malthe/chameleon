@@ -376,9 +376,7 @@ class DebuggingOutputStream(list[str]):
     def append(self, value: str) -> None:
         if not isinstance(value, str):
             raise TypeError(value)
-
-        str(value)
-        list.append(self, value)
+        super().append(value)
 
 
 class Scope(dict[str, Any]):
