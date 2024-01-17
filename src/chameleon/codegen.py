@@ -107,7 +107,6 @@ class TemplateCodeGenerator(NodeTransformer):
         self.comments = []
         self.defines = {}
         self.imports = {}
-        self.tokens = []
 
         # Run transform.
         tree = self.visit(tree)
@@ -213,7 +212,3 @@ class TemplateCodeGenerator(NodeTransformer):
             name = node.name
         node = self.define(name, node.value)
         return self.visit(node)
-
-    def visit_TokenRef(self, node) -> AST:
-        self.tokens.append((node.pos, node.length))
-        return self.visit(Num(n=node.pos))

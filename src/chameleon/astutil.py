@@ -186,7 +186,7 @@ class Comment(Node):
 class TokenRef(Node):
     """Represents a source-code token reference."""
 
-    _fields = "pos", "length"
+    _fields = "token",
 
 
 class AnnotationAwareVisitor(ast.NodeVisitor):

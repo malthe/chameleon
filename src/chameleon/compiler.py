@@ -96,12 +96,6 @@ def store_rcontext(name):
     return subscript(name, load("rcontext"), ast.Store())
 
 
-def set_token(stmts, token):
-    pos = getattr(token, "pos", 0)
-    body = template("__token = pos", pos=TokenRef(pos, len(token)))
-    return body + stmts
-
-
 def eval_token(token):
     try:
         line, column = token.location
@@ -571,8 +565,8 @@ class ExpressionEngine:
 
                 stmts.extend(steps)
 
-            if handle_errors:
-                return set_token(stmts, string.strip())
+            if handle_errors and isinstance(string, Token):
+                stmts.insert(0, TokenRef(string.strip()))
 
             return stmts
 
@@ -835,7 +829,10 @@ class ExpressionTransform:
                 "__exc = loads(p)", loads=self.loads_symbol, p=ast.Str(s=p)
             )
 
-            stmts += set_token([ast.Raise(exc=load("__exc"))], exc.token)
+            stmts += [
+                TokenRef(exc.token),
+                ast.Raise(exc=load("__exc"))
+            ]
 
         # Apply visitor to each statement
         for stmt in stmts:
@@ -1036,6 +1033,7 @@ class Compiler:
 
         class Generator(TemplateCodeGenerator):
             scopes = [Scope()]
+            tokens = []
 
             def visit_EmitText(self, node) -> ast.AST:
                 append = load(self.scopes[-1].append or "__append")
@@ -1063,6 +1061,14 @@ class Compiler:
                 stmts = list(map(self.visit, node.body))
                 self.scopes.pop()
                 return stmts
+
+            def visit_TokenRef(self, node) -> ast.AST:
+                self.tokens.append((node.token.pos, len(node.token)))
+                return ast.Assign(
+                    [store("__token")],
+                    ast.Num(n=node.token.pos),
+                    lineno=None,
+                )
 
         generator = Generator(module)
         tokens = [
@@ -1093,6 +1099,8 @@ class Compiler:
             if key is EmitText:
                 text = join(node.s for node in nodes)
                 nodes = [EmitText(text)]
+            if key is TokenRef:
+                nodes = [nodes[-1]]
             result.extend(nodes)
         return result
 
@@ -1723,7 +1731,8 @@ class Compiler:
         for stmt in stmts:
             self._visitor(stmt)
 
-        return set_token(stmts, node.source)
+        stmts.insert(0, TokenRef(node.source))
+        return stmts
 
     def visit_UseExternalMacro(self, node):
         self._macros.append(node.extend)
@@ -1790,10 +1799,8 @@ class Compiler:
         return (
             callbacks +
             assignment +
-            set_token(
-                template("__m = __macro.include"),
-                node.expression.value
-            ) +
+            [TokenRef(node.expression.value)] +
+            template("__m = __macro.include") +
             template(
                 "__m(__stream, econtext.copy(), "
                 "rcontext, __i18n_domain, __i18n_context, target_language)"
