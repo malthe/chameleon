@@ -14,6 +14,7 @@ class TestImports:
         from chameleon.exc import ExpressionError
 
     def test_compiler_utils(self):
+        from chameleon.astutil import Builtin
         from chameleon.astutil import NameLookupRewriteVisitor
         from chameleon.astutil import Symbol
         from chameleon.codegen import template
