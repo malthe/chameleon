@@ -13,7 +13,6 @@ from ast import Import
 from ast import ImportFrom
 from ast import Module
 from ast import NodeTransformer
-from ast import NodeVisitor
 from ast import alias
 from ast import unparse
 
@@ -48,39 +47,42 @@ def template(
         symbols = dict(zip(args, vargs + defaults))
         symbols.update(kwargs)
 
-        class Visitor(NodeVisitor):
-            def visit_FunctionDef(self, node) -> None:
-                self.generic_visit(node)
-
+        class Transformer(NodeTransformer):
+            def visit_FunctionDef(self, node) -> AST:
                 name = symbols.get(node.name, self)
-                if name is not self:
-                    node_annotations[node] = FunctionDef(
-                        name=name,
-                        args=node.args,
-                        body=node.body,
-                        decorator_list=getattr(node, "decorator_list", []),
-                        lineno=None,
-                    )
+                if name is self:
+                    return self.generic_visit(node)
 
-            def visit_Name(self, node) -> None:
+                return FunctionDef(
+                    name=name,
+                    args=node.args,
+                    body=list(map(self.visit, node.body)),
+                    decorator_list=getattr(node, "decorator_list", []),
+                    lineno=None,
+                )
+
+            def visit_Name(self, node) -> AST:
                 value = symbols.get(node.id, self)
-                if value is not self:
-                    if isinstance(value, str):
-                        value = load(value)
-                    if isinstance(value, type) or value in reverse_builtin_map:
-                        name = reverse_builtin_map.get(value)
-                        if name is not None:
-                            value = Builtin(name)
-                        else:
-                            value = Symbol(value)
+                if value is self:
+                    if node.id == 'None' or \
+                       getattr(builtins, node.id, None) is not None:
+                        return Builtin(node.id)
+                    return node
 
-                    assert node not in node_annotations
-                    assert hasattr(value, '_fields')
-                    node_annotations[node] = value
+                if isinstance(value, type) or value in reverse_builtin_map:
+                    name = reverse_builtin_map.get(value)
+                    if name is not None:
+                        return Builtin(name)
+                    return Symbol(value)
+
+                if isinstance(value, str):
+                    value = load(value)
+
+                return value
 
         expr = parse(textwrap.dedent(source), mode=mode)
 
-        Visitor().visit(expr)
+        Transformer().visit(expr)
         return expr.body
 
     assert isinstance(source, str)

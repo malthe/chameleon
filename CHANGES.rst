@@ -3,6 +3,16 @@ Changes
 
 In next release ...
 
+- The list of names previously disallowed for use as variables in
+  templates such as "int" and "float" has been trimmed significantly,
+  not because it's a good idea to use such names but because the list
+  of disallowed names was not exhaustive and complicated the compiler
+  code; and perhaps more importantly, the technical reason for
+  disallowing the names in the first place no longer applies.
+
+- Fix a regression where generated template code would suboptimal due
+  to incorrect handling of internal variables.
+
 - Always cook templates in debug mode, even when using
   `CHAMELEON_CACHE` option to persist generated code on disk.
 

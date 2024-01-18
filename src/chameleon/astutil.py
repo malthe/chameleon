@@ -194,8 +194,6 @@ class AnnotationAwareVisitor(ast.NodeVisitor):
         annotation = node_annotations.get(node)
         if annotation is not None:
             assert hasattr(annotation, '_fields')
-            node = annotation
-
         super().visit(node)
 
     def apply_transform(self, node):

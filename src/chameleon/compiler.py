@@ -54,21 +54,11 @@ from chameleon.utils import safe_native
 
 log = logging.getLogger('chameleon.compiler')
 
+# Disallowing the use of the following symbols to avoid misunderstandings.
 COMPILER_INTERNALS_OR_DISALLOWED = {
     "econtext",
     "rcontext",
-    "target_language",
-    "str",
-    "int",
-    "float",
-    "len",
-    "bool",
-    "None",
-    "True",
-    "False",
-    "RuntimeError",
 }
-
 
 RE_MANGLE = re.compile(r'[^\w_]')
 RE_NAME = re.compile('^%s$' % NAME)
@@ -153,8 +143,8 @@ emit_convert = template(is_func=True,
             if __tt is int or __tt is float:
                 target = str(target)
             else:
-                render = getattr(target, "__html__", None)
-                if render is None:
+                __markup = getattr(target, "__html__", None)
+                if __markup is None:
                     __converted = translate(
                         target,
                         domain=__i18n_domain,
@@ -165,7 +155,7 @@ emit_convert = template(is_func=True,
                         if target is __converted \
                         else __converted
                 else:
-                    target = render()""")
+                    target = __markup()""")
 
 
 emit_func_convert = template(
@@ -184,8 +174,8 @@ emit_func_convert = template(
             if __tt is int or __tt is float:
                 target = str(target)
             else:
-                render = getattr(target, "__html__", None)
-                if render is None:
+                __markup = getattr(target, "__html__", None)
+                if __markup is None:
                     __converted = translate(
                         target,
                         domain=__i18n_domain,
@@ -196,7 +186,7 @@ emit_func_convert = template(
                         if target is __converted \
                         else __converted
                 else:
-                    target = render()
+                    target = __markup()
 
         return target"""
 )
@@ -235,8 +225,8 @@ emit_func_convert_and_escape = template(
         elif __tt is not str:
             if __tt is int or __tt is float:
                 return str(target)
-            render = getattr(target, "__html__", None)
-            if render is None:
+            __markup = getattr(target, "__html__", None)
+            if __markup is None:
                 __converted = translate(
                     target,
                     domain=__i18n_domain,
@@ -246,7 +236,7 @@ emit_func_convert_and_escape = template(
                 target = str(target) if target is __converted \
                          else __converted
             else:
-                return render()
+                return __markup()
 
         if target is not None:
             try:
@@ -274,8 +264,8 @@ class EmitText(Node):
     _fields = "s",
 
 
-class Scope(Node):
-    """Set a local output scope.
+class TranslationContext(Node):
+    """Set a local output context.
 
     This is used for the translation machinery.
     """
@@ -771,6 +761,8 @@ class NameTransform:
         if name.startswith('__') or name in self.internals:
             return node
 
+        # Some expressions allow setting variables which we transform to
+        # storing them as template context.
         if isinstance(node.ctx, ast.Store):
             return store_econtext(name)
 
@@ -785,7 +777,7 @@ class NameTransform:
                 "get(key, name)",
                 mode="eval",
                 key=ast.Str(s=name),
-                name=load(name),
+                name=Builtin(name),
             )
 
         # Otherwise, simply acquire it from the dynamic context.
@@ -1032,7 +1024,7 @@ class Compiler:
         ast.fix_missing_locations(module)
 
         class Generator(TemplateCodeGenerator):
-            scopes = [Scope()]
+            scopes = [TranslationContext()]
             tokens = []
 
             def visit_EmitText(self, node) -> ast.AST:
@@ -1056,7 +1048,7 @@ class Compiler:
                                 return load(identifier)
                 return node
 
-            def visit_Scope(self, node) -> list[ast.AST]:
+            def visit_TranslationContext(self, node) -> list[ast.AST]:
                 self.scopes.append(node)
                 stmts = list(map(self.visit, node.body))
                 self.scopes.pop()
@@ -1270,8 +1262,10 @@ class Compiler:
 
     def visit_Target(self, node):
         backup = "__previous_i18n_target_%s" % mangle(id(node))
+        tmp = "__tmp_%s" % mangle(id(node))
         return template("BACKUP = target_language", BACKUP=backup) + \
-            self._engine(node.expression, store("target_language")) + \
+            self._engine(node.expression, store(tmp)) + \
+            [ast.Assign([store("target_language")], load(tmp))] + \
             self.visit(node.node) + \
             template("target_language = BACKUP", BACKUP=backup)
 
@@ -1466,7 +1460,7 @@ class Compiler:
 
         # Visit body to generate the message body
         code = self.visit(node.node)
-        body.append(Scope(code, append, stream))
+        body.append(TranslationContext(code, append, stream))
 
         # Reduce white space and assign as message id
         msgid = identifier("msgid", id(node))
@@ -1714,7 +1708,7 @@ class Compiler:
 
         # generate code
         code = self.visit(node.node)
-        body.append(Scope(code, append))
+        body.append(TranslationContext(code, append))
 
         # output msgid
         text = Text('${%s}' % node.name)

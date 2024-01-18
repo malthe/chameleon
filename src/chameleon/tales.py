@@ -502,7 +502,7 @@ class ExistsExpr:
         self.expression = expression
 
     def __call__(self, target, engine):
-        ignore = store("_ignore")
+        ignore = store("__ignore")
         compiler = engine.parse(self.expression, False)
         body = compiler.assign_value(ignore)
 
