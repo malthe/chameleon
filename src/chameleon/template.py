@@ -44,15 +44,25 @@ if TYPE_CHECKING:
     from chameleon.compiler import ExpressionEngine
 
 
-def get_package_versions() -> list[tuple[str, str]]:
-    if sys.version_info >= (3, 10):
-        import importlib.metadata as importlib_metadata
-    else:
-        import importlib_metadata
+if sys.version_info >= (3, 10):
+    import importlib.metadata as importlib_metadata
+else:
+    import importlib_metadata
 
+
+def safe_get_package_version(name: str) -> str | None:
+    try:
+        return importlib_metadata.version(name)
+    except importlib_metadata.PackageNotFoundError:
+        return None
+
+
+def get_package_versions() -> list[tuple[str, str]]:
+    distributions = importlib_metadata.packages_distributions().values()
     versions = {
-        x: importlib_metadata.version(x)
-        for x in sum(importlib_metadata.packages_distributions().values(), [])}
+        x: safe_get_package_version(x) or ""
+        for x in sum(distributions, [])
+    }
     return sorted(versions.items())
 
 
