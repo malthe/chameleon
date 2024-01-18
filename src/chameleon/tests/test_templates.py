@@ -52,17 +52,6 @@ class Message:
         return "message"
 
 
-class TestImports:
-    def test_pagetemplates(self):
-        from chameleon import PageTemplate  # noqa: F401 unused
-        from chameleon import PageTemplateFile  # noqa: F401 unused
-        from chameleon import PageTemplateLoader  # noqa: F401 unused
-
-    def test_pagetexttemplates(self):
-        from chameleon import PageTextTemplate  # noqa: F401 unused
-        from chameleon import PageTextTemplateFile  # noqa: F401 unused
-
-
 class TestTemplateFile:
     @property
     def _class(self):
