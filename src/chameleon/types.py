@@ -10,19 +10,8 @@ from typing import TypedDict
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Collection
-    from typing_extensions import TypeAlias
 
     from chameleon.tokenize import Token
-
-
-ExpressionType: TypeAlias = Literal[
-    'python',
-    'string',
-    'not',
-    'exists',
-    'import',
-    'structure'
-]
 
 
 class Tokenizer(Protocol):
@@ -48,7 +37,7 @@ class TranslationFunction(Protocol):
 
 class PageTemplateConfig(TypedDict, total=False):
     auto_reload: bool
-    default_expression: ExpressionType
+    default_expression: str
     encoding: str
     boolean_attributes: Collection[str]
     translate: TranslationFunction

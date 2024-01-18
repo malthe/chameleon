@@ -35,7 +35,6 @@ if TYPE_CHECKING:
     from typing_extensions import Unpack
 
     from chameleon.types import TranslationFunction
-    from chameleon.types import ExpressionType
     from chameleon.types import PageTemplateConfig
     from chameleon.types import Tokenizer
 
@@ -201,7 +200,7 @@ class PageTemplate(BaseTemplate):
         'structure': StructureExpr,
     }
 
-    default_expression: ExpressionType = 'python'
+    default_expression: str = 'python'
     default_content_type = 'text/html'
 
     translate: TranslationFunction
