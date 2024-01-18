@@ -34,9 +34,9 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from typing_extensions import Unpack
 
-    from chameleon.types import TranslationFunction
     from chameleon.types import PageTemplateConfig
     from chameleon.types import Tokenizer
+    from chameleon.types import TranslationFunction
 
 
 BOOLEAN_HTML_ATTRIBUTES = [
