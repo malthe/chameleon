@@ -12,7 +12,6 @@ import sys
 import textwrap
 import threading
 
-from chameleon.astutil import AST_NONE
 from chameleon.astutil import Builtin
 from chameleon.astutil import Comment
 from chameleon.astutil import NameLookupRewriteVisitor
@@ -20,7 +19,6 @@ from chameleon.astutil import Node
 from chameleon.astutil import Static
 from chameleon.astutil import Symbol
 from chameleon.astutil import TokenRef
-from chameleon.astutil import annotated
 from chameleon.astutil import load
 from chameleon.astutil import param
 from chameleon.astutil import store
@@ -547,7 +545,7 @@ class ExpressionEngine:
                             ),
                             [ast.Assign(
                                 targets=[store(target.id)],
-                                value=AST_NONE
+                                value=load('None')
                             )],
                             steps
                         )
@@ -810,7 +808,7 @@ class ExpressionTransform:
             target = store(target)
 
         try:
-            stmts = self.translate(expression, target)
+            stmts = self._translate(expression, target)
         except ExpressionError as exc:
             if self.strict:
                 raise
@@ -827,12 +825,11 @@ class ExpressionTransform:
             ]
 
         # Apply visitor to each statement
-        for stmt in stmts:
-            self.visitor(stmt)
+        stmts = [self.visitor(stmt) for stmt in stmts]
 
         return stmts
 
-    def translate(self, expression, target):
+    def _translate(self, expression, target):
         if isinstance(target, str):
             target = store(target)
 
@@ -868,7 +865,7 @@ class ExpressionTransform:
         return compiler.assign_value(target)
 
     def visit_Copy(self, node, target):
-        return self.translate(node.expression, target)
+        return self._translate(node.expression, target)
 
     def visit_Substitution(self, node, target):
         engine = self.engine_factory(
@@ -880,12 +877,12 @@ class ExpressionTransform:
         return compiler.assign_text(target)
 
     def visit_Negate(self, node, target):
-        return self.translate(node.value, target) + \
+        return self._translate(node.value, target) + \
             template("TARGET = not TARGET", TARGET=target)
 
     def visit_BinOp(self, node, target):
-        expression = self.translate(node.left, "__expression")
-        value = self.translate(node.right, "__value")
+        expression = self._translate(node.left, "__expression")
+        value = self._translate(node.right, "__value")
 
         op = {
             Is: "is",
@@ -929,7 +926,7 @@ class ExpressionTransform:
         return compiler(target, engine, "text")
 
     def visit_Replace(self, node, target):
-        stmts = self.translate(node.value, target)
+        stmts = self._translate(node.value, target)
         return stmts + template(
             "if TARGET: TARGET = S",
             TARGET=target,
@@ -941,16 +938,14 @@ class ExpressionTransform:
             msgid = ast.Str(s=node.msgid)
         else:
             msgid = target
-        return self.translate(node.node, target) + \
+        return self._translate(node.node, target) + \
             emit_translate(target, msgid, default=target)
 
     def visit_Static(self, node, target):
-        value = annotated(node)
-        return [ast.Assign(targets=[target], value=value)]
+        return [ast.Assign(targets=[target], value=node)]
 
     def visit_Builtin(self, node, target):
-        value = annotated(node)
-        return [ast.Assign(targets=[target], value=value)]
+        return [ast.Assign(targets=[target], value=node)]
 
     def visit_Symbol(self, node, target):
         return template("TARGET = SYMBOL", TARGET=target, SYMBOL=node)
@@ -1721,10 +1716,7 @@ class Compiler:
 
     def visit_CodeBlock(self, node):
         stmts = template(textwrap.dedent(node.source.strip('\n')))
-
-        for stmt in stmts:
-            self._visitor(stmt)
-
+        stmts = list(map(self._visitor, stmts))
         stmts.insert(0, TokenRef(node.source))
         return stmts
 

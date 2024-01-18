@@ -250,9 +250,9 @@ class PythonExpr(TalesExpr):
             raise ExpressionError(exc.msg, string)
 
         # Transform attribute lookups to allow fallback to item lookup
-        self.transform.visit(value)
+        result = self.transform.visit(value)
 
-        return [ast.Assign(targets=[target], value=value)]
+        return [ast.Assign(targets=[target], value=result)]
 
 
 class ImportExpr:

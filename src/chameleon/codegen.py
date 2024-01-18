@@ -19,7 +19,6 @@ from ast import unparse
 from chameleon.astutil import Builtin
 from chameleon.astutil import Symbol
 from chameleon.astutil import load
-from chameleon.astutil import node_annotations
 from chameleon.astutil import parse
 from chameleon.astutil import store
 from chameleon.exc import CompilationError
@@ -155,12 +154,6 @@ class TemplateCodeGenerator(NodeTransformer):
             self.imports[value] = store(node.id)
 
         return node
-
-    def visit(self, node) -> AST:
-        annotation = node_annotations.get(node)
-        if annotation is None:
-            return super().visit(node)
-        return self.visit(annotation)
 
     def visit_Module(self, module) -> AST:
         assert isinstance(module, Module)
