@@ -11,6 +11,9 @@ class TestImports:
         from chameleon import PageTextTemplateFile
 
     def test_compiler_utils(self):
+        from chameleon.astutil import NameLookupRewriteVisitor
+        from chameleon.astutil import Symbol
+        from chameleon.codegen import template
         from chameleon.compiler import ExpressionEngine
         from chameleon.compiler import ExpressionEvaluator
         from chameleon.tales import ExpressionParser
