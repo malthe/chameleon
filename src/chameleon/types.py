@@ -41,28 +41,9 @@ class TranslationFunction(Protocol):
         domain: str | None = None,
         mapping: dict[str, Any] | None = None,
         default: str | None = None,
-        context: str | None = None
-    ) -> str: ...
-
-
-class TranslationFunctionWithTargetLanguage(Protocol):
-    def __call__(
-        self,
-        msgid: str,
-        *,
-        domain: str | None = None,
-        mapping: dict[str, Any] | None = None,
-        default: str | None = None,
         context: str | None = None,
         target_language: str | None = None
     ) -> str: ...
-
-
-# until we drop support for 3.9 this needs to be a string literal
-AnyTranslationFunction: TypeAlias = (
-    'TranslationFunction '  # noqa: TC008
-    '| TranslationFunctionWithTargetLanguage'
-)
 
 
 class PageTemplateConfig(TypedDict, total=False):
@@ -70,7 +51,7 @@ class PageTemplateConfig(TypedDict, total=False):
     default_expression: ExpressionType
     encoding: str
     boolean_attributes: Collection[str]
-    translate: AnyTranslationFunction
+    translate: TranslationFunction
     implicit_i18n_translate: bool
     implicit_i18n_attributes: set[str]
     on_error_handler: Callable[[BaseException], object]

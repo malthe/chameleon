@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from typing_extensions import Unpack
 
-    from chameleon.types import AnyTranslationFunction
+    from chameleon.types import TranslationFunction
     from chameleon.types import ExpressionType
     from chameleon.types import PageTemplateConfig
     from chameleon.types import Tokenizer
@@ -114,12 +114,9 @@ class PageTemplate(BaseTemplate):
         Example::
 
           def translate(msgid, domain=None, mapping=None, default=None,
-                        context=None):
+                        context=None, target_language=None):
               ...
               return translation
-
-        Note that if ``target_language`` is provided at render time,
-        the translation function must support this argument.
 
       ``implicit_i18n_translate``
 
@@ -207,7 +204,7 @@ class PageTemplate(BaseTemplate):
     default_expression: ExpressionType = 'python'
     default_content_type = 'text/html'
 
-    translate: AnyTranslationFunction
+    translate: TranslationFunction
     if sys.version_info >= (3, 10):
         translate = staticmethod(simple_translate)
     else:
@@ -321,7 +318,7 @@ class PageTemplate(BaseTemplate):
             negotiate a language based on the provided context.
         """
 
-        translate: AnyTranslationFunction | None = _kw.get('translate')
+        translate: TranslationFunction | None = _kw.get('translate')
         if translate is None:
             translate = self.translate
 
@@ -334,7 +331,7 @@ class PageTemplate(BaseTemplate):
         if encoding is not None:
             def translate(
                 msgid: str | bytes,
-                txl: AnyTranslationFunction = translate,  # type: ignore
+                txl: TranslationFunction = translate,  # type: ignore
                 encoding: str = encoding,  # type: ignore[assignment]
                 **kwargs: Any
             ) -> str:
