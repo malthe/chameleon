@@ -1,7 +1,10 @@
 Changes
 =======
 
-In next release ...
+4.5.0 (2024-01-18)
+------------------
+
+- Chameleon now has type annotations!
 
 - The list of names previously disallowed for use as variables in
   templates such as "int" and "float" has been trimmed significantly,
