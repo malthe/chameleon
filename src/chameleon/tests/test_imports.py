@@ -10,6 +10,9 @@ class TestImports:
         from chameleon import PageTextTemplate
         from chameleon import PageTextTemplateFile
 
+    def test_exceptions(self):
+        from chameleon.exc import ExpressionError
+
     def test_compiler_utils(self):
         from chameleon.astutil import NameLookupRewriteVisitor
         from chameleon.astutil import Symbol
