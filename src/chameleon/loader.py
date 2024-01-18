@@ -189,10 +189,6 @@ class ModuleLoader:
     def build(self, source: str, filename: str) -> dict[str, Any]:
         acquire_lock()
         try:
-            d = self.get(filename)
-            if d is not None:
-                return d
-
             base, ext = os.path.splitext(filename)
             name = os.path.join(self.path, base + ".py")
 

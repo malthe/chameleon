@@ -11,9 +11,7 @@ import re
 import sys
 import textwrap
 import threading
-from ast import Try
 
-from chameleon.astutil import AST_NONE
 from chameleon.astutil import Builtin
 from chameleon.astutil import Comment
 from chameleon.astutil import NameLookupRewriteVisitor
@@ -21,16 +19,12 @@ from chameleon.astutil import Node
 from chameleon.astutil import Static
 from chameleon.astutil import Symbol
 from chameleon.astutil import TokenRef
-from chameleon.astutil import annotated
 from chameleon.astutil import load
-from chameleon.astutil import node_annotations
 from chameleon.astutil import param
 from chameleon.astutil import store
 from chameleon.astutil import subscript
-from chameleon.astutil import swap
 from chameleon.codegen import TemplateCodeGenerator
 from chameleon.codegen import template
-from chameleon.config import DEBUG_MODE
 from chameleon.exc import ExpressionError
 from chameleon.exc import TranslationError
 from chameleon.i18n import simple_translate
@@ -49,7 +43,6 @@ from chameleon.parser import groupdict
 from chameleon.tal import NAME
 from chameleon.tal import ErrorInfo
 from chameleon.tokenize import Token
-from chameleon.utils import DebuggingOutputStream
 from chameleon.utils import ListDictProxy
 from chameleon.utils import char2entity
 from chameleon.utils import decode_htmlentities
@@ -59,29 +52,14 @@ from chameleon.utils import safe_native
 
 log = logging.getLogger('chameleon.compiler')
 
+# Disallowing the use of the following symbols to avoid misunderstandings.
 COMPILER_INTERNALS_OR_DISALLOWED = {
     "econtext",
     "rcontext",
-    "target_language",
-    "str",
-    "int",
-    "float",
-    "len",
-    "bool",
-    "None",
-    "True",
-    "False",
-    "RuntimeError",
 }
-
 
 RE_MANGLE = re.compile(r'[^\w_]')
 RE_NAME = re.compile('^%s$' % NAME)
-
-if DEBUG_MODE:
-    LIST = template("cls()", cls=DebuggingOutputStream, mode="eval")
-else:
-    LIST = template("[]", mode="eval")
 
 
 def identifier(prefix, suffix=None) -> str:
@@ -104,12 +82,6 @@ def store_econtext(name):
 def store_rcontext(name):
     name = str(name)
     return subscript(name, load("rcontext"), ast.Store())
-
-
-def set_token(stmts, token):
-    pos = getattr(token, "pos", 0)
-    body = template("__token = pos", pos=TokenRef(pos, len(token)))
-    return body + stmts
 
 
 def eval_token(token):
@@ -169,8 +141,8 @@ emit_convert = template(is_func=True,
             if __tt is int or __tt is float:
                 target = str(target)
             else:
-                render = getattr(target, "__html__", None)
-                if render is None:
+                __markup = getattr(target, "__html__", None)
+                if __markup is None:
                     __converted = translate(
                         target,
                         domain=__i18n_domain,
@@ -181,7 +153,7 @@ emit_convert = template(is_func=True,
                         if target is __converted \
                         else __converted
                 else:
-                    target = render()""")
+                    target = __markup()""")
 
 
 emit_func_convert = template(
@@ -200,8 +172,8 @@ emit_func_convert = template(
             if __tt is int or __tt is float:
                 target = str(target)
             else:
-                render = getattr(target, "__html__", None)
-                if render is None:
+                __markup = getattr(target, "__html__", None)
+                if __markup is None:
                     __converted = translate(
                         target,
                         domain=__i18n_domain,
@@ -212,7 +184,7 @@ emit_func_convert = template(
                         if target is __converted \
                         else __converted
                 else:
-                    target = render()
+                    target = __markup()
 
         return target"""
 )
@@ -251,8 +223,8 @@ emit_func_convert_and_escape = template(
         elif __tt is not str:
             if __tt is int or __tt is float:
                 return str(target)
-            render = getattr(target, "__html__", None)
-            if render is None:
+            __markup = getattr(target, "__html__", None)
+            if __markup is None:
                 __converted = translate(
                     target,
                     domain=__i18n_domain,
@@ -262,7 +234,7 @@ emit_func_convert_and_escape = template(
                 target = str(target) if target is __converted \
                          else __converted
             else:
-                return render()
+                return __markup()
 
         if target is not None:
             try:
@@ -290,8 +262,11 @@ class EmitText(Node):
     _fields = "s",
 
 
-class Scope(Node):
-    """"Set a local output scope."""
+class TranslationContext(Node):
+    """Set a local output context.
+
+    This is used for the translation machinery.
+    """
 
     _fields = "body", "append", "stream"
 
@@ -570,7 +545,7 @@ class ExpressionEngine:
                             ),
                             [ast.Assign(
                                 targets=[store(target.id)],
-                                value=AST_NONE
+                                value=load('None')
                             )],
                             steps
                         )
@@ -578,8 +553,8 @@ class ExpressionEngine:
 
                 stmts.extend(steps)
 
-            if handle_errors:
-                return set_token(stmts, string.strip())
+            if handle_errors and isinstance(string, Token):
+                stmts.insert(0, TokenRef(string.strip()))
 
             return stmts
 
@@ -735,36 +710,36 @@ class NameTransform:
     ...     ('econtext', ),
     ... )
 
-    >>> def test(node):
-    ...     rewritten = nt(node)
-    ...     module = ast.Module([ast.fix_missing_locations(rewritten)])
+    >>> def test(name):
+    ...     rewritten = nt(load(name))
+    ...     module = ast.Module([ast.fix_missing_locations(rewritten)], [])
     ...     codegen = TemplateCodeGenerator(module)
     ...     return codegen.code
 
     Any odd name:
 
-    >>> test(load('frobnitz'))
+    >>> test('frobnitz')
     "getname('frobnitz')"
 
     A 'builtin' name will first be looked up via ``get`` allowing fall
     back to the global builtin value:
 
-    >>> test(load('foo'))
+    >>> test('foo')
     "get('foo', foo)"
 
     Internal names (with two leading underscores) are left alone:
 
-    >>> test(load('__internal'))
+    >>> test('__internal')
     '__internal'
 
     Compiler internals or disallowed names:
 
-    >>> test(load('econtext'))
+    >>> test('econtext')
     'econtext'
 
     Aliased names:
 
-    >>> test(load('boo'))
+    >>> test('boo')
     'boz'
 
     """
@@ -784,6 +759,8 @@ class NameTransform:
         if name.startswith('__') or name in self.internals:
             return node
 
+        # Some expressions allow setting variables which we transform to
+        # storing them as template context.
         if isinstance(node.ctx, ast.Store):
             return store_econtext(name)
 
@@ -798,7 +775,7 @@ class NameTransform:
                 "get(key, name)",
                 mode="eval",
                 key=ast.Str(s=name),
-                name=load(name),
+                name=Builtin(name),
             )
 
         # Otherwise, simply acquire it from the dynamic context.
@@ -831,7 +808,7 @@ class ExpressionTransform:
             target = store(target)
 
         try:
-            stmts = self.translate(expression, target)
+            stmts = self._translate(expression, target)
         except ExpressionError as exc:
             if self.strict:
                 raise
@@ -842,15 +819,17 @@ class ExpressionTransform:
                 "__exc = loads(p)", loads=self.loads_symbol, p=ast.Str(s=p)
             )
 
-            stmts += set_token([ast.Raise(exc=load("__exc"))], exc.token)
+            stmts += [
+                TokenRef(exc.token),
+                ast.Raise(exc=load("__exc"))
+            ]
 
         # Apply visitor to each statement
-        for stmt in stmts:
-            self.visitor(stmt)
+        stmts = [self.visitor(stmt) for stmt in stmts]
 
         return stmts
 
-    def translate(self, expression, target):
+    def _translate(self, expression, target):
         if isinstance(target, str):
             target = store(target)
 
@@ -886,7 +865,7 @@ class ExpressionTransform:
         return compiler.assign_value(target)
 
     def visit_Copy(self, node, target):
-        return self.translate(node.expression, target)
+        return self._translate(node.expression, target)
 
     def visit_Substitution(self, node, target):
         engine = self.engine_factory(
@@ -898,12 +877,12 @@ class ExpressionTransform:
         return compiler.assign_text(target)
 
     def visit_Negate(self, node, target):
-        return self.translate(node.value, target) + \
+        return self._translate(node.value, target) + \
             template("TARGET = not TARGET", TARGET=target)
 
     def visit_BinOp(self, node, target):
-        expression = self.translate(node.left, "__expression")
-        value = self.translate(node.right, "__value")
+        expression = self._translate(node.left, "__expression")
+        value = self._translate(node.right, "__value")
 
         op = {
             Is: "is",
@@ -947,7 +926,7 @@ class ExpressionTransform:
         return compiler(target, engine, "text")
 
     def visit_Replace(self, node, target):
-        stmts = self.translate(node.value, target)
+        stmts = self._translate(node.value, target)
         return stmts + template(
             "if TARGET: TARGET = S",
             TARGET=target,
@@ -959,19 +938,16 @@ class ExpressionTransform:
             msgid = ast.Str(s=node.msgid)
         else:
             msgid = target
-        return self.translate(node.node, target) + \
+        return self._translate(node.node, target) + \
             emit_translate(target, msgid, default=target)
 
     def visit_Static(self, node, target):
-        value = annotated(node)
-        return [ast.Assign(targets=[target], value=value)]
+        return [ast.Assign(targets=[target], value=node)]
 
     def visit_Builtin(self, node, target):
-        value = annotated(node)
-        return [ast.Assign(targets=[target], value=value)]
+        return [ast.Assign(targets=[target], value=node)]
 
     def visit_Symbol(self, node, target):
-        annotated(node)
         return template("TARGET = SYMBOL", TARGET=target, SYMBOL=node)
 
 
@@ -1000,6 +976,7 @@ class Compiler:
         source,
         builtins={},
         strict=True,
+        stream_factory=list,
     ):
         self._scopes = [set()]
         self._expression_cache = {}
@@ -1008,6 +985,17 @@ class Compiler:
         self._aliases = [{}]
         self._macros = []
         self._current_slot = []
+
+        # Prepare stream factory (callable)
+        self._new_list = (
+            ast.List([], ast.Load()) if stream_factory is list else
+            ast.Call(
+                ast.Symbol(stream_factory),
+                args=[],
+                kwargs=[],
+                lineno=None,
+            )
+        )
 
         internals = COMPILER_INTERNALS_OR_DISALLOWED | set(self.defaults)
 
@@ -1026,51 +1014,58 @@ class Compiler:
             strict=strict,
         )
 
-        if isinstance(node_annotations, dict):
-            self.lock.acquire()
-            backup = node_annotations.copy()
-        else:
-            backup = None
+        module = ast.Module([], [])
+        module.body += self.visit(node)
+        ast.fix_missing_locations(module)
 
-        try:
-            module = ast.Module([])
-            module.body += self.visit(node)
-            ast.fix_missing_locations(module)
+        class Generator(TemplateCodeGenerator):
+            scopes = [TranslationContext()]
+            tokens = []
 
-            class Generator(TemplateCodeGenerator):
-                scopes = [Scope()]
+            def visit_EmitText(self, node) -> ast.AST:
+                append = load(self.scopes[-1].append or "__append")
+                node = ast.Expr(ast.Call(
+                    func=append,
+                    args=[ast.Str(s=node.s)],
+                    keywords=[],
+                    starargs=None,
+                    kwargs=None
+                ))
+                return self.visit(node)
 
-                def visit_EmitText(self, node) -> None:
-                    append = load(self.scopes[-1].append or "__append")
-                    for node in template(
-                        "append(s)", append=append, s=ast.Str(s=node.s)
-                    ):
-                        self.visit(node)
+            def visit_Name(self, node) -> ast.AST:
+                if isinstance(node.ctx, ast.Load):
+                    scope = self.scopes[-1]
+                    for name in ("append", "stream"):
+                        if node.id == f"__{name}":
+                            identifier = getattr(scope, name, None)
+                            if identifier:
+                                return load(identifier)
+                return node
 
-                def visit_Scope(self, node) -> None:
-                    self.scopes.append(node)
-                    body = list(node.body)
-                    swap(body, load(node.append), "__append")
-                    if node.stream:
-                        swap(body, load(node.stream), "__stream")
-                    for node in body:
-                        self.visit(node)
-                    self.scopes.pop()
+            def visit_TranslationContext(self, node) -> list[ast.AST]:
+                self.scopes.append(node)
+                stmts = list(map(self.visit, node.body))
+                self.scopes.pop()
+                return stmts
 
-            generator = Generator(module, source)
-            tokens = [
-                Token(source[pos:pos + length], pos, source)
-                for pos, length in generator.tokens
-            ]
-            token_map_def = "__tokens = {" + ", ".join("%d: %r" % (
-                token.pos,
-                (token, ) + token.location
-            ) for token in tokens) + "}"
-        finally:
-            if backup is not None:
-                node_annotations.clear()
-                node_annotations.update(backup)
-                self.lock.release()
+            def visit_TokenRef(self, node) -> ast.AST:
+                self.tokens.append((node.token.pos, len(node.token)))
+                return ast.Assign(
+                    [store("__token")],
+                    ast.Num(n=node.token.pos),
+                    lineno=None,
+                )
+
+        generator = Generator(module)
+        tokens = [
+            Token(source[pos:pos + length], pos, source)
+            for pos, length in generator.tokens
+        ]
+        token_map_def = "__tokens = {" + ", ".join("%d: %r" % (
+            token.pos,
+            (token, ) + token.location
+        ) for token in tokens) + "}"
 
         self.code = "\n".join((
             "__filename = %r\n" % filename,
@@ -1091,6 +1086,8 @@ class Compiler:
             if key is EmitText:
                 text = join(node.s for node in nodes)
                 nodes = [EmitText(text)]
+            if key is TokenRef:
+                nodes = [nodes[-1]]
             result.extend(nodes)
         return result
 
@@ -1108,7 +1105,6 @@ class Compiler:
 
     def visit_Module(self, node):
         body = []
-
         body += template("import re")
         body += template("import functools")
         body += template("from itertools import chain as __chain")
@@ -1116,7 +1112,7 @@ class Compiler:
         body += template("__default = intern('__default__')")
         body += template("__marker = object()")
         body += template(
-            r"g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
+            "g_re_amp = re.compile(r'&(?!([A-Za-z]+|#[0-9]+);)')"
         )
         body += template(
             r"g_re_needs_escape = re.compile(r'[&<>\"\']').search")
@@ -1130,11 +1126,16 @@ class Compiler:
         program = self.visit(node.program)
 
         body += [ast.FunctionDef(
-            name=node.name, args=ast.arguments(
+            name=node.name,
+            args=ast.arguments(
                 args=[param(b) for b in self._builtins],
-                defaults=(),
+                defaults=[],
+                kwonlyargs=[],
+                posonlyargs=[],
             ),
-            body=program
+            body=program,
+            decorator_list=[],
+            lineno=None,
         )]
 
         return body
@@ -1187,7 +1188,7 @@ class Compiler:
         self._slots = set()
 
         # Visit macro body
-        nodes = itertools.chain(*tuple(map(self.visit, node.body)))
+        nodes = list(itertools.chain(*tuple(map(self.visit, node.body))))
 
         # Slot resolution
         for name in self._slots:
@@ -1210,9 +1211,11 @@ class Compiler:
 
         # Wrap visited nodes in try-except error handler.
         body += [
-            Try(
+            ast.Try(
                 body=nodes,
-                handlers=[ast.ExceptHandler(body=exc_handler)]
+                handlers=[ast.ExceptHandler(body=exc_handler)],
+                finalbody=[],
+                orelse=[],
             )
         ]
 
@@ -1230,8 +1233,12 @@ class Compiler:
                     param("target_language"),
                 ],
                 defaults=[load("None"), load("None"), load("None")],
+                kwonlyargs=[],
+                posonlyargs=[],
             ),
-            body=body
+            body=body,
+            decorator_list=[],
+            lineno=None,
         )
 
         yield function
@@ -1250,8 +1257,10 @@ class Compiler:
 
     def visit_Target(self, node):
         backup = "__previous_i18n_target_%s" % mangle(id(node))
+        tmp = "__tmp_%s" % mangle(id(node))
         return template("BACKUP = target_language", BACKUP=backup) + \
-            self._engine(node.expression, store("target_language")) + \
+            self._engine(node.expression, store(tmp)) + \
+            [ast.Assign([store("target_language")], load(tmp))] + \
             self.visit(node.node) + \
             template("target_language = BACKUP", BACKUP=backup)
 
@@ -1280,16 +1289,18 @@ class Compiler:
             key=ast.Str(s=node.name),
         )
 
-        body += [Try(
+        body += [ast.Try(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
                 type=ast.Tuple(elts=[Builtin("Exception")], ctx=ast.Load()),
-                name=store("__exc"),
+                name="__exc",
                 body=(error_assignment +
                       template("del __stream[fallback:]", fallback=fallback) +
                       fallback_body
                       ),
-            )]
+            )],
+            finalbody=[],
+            orelse=[],
         )]
 
         return body
@@ -1438,12 +1449,13 @@ class Compiler:
         # Prepare new stream
         append = identifier("append", id(node))
         stream = identifier("stream", id(node))
-        body += template("s = new_list", s=stream, new_list=LIST) + \
+
+        body += template("s = new_list", s=stream, new_list=self._new_list) + \
             template("a = s.append", a=append, s=stream)
 
         # Visit body to generate the message body
         code = self.visit(node.node)
-        body.append(Scope(code, append, stream))
+        body.append(TranslationContext(code, append, stream))
 
         # Reduce white space and assign as message id
         msgid = identifier("msgid", id(node))
@@ -1686,12 +1698,12 @@ class Compiler:
 
         # prepare new stream
         stream, append = self._get_translation_identifiers(node.name)
-        body += template("s = new_list", s=stream, new_list=LIST) + \
+        body += template("s = new_list", s=stream, new_list=self._new_list) + \
             template("a = s.append", a=append, s=stream)
 
         # generate code
         code = self.visit(node.node)
-        body.append(Scope(code, append))
+        body.append(TranslationContext(code, append))
 
         # output msgid
         text = Text('${%s}' % node.name)
@@ -1704,11 +1716,9 @@ class Compiler:
 
     def visit_CodeBlock(self, node):
         stmts = template(textwrap.dedent(node.source.strip('\n')))
-
-        for stmt in stmts:
-            self._visitor(stmt)
-
-        return set_token(stmts, node.source)
+        stmts = list(map(self._visitor, stmts))
+        stmts.insert(0, TokenRef(node.source))
+        return stmts
 
     def visit_UseExternalMacro(self, node):
         self._macros.append(node.extend)
@@ -1741,9 +1751,12 @@ class Compiler:
                             load("__i18n_context"),
                             load("target_language"),
                         ],
+                        kwonlyargs=[],
+                        posonlyargs=[],
                     ),
-                    body=body or [
-                        ast.Pass()],
+                    body=body or [ast.Pass()],
+                    decorator_list=[],
+                    lineno=None,
                 ))
 
             key = ast.Str(s=key)
@@ -1756,9 +1769,10 @@ class Compiler:
             if node.extend:
                 append = template("_slots.appendleft(NAME)", NAME=fun)
 
-                assignment = [Try(
+                assignment = [ast.Try(
                     body=template("_slots = getname(KEY)", KEY=key),
                     handlers=[ast.ExceptHandler(body=assignment)],
+                    finalbody=[],
                     orelse=append,
                 )]
 
@@ -1771,10 +1785,8 @@ class Compiler:
         return (
             callbacks +
             assignment +
-            set_token(
-                template("__m = __macro.include"),
-                node.expression.value
-            ) +
+            [TokenRef(node.expression.value)] +
+            template("__m = __macro.include") +
             template(
                 "__m(__stream, econtext.copy(), "
                 "rcontext, __i18n_domain, __i18n_context, target_language)"
@@ -1861,6 +1873,7 @@ class Compiler:
             target=store("__item"),
             iter=load("__iterator"),
             body=assignment + inner,
+            orelse=[],
         )]
 
         # Finally, clean up assignment if it's local

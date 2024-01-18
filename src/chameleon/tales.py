@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ast
 import re
-from ast import Try
 
 from chameleon.astutil import Builtin
 from chameleon.astutil import ItemLookupOnAttributeErrorVisitor
@@ -148,15 +147,17 @@ class TalesExpr:
             if i == 0:
                 body = assignment
             else:
-                body = [Try(
+                body = [ast.Try(
                     body=assignment,
                     handlers=[ast.ExceptHandler(
                         type=ast.Tuple(
-                            elts=map(resolve_global, self.exceptions),
+                            elts=list(map(resolve_global, self.exceptions)),
                             ctx=ast.Load()),
                         name=None,
                         body=body,
                     )],
+                    finalbody=[],
+                    orelse=[],
                 )]
 
         return body
@@ -249,9 +250,9 @@ class PythonExpr(TalesExpr):
             raise ExpressionError(exc.msg, string)
 
         # Transform attribute lookups to allow fallback to item lookup
-        self.transform.visit(value)
+        result = self.transform.visit(value)
 
-        return [ast.Assign(targets=[target], value=value)]
+        return [ast.Assign(targets=[target], value=result)]
 
 
 class ImportExpr:
@@ -501,20 +502,21 @@ class ExistsExpr:
         self.expression = expression
 
     def __call__(self, target, engine):
-        ignore = store("_ignore")
+        ignore = store("__ignore")
         compiler = engine.parse(self.expression, False)
         body = compiler.assign_value(ignore)
 
-        classes = map(resolve_global, self.exceptions)
+        classes = list(map(resolve_global, self.exceptions))
 
         return [
-            Try(
+            ast.Try(
                 body=body,
                 handlers=[ast.ExceptHandler(
                     type=ast.Tuple(elts=classes, ctx=ast.Load()),
                     name=None,
                     body=template("target = 0", target=target),
                 )],
+                finalbody=[],
                 orelse=template("target = 1", target=target)
             )
         ]

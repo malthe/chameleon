@@ -35,6 +35,9 @@ from chameleon.utils import read_xml_encoding
 from chameleon.utils import value_repr
 
 
+PROGRAM_NAME = "initialize"
+
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
     from abc import abstractmethod
@@ -117,7 +120,7 @@ class BaseTemplate:
     else:
         loader = MemoryLoader()
 
-    output_stream_factory: type[list[str]]
+    output_stream_factory: type[list]
     if DEBUG_MODE:
         output_stream_factory = DebuggingOutputStream
     else:
@@ -200,8 +203,8 @@ class BaseTemplate:
         digest = self.digest(body, names)
         program = self._cook(body, digest, names)
 
-        initialize = program['initialize']
-        functions = initialize(*builtins)
+        init = program[PROGRAM_NAME]
+        functions = init(*builtins)
 
         for name, function in functions.items():
             setattr(self, "_" + name, function)
@@ -293,8 +296,7 @@ class BaseTemplate:
     ) -> dict[str, Any]:
 
         filename = self._get_module_name(name)
-        cooked = self.loader.get(filename)
-        if cooked is None:
+        if DEBUG_MODE or (cooked := self.loader.get(filename)) is None:
             try:
                 source = self._compile(body, builtins)
                 if self.debug:
@@ -331,10 +333,14 @@ class BaseTemplate:
 
     def _compile(self, body: str, builtins: Collection[str]) -> str:
         program = self.parse(body)
-        module = Module("initialize", program)
+        module = Module(PROGRAM_NAME, program)
         compiler = Compiler(
-            self.engine, module, str(self.filename), body,
-            builtins, strict=self.strict
+            self.engine,
+            module,
+            str(self.filename),
+            body,
+            builtins=builtins,
+            strict=self.strict
         )
         return compiler.code
 

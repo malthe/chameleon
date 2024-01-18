@@ -3,7 +3,26 @@ Changes
 
 In next release ...
 
--
+- The list of names previously disallowed for use as variables in
+  templates such as "int" and "float" has been trimmed significantly,
+  not because it's a good idea to use such names but because the list
+  of disallowed names was not exhaustive and complicated the compiler
+  code; and perhaps more importantly, the technical reason for
+  disallowing the names in the first place no longer applies.
+
+- Fix a regression where generated template code would suboptimal due
+  to incorrect handling of internal variables.
+
+- Always cook templates in debug mode, even when using
+  `CHAMELEON_CACHE` option to persist generated code on disk.
+
+- Parsing the AST back to Python code now uses the built-in
+  `ast.unparse` function. This change is not directly surfaced but
+  means that the unparsing code is now more correctly tracking changes
+  to the interpreter.
+
+- Drop support for platforms where AST nodes aren't weakref-capable
+  (e.g., older PyPy).
 
 
 4.4.4 (2024-01-18)

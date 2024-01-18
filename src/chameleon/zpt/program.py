@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ast
 import re
-from copy import copy
 from functools import partial
 
 from chameleon import i18n
@@ -302,9 +301,17 @@ class MacroProgram(ElementProgram):
 
             # Create attribute nodes
             STATIC_ATTRIBUTES = self._create_static_attributes(prepared)
-            ATTRIBUTES = self._create_attributes_nodes(
-                prepared, I18N_ATTRIBUTES, STATIC_ATTRIBUTES,
+            attributes, filtering = self._create_attributes_nodes(
+                prepared, I18N_ATTRIBUTES
             )
+
+            ATTRIBUTES = nodes.Sequence(attributes)
+
+            # We're caching all expressions found during attribute processing
+            # to enable the filtering functionality which exists to allow later
+            # definitions to override previous ones.
+            if filtering:
+                ATTRIBUTES = nodes.Cache(filtering, ATTRIBUTES)
 
             # Start- and end nodes
             start_tag = nodes.Start(
@@ -578,16 +585,16 @@ class MacroProgram(ElementProgram):
             )
 
             if omit is False and start['namespace'] not in self.DROP_NS:
-                start_tag = copy(start_tag)
-
-                start_tag.attributes = nodes.Sequence(
-                    start_tag.attributes.extract(
-                        lambda attribute:
-                        isinstance(attribute, nodes.Attribute) and
-                        isinstance(attribute.expression, ast.Str)
+                start_tag = nodes.Start(
+                    start['name'],
+                    self._maybe_trim(start['prefix']),
+                    self._maybe_trim(start['suffix']),
+                    nodes.Sequence(
+                        [attr for attr in attributes if
+                         isinstance(attr, nodes.Attribute) and
+                         isinstance(attr.expression, ast.Str)]
                     )
                 )
-
                 if end_tag is None:
                     # Make sure start-tag has opening suffix. We don't
                     # allow self-closing element here.
@@ -752,7 +759,7 @@ class MacroProgram(ElementProgram):
 
         return content
 
-    def _create_attributes_nodes(self, prepared, I18N_ATTRIBUTES, STATIC):
+    def _create_attributes_nodes(self, prepared, I18N_ATTRIBUTES):
         attributes = []
 
         names = [attr[0] for attr in prepared]
@@ -860,16 +867,7 @@ class MacroProgram(ElementProgram):
 
             attributes.append(value)
 
-        result = nodes.Sequence(attributes)
-
-        # We're caching all expressions found during attribute processing to
-        # enable the filtering functionality which exists to allow later
-        # definitions to override previous ones.
-        expressions = filtering[0]
-        if expressions:
-            return nodes.Cache(expressions, result)
-
-        return result
+        return (attributes, filtering[0])
 
     def _create_static_attributes(self, prepared):
         static_attrs = {}
