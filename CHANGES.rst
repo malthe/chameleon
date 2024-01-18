@@ -3,7 +3,9 @@ Changes
 
 In next release ...
 
--
+- Fix a PyPy compatibility issue having to do with determining the set
+  of versions when some packages (e.g. `cffi`) would not carry a
+  version.
 
 
 4.4.3 (2023-12-30)
