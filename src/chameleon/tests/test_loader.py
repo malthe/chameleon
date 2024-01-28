@@ -7,9 +7,9 @@ from pathlib import Path
 
 
 class LoadTests:
-    def _makeOne(self, search_path=None, **kwargs):
+    def _makeOne(self, *args, **kwargs):
         klass = self._getTargetClass()
-        return klass(search_path, **kwargs)
+        return klass(*args, **kwargs)
 
     def _getTargetClass(self):
         from chameleon.loader import TemplateLoader
@@ -20,6 +20,15 @@ class LoadTests:
         here = os.path.join(os.path.dirname(__file__), "inputs")
         loader = self._makeOne(search_path=[here])
         result = self._load(loader, 'hello_world.pt')
+        self.assertEqual(
+            result.filename,
+            os.path.join(here, 'hello_world.pt'))
+
+    def test_load_relative_default_extension(self):
+        import os
+        here = os.path.join(os.path.dirname(__file__), "inputs")
+        loader = self._makeOne([here], ".pt")
+        result = self._load(loader, 'hello_world')
         self.assertEqual(
             result.filename,
             os.path.join(here, 'hello_world.pt'))
@@ -138,6 +147,15 @@ class LoadPageTests(unittest.TestCase, LoadTests):
     def _load(self, loader, spec):
         from chameleon.zpt import template
         return loader.load(spec, template.PageTemplateFile)
+
+
+class ZPTLoadPageTests(unittest.TestCase, LoadTests):
+    def _getTargetClass(self):
+        from chameleon.zpt.loader import TemplateLoader
+        return TemplateLoader
+
+    def _load(self, loader, spec):
+        return loader.load(spec)
 
 
 class ModuleLoadTests(unittest.TestCase):

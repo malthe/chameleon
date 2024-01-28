@@ -28,6 +28,7 @@ class TemplateLoader(BaseLoader):
     def __init__(
         self,
         search_path: Sequence[str] | str | None = None,
+        default_extension: str | None = None,
         *,
         formats: _FormatsMapping | None = None,
         **kwargs: Any
@@ -36,7 +37,7 @@ class TemplateLoader(BaseLoader):
         if formats is not None:
             self.formats = formats
 
-        super().__init__(search_path, **kwargs)
+        super().__init__(search_path, default_extension, **kwargs)
 
     @overload  # type: ignore[override]
     def load(

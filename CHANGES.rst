@@ -3,7 +3,9 @@ Changes
 
 In next release ...
 
--
+- Fix a regression where `default_extension` was no longer permitted
+  as a positional argument to `PageTemplateLoader`.
+  (`#411 <https://github.com/malthe/chameleon/issues/411>`_)
 
 4.5.0 (2024-01-18)
 ------------------
