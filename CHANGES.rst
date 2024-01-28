@@ -1,7 +1,10 @@
 Changes
 =======
 
-In next release ...
+4.5.1 (2024-01-28)
+------------------
+
+- Add Python 3.13 classifier.
 
 - Fix a regression where `default_extension` was no longer permitted
   as a positional argument to `PageTemplateLoader`.
