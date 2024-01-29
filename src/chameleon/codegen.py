@@ -162,8 +162,9 @@ class TemplateCodeGenerator(NodeTransformer):
 
         for name, node in self.defines.items():
             assignment = Assign(targets=[store(name)], value=node, lineno=None)
-            preamble.append(assignment)
+            preamble.append(self.visit(assignment))
 
+        imports: list[AST] = []
         for value, node in self.imports.items():
             stmt: AST
 
@@ -183,10 +184,9 @@ class TemplateCodeGenerator(NodeTransformer):
             else:
                 raise TypeError(value)
 
-            preamble.append(stmt)
+            imports.append(stmt)
 
-        preamble = [self.visit(stmt) for stmt in preamble]
-        return Module(preamble + module.body, ())
+        return Module(imports + preamble + module.body, ())
 
     def visit_Comment(self, node) -> AST:
         self.comments.append(node.text)
