@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+4.5.2 (2024-01-29)
+------------------
 
 - Fix a regression where a static symbol would not get correctly
   imported.
