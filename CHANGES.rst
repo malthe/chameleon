@@ -3,7 +3,9 @@ Changes
 
 In next release ...
 
--
+- Fix a regression where a static symbol would not get correctly
+  imported.
+  (`#414 <https://github.com/malthe/chameleon/issues/414>`_)
 
 4.5.1 (2024-01-28)
 ------------------
