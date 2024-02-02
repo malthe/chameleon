@@ -1,5 +1,10 @@
-Overview
-========
+Chameleon
+=========
+
+.. image:: https://img.shields.io/pypi/pyversions/Chameleon
+   :alt: PyPI - Python Version
+.. image:: https://img.shields.io/github/actions/workflow/status/malthe/chameleon/main.yml
+   :alt: GitHub Actions Workflow Status
 
 Chameleon is an HTML/XML template engine for `Python
 <http://www.python.org>`_. It uses the *page templates* language.
