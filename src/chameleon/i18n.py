@@ -69,11 +69,11 @@ else:   # pragma: no cover
             return None
 
         if target_language is not None or context is not None:
-            result = translate(
+            result: str = translate(
                 msgid, domain=domain, mapping=mapping, context=context,
                 target_language=target_language, default=default)
             if result != msgid:
-                return result  # type: ignore[no-any-return]
+                return result
 
         if isinstance(msgid, Message):
             default = msgid.default
