@@ -15,6 +15,8 @@ from ast import Module
 from ast import NodeTransformer
 from ast import alias
 from ast import unparse
+from typing import TYPE_CHECKING
+from typing import Any
 
 from chameleon.astutil import Builtin
 from chameleon.astutil import Symbol
@@ -24,7 +26,15 @@ from chameleon.astutil import store
 from chameleon.exc import CompilationError
 
 
-reverse_builtin_map = {}
+if TYPE_CHECKING:
+    import ast
+    from collections.abc import Hashable
+
+    from chameleon.astutil import Comment
+    from chameleon.astutil import Static
+
+
+reverse_builtin_map: dict[type[Any] | Hashable, str] = {}
 for name, value in builtins.__dict__.items():
     try:
         hash(value)
@@ -60,7 +70,7 @@ def template(
                     lineno=None,
                 )
 
-            def visit_Name(self, node) -> AST:
+            def visit_Name(self, node: ast.Name) -> AST:
                 value = symbols.get(node.id, self)
                 if value is self:
                     if node.id == 'None' or \
@@ -77,7 +87,7 @@ def template(
                 if isinstance(value, str):
                     value = load(value)
 
-                return value
+                return value  # type: ignore[no-any-return]
 
         expr = parse(textwrap.dedent(source), mode=mode)
 
@@ -102,6 +112,8 @@ class TemplateCodeGenerator(NodeTransformer):
     """
 
     names = ()
+
+    imports: dict[type[Any] | Hashable, ast.Name]
 
     def __init__(self, tree):
         self.comments = []
@@ -142,7 +154,7 @@ class TemplateCodeGenerator(NodeTransformer):
 
         return load(name)
 
-    def require(self, value):
+    def require(self, value: type[Any] | Hashable) -> ast.Name:
         node = self.imports.get(value)
         if node is None:
             # we come up with a unique symbol based on the class name
@@ -155,9 +167,9 @@ class TemplateCodeGenerator(NodeTransformer):
 
         return node
 
-    def visit_Module(self, module) -> AST:
+    def visit_Module(self, module: Module) -> AST:
         assert isinstance(module, Module)
-        module = super().generic_visit(module)
+        module = super().generic_visit(module)  # type: ignore[assignment]
         preamble: list[AST] = []
 
         for name, node in self.defines.items():
@@ -188,21 +200,21 @@ class TemplateCodeGenerator(NodeTransformer):
 
         return Module(imports + preamble + module.body, ())
 
-    def visit_Comment(self, node) -> AST:
+    def visit_Comment(self, node: Comment) -> AST:
         self.comments.append(node.text)
         return Expr(Constant(...))
 
-    def visit_Builtin(self, node) -> AST:
+    def visit_Builtin(self, node: Builtin) -> AST:
         name = load(node.id)
-        return self.visit(name)
+        return self.visit(name)  # type: ignore[no-any-return]
 
-    def visit_Symbol(self, node) -> AST:
+    def visit_Symbol(self, node: Symbol) -> AST:
         return self.require(node.value)
 
-    def visit_Static(self, node) -> AST:
+    def visit_Static(self, node: Static) -> AST:
         if node.name is None:
             name = "_static_%s" % str(id(node.value)).replace('-', '_')
         else:
             name = node.name
         node = self.define(name, node.value)
-        return self.visit(node)
+        return self.visit(node)  # type: ignore[no-any-return]

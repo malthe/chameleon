@@ -62,11 +62,11 @@ RE_MANGLE = re.compile(r'[^\w_]')
 RE_NAME = re.compile('^%s$' % NAME)
 
 
-def identifier(prefix, suffix=None) -> str:
+def identifier(prefix: str, suffix: str | None = None) -> str:
     return "__{}_{}".format(prefix, mangle(suffix or id(prefix)))
 
 
-def mangle(string):
+def mangle(string: object) -> str:
     return RE_MANGLE.sub('_', str(string)).replace('\n', '').replace('-', '_')
 
 
@@ -74,12 +74,12 @@ def load_econtext(name):
     return template("getname(KEY)", KEY=ast.Str(s=name), mode="eval")
 
 
-def store_econtext(name):
+def store_econtext(name: object) -> ast.Subscript:
     name = str(name)
     return subscript(name, load("econtext"), ast.Store())
 
 
-def store_rcontext(name):
+def store_rcontext(name: object) -> ast.Subscript:
     name = str(name)
     return subscript(name, load("rcontext"), ast.Store())
 
@@ -101,7 +101,7 @@ def eval_token(token):
     )
 
 
-def indent(s):
+def indent(s: str | None) -> str:
     return textwrap.indent(s, "    ") if s else ""
 
 
@@ -1024,16 +1024,16 @@ class Compiler:
 
             def visit_EmitText(self, node) -> ast.AST:
                 append = load(self.scopes[-1].append or "__append")
-                node = ast.Expr(ast.Call(
+                expr = ast.Expr(ast.Call(
                     func=append,
                     args=[ast.Str(s=node.s)],
                     keywords=[],
                     starargs=None,
                     kwargs=None
                 ))
-                return self.visit(node)
+                return self.visit(expr)  # type: ignore[no-any-return]
 
-            def visit_Name(self, node) -> ast.AST:
+            def visit_Name(self, node: ast.Name) -> ast.AST:
                 if isinstance(node.ctx, ast.Load):
                     scope = self.scopes[-1]
                     for name in ("append", "stream"):
@@ -1049,7 +1049,7 @@ class Compiler:
                 self.scopes.pop()
                 return stmts
 
-            def visit_TokenRef(self, node) -> ast.AST:
+            def visit_TokenRef(self, node: TokenRef) -> ast.AST:
                 self.tokens.append((node.token.pos, len(node.token)))
                 return ast.Assign(
                     [store("__token")],

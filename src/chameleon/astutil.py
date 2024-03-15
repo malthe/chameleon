@@ -5,35 +5,44 @@ from __future__ import annotations
 import ast
 from copy import deepcopy
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import ClassVar
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import Union
-    _NodeTransform = Callable[[ast.AST], Union[ast.AST, None]]
+    from collections.abc import Hashable
+    from typing import Optional
+
+    from chameleon.tokenize import Token
+
+    _NodeTransform = Callable[[ast.AST], Optional[ast.AST]]
 
 
 __docformat__ = 'restructuredtext en'
 
 
-def parse(source, mode='eval'):
+def parse(source, mode: str = 'eval') -> ast.AST:
     return compile(source, '', mode, ast.PyCF_ONLY_AST)
 
 
-def load(name):
+def load(name: str) -> ast.Name:
     return ast.Name(id=name, ctx=ast.Load())
 
 
-def store(name):
+def store(name: str) -> ast.Name:
     return ast.Name(id=name, ctx=ast.Store())
 
 
-def param(name):
+def param(name: str) -> ast.Name:
     return ast.Name(id=name, ctx=ast.Param())
 
 
-def subscript(name, value, ctx):
+def subscript(
+    name: str,
+    value: ast.expr,
+    ctx: ast.expr_context
+) -> ast.Subscript:
     return ast.Subscript(
         value=value,
         slice=ast.Index(value=ast.Str(s=name)),
@@ -47,7 +56,7 @@ class Node(ast.AST):
 
     _fields: ClassVar[tuple[str, ...]] = ()
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         assert isinstance(self._fields, tuple)
         self.__dict__.update(kwargs)
         for name, value in zip(self._fields, args):
@@ -77,6 +86,7 @@ class Builtin(Node):
 
     _fields = "id", "ctx"
 
+    id: str
     ctx = ast.Load()
 
 
@@ -85,23 +95,31 @@ class Symbol(Node):
 
     _fields = "value",
 
+    # Apart from a few builtins this should be type[Any]
+    value: type[Any] | Hashable
+
 
 class Static(Node):
     """Represents a static value."""
 
     _fields = "value", "name"
 
-    name = None
+    value: ast.expr
+    name: str | None = None
 
 
 class Comment(Node):
     _fields = "text",
+
+    text: str
 
 
 class TokenRef(Node):
     """Represents a source-code token reference."""
 
     _fields = "token",
+
+    token: Token
 
 
 class NodeTransformerBase(ast.NodeTransformer):
@@ -120,34 +138,34 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         self.scopes: list[set[str]] = [set()]
         super().__init__(transform)
 
-    def __call__(self, node) -> ast.AST:
+    def __call__(self, node: ast.AST) -> ast.AST:
         clone = deepcopy(node)
-        return self.visit(clone)
+        return self.visit(clone)  # type: ignore[no-any-return]
 
-    def visit_arg(self, node) -> ast.AST:
+    def visit_arg(self, node: ast.arg) -> ast.AST:
         scope = self.scopes[-1]
         scope.add(node.arg)
         return node
 
-    def visit_Name(self, node) -> ast.AST:
+    def visit_Name(self, node: ast.Name) -> ast.AST:
         scope = self.scopes[-1]
         if isinstance(node.ctx, ast.Param):
             scope.add(node.id)
             return node
         if node.id not in scope:
-            node = self.apply_transform(node)
+            return self.apply_transform(node)
         return node
 
-    def visit_FunctionDef(self, node) -> ast.AST:
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
         self.scopes[-1].add(node.name)
         return super().generic_visit(node)
 
-    def visit_alias(self, node) -> ast.AST:
+    def visit_alias(self, node: ast.alias) -> ast.AST:
         name = node.asname if node.asname is not None else node.name
         self.scopes[-1].add(name)
         return super().generic_visit(node)
 
-    def visit_Lambda(self, node) -> ast.AST:
+    def visit_Lambda(self, node: ast.Lambda) -> ast.AST:
         self.scopes.append(set())
         try:
             return super().generic_visit(node)
@@ -156,6 +174,6 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
 
 
 class ItemLookupOnAttributeErrorVisitor(NodeTransformerBase):
-    def visit_Attribute(self, node) -> ast.AST:
-        node = self.apply_transform(node)
-        return self.generic_visit(node)
+    def visit_Attribute(self, node: ast.Attribute) -> ast.AST:
+        transformed = self.apply_transform(node)
+        return self.generic_visit(transformed)
