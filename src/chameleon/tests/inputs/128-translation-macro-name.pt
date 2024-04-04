@@ -1,0 +1,5 @@
+<a metal:define-macro="fancy-link" href="#">Fancy link</a>
+
+<tal:something i18n:translate="text_with_link">
+  Now follows a fancy link: <metal:fancy-link i18n:name="obj_link" use-macro="macros['fancy-link']" />
+</tal:something>

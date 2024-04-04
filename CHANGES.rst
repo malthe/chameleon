@@ -3,7 +3,9 @@ Changes
 
 In next release ...
 
--
+- Fix a bug where a macro could not be used correctly to render a
+  translation name.
+  (`#419 <https://github.com/malthe/chameleon/issues/419>`_)
 
 4.5.2 (2024-01-29)
 ------------------
