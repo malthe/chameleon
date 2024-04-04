@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Minor optimization when rendering translations with a static
+  message id (don't need to test if it's non-empty).
+
 - Fix a bug where a macro could not be used correctly to render a
   translation name.
   (`#419 <https://github.com/malthe/chameleon/issues/419>`_)

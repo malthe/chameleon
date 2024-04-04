@@ -1492,12 +1492,19 @@ class Compiler:
             msgid = ast.Str(s=node.msgid)
 
         # emit the translation expression
-        body += template(
-            "if msgid: __append(translate("
+        translation = template(
+            "__append(translate("
             "msgid, mapping=mapping, default=default, domain=__i18n_domain, context=__i18n_context, target_language=target_language))",  # noqa:  E501 line too long
             msgid=msgid,
             default=default,
             mapping=mapping)
+
+        if not node.msgid:
+            translation = [ast.If(
+                test=load(msgid), body=translation, orelse=[]
+            )]
+
+        body += translation
 
         # pop away translation block reference
         self._translations.pop()
