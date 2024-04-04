@@ -66,7 +66,7 @@ def identifier(prefix: str, suffix: str | None = None) -> str:
     return "__{}_{}".format(prefix, mangle(suffix or id(prefix)))
 
 
-def mangle(string: object) -> str:
+def mangle(string: int | str) -> str:
     return RE_MANGLE.sub('_', str(string)).replace('\n', '').replace('-', '_')
 
 
