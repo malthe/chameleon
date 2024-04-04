@@ -342,7 +342,7 @@ class BaseTemplate:
             builtins=builtins,
             strict=self.strict
         )
-        return compiler.code
+        return compiler.code  # type: ignore[no-any-return]
 
 
 class BaseTemplateFile(BaseTemplate):
