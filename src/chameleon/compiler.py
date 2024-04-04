@@ -1703,7 +1703,7 @@ class Compiler:
 
         # generate code
         code = self.visit(node.node)
-        body.append(TranslationContext(code, append))
+        body.append(TranslationContext(code, append, stream))
 
         # output msgid
         text = Text('${%s}' % node.name)
