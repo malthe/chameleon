@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+4.5.3 (2024-04-05)
+------------------
 
 - Minor optimization when rendering translations with a static
   message id (don't need to test if it's non-empty).
