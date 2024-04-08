@@ -277,11 +277,11 @@ class TranslationContext(Node):
 
 class Interpolator:
     braces_required_regex = re.compile(
-        r'(\$)?\$({(?P<expression>.*)})', re.DOTALL
+        r'\$({(?P<expression>.*)})', re.DOTALL
     )
 
     braces_optional_regex = re.compile(
-        r'(\$)?\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))',
+        r'\$({(?P<expression>.*)}|(?P<variable>[A-Za-z][A-Za-z0-9_]*))',
         re.DOTALL,
     )
 
@@ -335,6 +335,7 @@ class Interpolator:
 
         while text:
             matched = text
+
             m = self.regex.search(matched)
             if m is None:
                 text = text.replace('$$', '$')
@@ -344,18 +345,18 @@ class Interpolator:
             part = text[:m.start()]
             text = text[m.start():]
 
-            skip = text.startswith('$$')
-            if skip:
-                part = part + '$'
-
             if part:
+                i = 0
+                length = len(part)
+                while i < length and part[-i - 1] == '$':
+                    i += 1
+                skip = i & 1
                 part = part.replace('$$', '$')
                 node = ast.Str(s=part)
                 nodes.append(node)
-
-            if skip:
-                text = text[2:]
-                continue
+                if skip:
+                    text = text[1:]
+                    continue
 
             if not body:
                 target = name
