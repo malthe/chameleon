@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+4.5.4 (2024-04-08)
+------------------
 
 - Fix an issue where $-sign interpolation escaping would not work
   correctly when more than two such symbols appeared next to each
