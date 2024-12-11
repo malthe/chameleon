@@ -3,7 +3,7 @@ Changes
 
 In next release ...
 
-- ...
+- Fix ``load_module`` deprecation warnings for Python >= 3.10.
 
 4.5.4 (2024-04-08)
 ------------------
