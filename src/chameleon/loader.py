@@ -12,6 +12,8 @@ import sys
 import tempfile
 import warnings
 from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec
+from importlib.util import spec_from_loader
 from threading import RLock
 from typing import TYPE_CHECKING
 from typing import Any
@@ -222,7 +224,13 @@ class ModuleLoader:
         try:
             module = sys.modules.get(base)
             if module is None:
-                module = SourceFileLoader(base, filename).load_module()
+                loader = SourceFileLoader(base, filename)
+                spec = spec_from_loader(base, loader)
+                if spec is None:
+                    raise ModuleNotFoundError(f"{base} ({filename})")
+                module = module_from_spec(spec)
+                loader.exec_module(module)
+                sys.modules[base] = module
         finally:
             release_lock()
 

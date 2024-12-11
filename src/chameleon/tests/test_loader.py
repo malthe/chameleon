@@ -3,6 +3,7 @@ import sys
 import tempfile
 import unittest
 import zipimport
+from importlib.util import module_from_spec
 from pathlib import Path
 
 
@@ -110,7 +111,13 @@ class LoadTests:
             (package_path,) = basedir.glob('dist/*' + pkg_extension)
 
             importer = zipimport.zipimporter(str(package_path))
-            importer.load_module(pkg_name)
+            if hasattr(importer, 'find_spec'):
+                spec = importer.find_spec(pkg_name)
+                module = module_from_spec(spec)
+                importer.exec_module(module)
+                sys.modules[pkg_name] = module
+            else:
+                importer.load_module(pkg_name)
 
             try:
                 self._test_pkg(pkg_name)
@@ -170,6 +177,7 @@ class ModuleLoadTests(unittest.TestCase):
         source = "def function(): return %r" % "\xc3\xa6\xc3\xb8\xc3\xa5"
 
         module = loader.build(source, "test.xml")
+        self.assertIn('test', sys.modules)
         result1 = module['function']()
         d = {}
         code = compile(source, 'test.py', 'exec')
