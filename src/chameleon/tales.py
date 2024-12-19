@@ -61,7 +61,7 @@ def transform_attribute(node):
         "lookup(object, name)",
         lookup=Symbol(lookup_attr),
         object=node.value,
-        name=ast.Str(s=node.attr),
+        name=ast.Constant(node.attr),
         mode="eval"
     )
 
@@ -266,7 +266,7 @@ class ImportExpr:
         value = template(
             "RESOLVE(NAME)",
             RESOLVE=Symbol(resolve_dotted),
-            NAME=ast.Str(s=string),
+            NAME=ast.Constant(string),
             mode="eval",
         )
         return [ast.Assign(targets=[target], value=value)]
@@ -428,7 +428,7 @@ class StringExpr:
     ...                 return [
     ...                     ast.Assign(
     ...                         targets=[target],
-    ...                         value=ast.Num(n=len(expression))
+    ...                         value=ast.Constant(len(expression))
     ...                     )]
     ...
     ...         return compiler
@@ -473,8 +473,6 @@ class ProxyExpr(TalesExpr):
                 func=load(self.name),
                 args=[target],
                 keywords=[],
-                starargs=None,
-                kwargs=None
             ))
         ]
 

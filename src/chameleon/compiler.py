@@ -71,7 +71,7 @@ def mangle(string: int | str) -> str:
 
 
 def load_econtext(name):
-    return template("getname(KEY)", KEY=ast.Str(s=name), mode="eval")
+    return template("getname(KEY)", KEY=ast.Constant(name), mode="eval")
 
 
 def store_econtext(name: object) -> ast.Subscript:
@@ -94,9 +94,9 @@ def eval_token(token):
 
     return template(
         "(string, line, col)",
-        string=ast.Str(s=string),
-        line=ast.Num(n=line),
-        col=ast.Num(n=column),
+        string=ast.Constant(string),
+        line=ast.Constant(line),
+        col=ast.Constant(column),
         mode="eval"
     )
 
@@ -339,7 +339,7 @@ class Interpolator:
             m = self.regex.search(matched)
             if m is None:
                 text = text.replace('$$', '$')
-                nodes.append(ast.Str(s=text))
+                nodes.append(ast.Constant(text))
                 break
 
             part = text[:m.start()]
@@ -352,7 +352,7 @@ class Interpolator:
                     i += 1
                 skip = i & 1
                 part = part.replace('$$', '$')
-                node = ast.Str(s=part)
+                node = ast.Constant(part)
                 nodes.append(node)
                 if skip:
                     text = text[1:]
@@ -383,7 +383,8 @@ class Interpolator:
                         continue
                 else:
                     s = m.group()
-                    assign = ast.Assign(targets=[target], value=ast.Str(s=s))
+                    assign = ast.Assign(
+                        targets=[target], value=ast.Constant(s))
                     body += [assign]
 
                 break
@@ -406,7 +407,11 @@ class Interpolator:
         if len(nodes) == 1:
             target = nodes[0]
 
-            if translate and isinstance(target, ast.Str):
+            if (
+                translate
+                and isinstance(target, ast.Constant)
+                and isinstance(target.value, str)
+            ):
                 target = template(
                     "translate(msgid, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",  # noqa:  E501 line too long
                     msgid=target,
@@ -419,25 +424,32 @@ class Interpolator:
                 values = []
 
                 for node in nodes:
-                    if isinstance(node, ast.Str):
-                        formatting_string += node.s
+                    if (
+                        isinstance(node, ast.Constant)
+                        and isinstance(node.value, str)
+                    ):
+                        formatting_string += node.value
                     else:
                         string = expr_map[node]
                         formatting_string += "${%s}" % string
-                        keys.append(ast.Str(s=string))
+                        keys.append(ast.Constant(string))
                         values.append(node)
 
                 target = template(
                     "translate(msgid, mapping=mapping, domain=__i18n_domain, context=__i18n_context, target_language=target_language)",   # noqa:  E501 line too long
-                    msgid=ast.Str(
-                        s=formatting_string),
+                    msgid=ast.Constant(
+                        formatting_string),
                     mapping=ast.Dict(
                         keys=keys,
                         values=values),
                     mode="eval")
             else:
                 nodes = [
-                    node if isinstance(node, ast.Str) else
+                    node
+                    if (
+                        isinstance(node, ast.Constant)
+                        and isinstance(node.value, str)
+                    ) else
                     template(
                         "NODE if NODE is not None else ''",
                         NODE=node, mode="eval"
@@ -446,7 +458,7 @@ class Interpolator:
                 ]
 
                 target = ast.BinOp(
-                    left=ast.Str(s="%s" * len(nodes)),
+                    left=ast.Constant("%s" * len(nodes)),
                     op=ast.Mod(),
                     right=ast.Tuple(elts=nodes, ctx=ast.Load()))
 
@@ -567,7 +579,7 @@ class ExpressionEngine:
         """
 
         return emit_bool(
-            target, ast.Str(s=s),
+            target, ast.Constant(s),
             default=self._default,
             default_marker=self._default_marker
         )
@@ -608,8 +620,8 @@ class ExpressionEngine:
         return template(
             "TARGET = __quote(TARGET, QUOTE, Q_ENTITY, DEFAULT, MARKER)",
             TARGET=target,
-            QUOTE=ast.Str(s=quote),
-            Q_ENTITY=ast.Str(s=entity),
+            QUOTE=ast.Constant(quote),
+            Q_ENTITY=ast.Constant(entity),
             DEFAULT=self._default,
             MARKER=self._default_marker,
         )
@@ -775,7 +787,7 @@ class NameTransform:
             return template(
                 "get(key, name)",
                 mode="eval",
-                key=ast.Str(s=name),
+                key=ast.Constant(name),
                 name=Builtin(name),
             )
 
@@ -817,7 +829,7 @@ class ExpressionTransform:
             p = pickle.dumps(exc, -1)
 
             stmts = template(
-                "__exc = loads(p)", loads=self.loads_symbol, p=ast.Str(s=p)
+                "__exc = loads(p)", loads=self.loads_symbol, p=ast.Constant(p)
             )
 
             stmts += [
@@ -931,12 +943,12 @@ class ExpressionTransform:
         return stmts + template(
             "if TARGET: TARGET = S",
             TARGET=target,
-            S=ast.Str(s=node.s)
+            S=ast.Constant(node.s)
         )
 
     def visit_Translate(self, node, target):
         if node.msgid is not None:
-            msgid = ast.Str(s=node.msgid)
+            msgid = ast.Constant(node.msgid)
         else:
             msgid = target
         return self._translate(node.node, target) + \
@@ -1027,10 +1039,8 @@ class Compiler:
                 append = load(self.scopes[-1].append or "__append")
                 expr = ast.Expr(ast.Call(
                     func=append,
-                    args=[ast.Str(s=node.s)],
+                    args=[ast.Constant(node.s)],
                     keywords=[],
-                    starargs=None,
-                    kwargs=None
                 ))
                 return self.visit(expr)  # type: ignore[no-any-return]
 
@@ -1052,11 +1062,13 @@ class Compiler:
 
             def visit_TokenRef(self, node: TokenRef) -> ast.AST:
                 self.tokens.append((node.token.pos, len(node.token)))
-                return ast.Assign(
+                assignment = ast.Assign(
                     [store("__token")],
-                    ast.Num(n=node.token.pos),
-                    lineno=None,
+                    ast.Constant(node.token.pos),
                 )
+                ast.copy_location(assignment, node)
+                ast.fix_missing_locations(assignment)
+                return assignment
 
         generator = Generator(module)
         tokens = [
@@ -1155,7 +1167,7 @@ class Compiler:
 
         # Return function dictionary
         functions += [ast.Return(value=ast.Dict(
-            keys=[ast.Str(s=name) for name in names],
+            keys=[ast.Constant(name) for name in names],
             values=[load(name) for name in names],
         ))]
 
@@ -1182,7 +1194,7 @@ class Compiler:
         for name in self.defaults:
             body += template(
                 "NAME = econtext[KEY]",
-                NAME=name, KEY=ast.Str(s="__" + name)
+                NAME=name, KEY=ast.Constant("__" + name)
             )
 
         # Internal set of defined slots
@@ -1196,7 +1208,7 @@ class Compiler:
             body += template(
                 "try: NAME = econtext[KEY].pop()\n"
                 "except: NAME = None",
-                KEY=ast.Str(s=name), NAME=store(name))
+                KEY=ast.Constant(name), NAME=store(name))
 
         exc = template(
             "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
@@ -1252,7 +1264,7 @@ class Compiler:
     def visit_Domain(self, node):
         backup = "__previous_i18n_domain_%s" % mangle(id(node))
         return template("BACKUP = __i18n_domain", BACKUP=backup) + \
-            template("__i18n_domain = NAME", NAME=ast.Str(s=node.name)) + \
+            template("__i18n_domain = NAME", NAME=ast.Constant(node.name)) + \
             self.visit(node.node) + \
             template("__i18n_domain = BACKUP", BACKUP=backup)
 
@@ -1268,7 +1280,7 @@ class Compiler:
     def visit_TxContext(self, node):
         backup = "__previous_i18n_context_%s" % mangle(id(node))
         return template("BACKUP = __i18n_context", BACKUP=backup) + \
-            template("__i18n_context = NAME", NAME=ast.Str(s=node.name)) + \
+            template("__i18n_context = NAME", NAME=ast.Constant(node.name)) + \
             self.visit(node.node) + \
             template("__i18n_context = BACKUP", BACKUP=backup)
 
@@ -1287,7 +1299,7 @@ class Compiler:
             "if handler is not None: handler(__exc)",
             cls=ErrorInfo,
             handler=load("on_error_handler"),
-            key=ast.Str(s=node.name),
+            key=ast.Constant(node.name),
         )
 
         body += [ast.Try(
@@ -1364,8 +1376,8 @@ class Compiler:
         for name in node.names:
             if not node.local:
                 assignment += template(
-                    "rcontext[KEY] = __value", KEY=ast.Str(
-                        s=str(name)))
+                    "rcontext[KEY] = __value", KEY=ast.Constant(
+                        str(name)))
 
         return assignment
 
@@ -1475,14 +1487,14 @@ class Compiler:
 
             for name in names:
                 stream, append = self._get_translation_identifiers(name)
-                keys.append(ast.Str(s=name))
+                keys.append(ast.Constant(name))
                 values.append(load(stream))
 
                 # Initialize value
                 body.insert(
                     0, ast.Assign(
                         targets=[store(stream)],
-                        value=ast.Str(s="")))
+                        value=ast.Constant("")))
 
             mapping = ast.Dict(keys=keys, values=values)
         else:
@@ -1490,7 +1502,7 @@ class Compiler:
 
         # if this translation node has a name, use it as the message id
         if node.msgid:
-            msgid = ast.Str(s=node.msgid)
+            msgid = ast.Constant(node.msgid)
 
         # emit the translation expression
         translation = template(
@@ -1542,23 +1554,24 @@ class Compiler:
 
         filter_condition = template(
             "NAME not in CHAIN",
-            NAME=ast.Str(s=node.name),
+            NAME=ast.Constant(node.name),
             CHAIN=ast.Call(
                 func=load("__chain"),
                 args=filter_args,
                 keywords=[],
-                starargs=None,
-                kwargs=None,
             ),
             mode="eval"
         )
 
         # Static attributes are just outputted directly
-        if isinstance(node.expression, ast.Str):
-            s = attr_format % node.expression.s
+        if (
+            isinstance(node.expression, ast.Constant)
+            and isinstance(node.expression.value, str)
+        ):
+            s = attr_format % node.expression.value
             if node.filters:
                 return template(
-                    "if C: __append(S)", C=filter_condition, S=ast.Str(s=s)
+                    "if C: __append(S)", C=filter_condition, S=ast.Constant(s)
                 )
             else:
                 return [EmitText(s)]
@@ -1576,7 +1589,7 @@ class Compiler:
 
         return body + template(
             "if CONDITION: __append(FORMAT % TARGET)",
-            FORMAT=ast.Str(s=attr_format),
+            FORMAT=ast.Constant(attr_format),
             TARGET=target,
             CONDITION=condition,
         )
@@ -1587,14 +1600,14 @@ class Compiler:
 
         bool_names = Static(template(
             "set(LIST)", LIST=ast.List(
-                elts=[ast.Str(s=name) for name in node.bool_names],
+                elts=[ast.Constant(name) for name in node.bool_names],
                 ctx=ast.Load(),
             ), mode="eval"
         ))
 
         exclude = Static(template(
             "set(LIST)", LIST=ast.List(
-                elts=[ast.Str(s=name) for name in node.exclude],
+                elts=[ast.Constant(name) for name in node.exclude],
                 ctx=ast.Load(),
             ), mode="eval"
         ))
@@ -1621,8 +1634,8 @@ class Compiler:
             TARGET=target,
             EXCLUDE=exclude,
             QUOTE_FUNC="__quote",
-            QUOTE=ast.Str(s=node.quote),
-            QUOTE_ENTITY=ast.Str(s=char2entity(node.quote or '\0')),
+            QUOTE=ast.Constant(node.quote),
+            QUOTE_ENTITY=ast.Constant(char2entity(node.quote or '\0')),
             BOOL_NAMES=bool_names
         )
 
@@ -1767,7 +1780,7 @@ class Compiler:
                     lineno=None,
                 ))
 
-            key = ast.Str(s=key)
+            key = ast.Constant(key)
 
             assignment = template(
                 "_slots = econtext[KEY] = DEQUE((NAME,))",
@@ -1828,7 +1841,7 @@ class Compiler:
             ]
 
             key = ast.Tuple(
-                elts=[ast.Str(s=name) for name in node.names],
+                elts=[ast.Constant(name) for name in node.names],
                 ctx=ast.Load())
         else:
             name = node.names[0]
@@ -1837,7 +1850,7 @@ class Compiler:
                 for context in contexts
             ]
 
-            key = ast.Str(s=node.names[0])
+            key = ast.Constant(node.names[0])
 
         index = identifier("__index", id(node))
         assignment = [ast.Assign(targets=targets, value=load("__item"))]
@@ -1873,7 +1886,7 @@ class Compiler:
         # For items up to N - 1, emit repeat whitespace
         inner += template(
             "if INDEX > 0: __append(WHITESPACE)",
-            INDEX=index, WHITESPACE=ast.Str(s=node.whitespace)
+            INDEX=index, WHITESPACE=ast.Constant(node.whitespace)
         )
 
         # Main repeat loop
@@ -1904,7 +1917,7 @@ class Compiler:
             yield from template(
                 "BACKUP = get(KEY, __marker)",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(s=str(name)),
+                KEY=ast.Constant(str(name)),
             )
 
     def _leave_assignment(self, names):
@@ -1913,5 +1926,5 @@ class Compiler:
                 "if BACKUP is __marker: del econtext[KEY]\n"
                 "else:                 econtext[KEY] = BACKUP",
                 BACKUP=identifier("backup_%s" % name, id(names)),
-                KEY=ast.Str(s=str(name)),
+                KEY=ast.Constant(str(name)),
             )

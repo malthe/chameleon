@@ -72,7 +72,7 @@ You can write such a compiler as a closure:
    def uppercase_expression(string):
        def compiler(target, engine):
            uppercased = self.string.uppercase()
-           value = ast.Str(uppercased)
+           value = ast.Constant(uppercased)
            return [ast.Assign(targets=[target], value=value)]
        return compiler
 

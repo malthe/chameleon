@@ -3,6 +3,9 @@ Changes
 
 In next release ...
 
+- Fix ``ast`` deprecation warnings up to Python 3.13.
+  (`#430 <https://github.com/malthe/chameleon/issues/430>`_)
+
 - Fix ``load_module`` deprecation warnings for Python >= 3.10.
 
 4.5.4 (2024-04-08)
