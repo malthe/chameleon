@@ -234,7 +234,7 @@ class MacroProgram(ElementProgram):
             macro_name = macro_name.rsplit('/', 1)[-1]
             inner = nodes.Define(
                 [nodes.Assignment(
-                    ["macroname"], Static(ast.Str(macro_name)), True)],
+                    ["macroname"], Static(ast.Constant(macro_name)), True)],
                 inner,
             )
             STATIC_ATTRIBUTES = None
@@ -592,7 +592,8 @@ class MacroProgram(ElementProgram):
                     nodes.Sequence(
                         [attr for attr in attributes if
                          isinstance(attr, nodes.Attribute) and
-                         isinstance(attr.expression, ast.Str)]
+                         isinstance(attr.expression, ast.Constant) and
+                         isinstance(attr.expression.value, str)]
                     )
                 )
                 if end_tag is None:
@@ -796,7 +797,7 @@ class MacroProgram(ElementProgram):
                 if boolean:
                     value = nodes.Replace(value, name)
             else:
-                default = ast.Str(s=text) if text is not None else None
+                default = ast.Constant(text) if text is not None else None
 
                 # If the expression is non-trivial, the attribute is
                 # dynamic (computed).
@@ -833,7 +834,7 @@ class MacroProgram(ElementProgram):
                 # here if there's one or more "computed" attributes
                 # (dynamic, from one or more dict values).
                 else:
-                    value = ast.Str(s=text)
+                    value = ast.Constant(text)
                     if msgid is missing and implicit_i18n:
                         msgid = text
 
@@ -855,7 +856,10 @@ class MacroProgram(ElementProgram):
                     filtering[-1],
                 )
 
-                if not isinstance(value, ast.Str):
+                if (
+                    not isinstance(value, ast.Constant)
+                    or not isinstance(value.value, str)
+                ):
                     # Always define a ``default`` alias for non-static
                     # expressions.
                     attribute = nodes.Define(

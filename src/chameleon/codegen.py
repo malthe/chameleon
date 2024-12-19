@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import builtins
 import re
+import sys
 import textwrap
 import types
 from ast import AST
@@ -14,6 +15,8 @@ from ast import ImportFrom
 from ast import Module
 from ast import NodeTransformer
 from ast import alias
+from ast import copy_location
+from ast import fix_missing_locations
 from ast import unparse
 from typing import TYPE_CHECKING
 from typing import Any
@@ -57,18 +60,34 @@ def template(
         symbols.update(kwargs)
 
         class Transformer(NodeTransformer):
-            def visit_FunctionDef(self, node) -> AST:
-                name = symbols.get(node.name, self)
-                if name is self:
+            def visit_FunctionDef(self, node: ast.FunctionDef) -> AST:
+                if node.name not in symbols:
                     return self.generic_visit(node)
 
-                return FunctionDef(
-                    name=name,
-                    args=node.args,
-                    body=list(map(self.visit, node.body)),
-                    decorator_list=getattr(node, "decorator_list", []),
-                    lineno=None,
-                )
+                name = symbols[node.name]
+                assert isinstance(name, str)
+                body: list[ast.stmt] = [self.visit(stmt) for stmt in node.body]
+                if sys.version_info >= (3, 12):
+                    # mypy complains if type_params is missing
+                    funcdef = FunctionDef(
+                        name=name,
+                        args=node.args,
+                        body=body,
+                        decorator_list=node.decorator_list,
+                        returns=node.returns,
+                        type_params=node.type_params,
+                    )
+                else:
+                    funcdef = FunctionDef(
+                        name=name,
+                        args=node.args,
+                        body=body,
+                        decorator_list=node.decorator_list,
+                        returns=node.returns,
+                    )
+                copy_location(funcdef, node)
+                fix_missing_locations(funcdef)
+                return funcdef
 
             def visit_Name(self, node: ast.Name) -> AST:
                 value = symbols.get(node.id, self)
@@ -170,15 +189,17 @@ class TemplateCodeGenerator(NodeTransformer):
     def visit_Module(self, module: Module) -> AST:
         assert isinstance(module, Module)
         module = super().generic_visit(module)  # type: ignore[assignment]
-        preamble: list[AST] = []
+        preamble: list[ast.stmt] = []
 
         for name, node in self.defines.items():
-            assignment = Assign(targets=[store(name)], value=node, lineno=None)
+            assignment = Assign(targets=[store(name)], value=node)
+            copy_location(assignment, node)
+            fix_missing_locations(assignment)
             preamble.append(self.visit(assignment))
 
-        imports: list[AST] = []
+        imports: list[ast.stmt] = []
         for value, node in self.imports.items():
-            stmt: AST
+            stmt: ast.stmt
 
             if isinstance(value, types.ModuleType):
                 stmt = Import(
@@ -198,7 +219,7 @@ class TemplateCodeGenerator(NodeTransformer):
 
             imports.append(stmt)
 
-        return Module(imports + preamble + module.body, ())
+        return Module(imports + preamble + module.body, [])
 
     def visit_Comment(self, node: Comment) -> AST:
         self.comments.append(node.text)
