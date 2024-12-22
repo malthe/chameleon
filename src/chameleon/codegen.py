@@ -15,8 +15,6 @@ from ast import ImportFrom
 from ast import Module
 from ast import NodeTransformer
 from ast import alias
-from ast import copy_location
-from ast import fix_missing_locations
 from ast import unparse
 from typing import TYPE_CHECKING
 from typing import Any
@@ -85,8 +83,6 @@ def template(
                         decorator_list=node.decorator_list,
                         returns=node.returns,
                     )
-                copy_location(funcdef, node)
-                fix_missing_locations(funcdef)
                 return funcdef
 
             def visit_Name(self, node: ast.Name) -> AST:
@@ -192,9 +188,7 @@ class TemplateCodeGenerator(NodeTransformer):
         preamble: list[ast.stmt] = []
 
         for name, node in self.defines.items():
-            assignment = Assign(targets=[store(name)], value=node)
-            copy_location(assignment, node)
-            fix_missing_locations(assignment)
+            assignment = Assign(targets=[store(name)], value=node, lineno=-1)
             preamble.append(self.visit(assignment))
 
         imports: list[ast.stmt] = []
