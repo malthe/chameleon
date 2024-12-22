@@ -45,7 +45,7 @@ def subscript(
 ) -> ast.Subscript:
     return ast.Subscript(
         value=value,
-        slice=ast.Index(value=ast.Str(s=name)),
+        slice=ast.Constant(name),
         ctx=ctx,
     )
 
