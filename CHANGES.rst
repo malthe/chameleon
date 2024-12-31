@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Improve startup time when no template is used.
+
 - Fix ``ast`` deprecation warnings up to Python 3.13.
   (`#430 <https://github.com/malthe/chameleon/issues/430>`_)
 
