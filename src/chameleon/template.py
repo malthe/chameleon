@@ -69,10 +69,17 @@ def get_package_versions() -> list[tuple[str, str]]:
     return sorted(versions.items())
 
 
-pkg_digest = hashlib.sha1(__name__.encode('utf-8'))
-for name, version in get_package_versions():
-    pkg_digest.update(name.encode('utf-8'))
-    pkg_digest.update(version.encode('utf-8'))
+_pkg_digest = None
+
+
+def get_pkg_digest() -> hashlib._Hash:
+    global _pkg_digest
+    if _pkg_digest is None:
+        _pkg_digest = hashlib.sha1(__name__.encode('utf-8'))
+        for name, version in get_package_versions():
+            _pkg_digest.update(name.encode('utf-8'))
+            _pkg_digest.update(version.encode('utf-8'))
+    return _pkg_digest.copy()
 
 
 log = logging.getLogger('chameleon.template')
@@ -320,7 +327,7 @@ class BaseTemplate:
 
     def digest(self, body: str, names: Collection[str]) -> str:
         class_name = type(self).__name__.encode('utf-8')
-        sha = pkg_digest.copy()
+        sha = get_pkg_digest()
         sha.update(body.encode('utf-8', 'ignore'))
         sha.update(class_name)
         digest = sha.hexdigest()
