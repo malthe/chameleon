@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+4.6.0 (2024-12-31)
+------------------
 
 - Improve startup time when no template is used.
 
