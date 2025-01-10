@@ -21,7 +21,7 @@ jobs:
         python setup.py bdist_wheel
     - uses: actions/upload-artifact@v4
       with:
-        name: Chameleon
+        name: chameleon
         path: ./dist/
   test:
     strategy:
