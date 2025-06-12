@@ -3,7 +3,9 @@ Changes
 
 In next release ...
 
-- ...
+- In `fast_translate` don't try to translate a message which is not
+  hashable (i.e., typically a list or dict).
+  (`#441 <https://github.com/malthe/chameleon/issues/441>`_)
 
 4.6.0 (2024-12-31)
 ------------------

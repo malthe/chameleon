@@ -68,7 +68,8 @@ else:   # pragma: no cover
         if msgid is None:
             return None
 
-        if target_language is not None or context is not None:
+        if (target_language is not None or context is not None) and \
+           msgid.__hash__ is not None:
             result: str = translate(
                 msgid, domain=domain, mapping=mapping, context=context,
                 target_language=target_language, default=default)
