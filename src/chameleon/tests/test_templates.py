@@ -456,6 +456,26 @@ class TestZopePageTemplates:
         exc = create_formatted_exception(Difficult(), Difficult, str)
         assert exc.args == ()
 
+    def test_create_formatted_exception_unicode_error(self):
+        from chameleon.utils import create_formatted_exception
+
+        try:
+            "æøå".encode("utf-8").decode("ascii")
+        except UnicodeDecodeError as exc:
+            inner = exc
+
+        from chameleon.exc import ExceptionFormatter
+        exc = create_formatted_exception(inner, type(inner), str)
+
+        error = "expression", 1, 1, "", exc
+        formatter = ExceptionFormatter([error], {}, {}, repr)
+        exc = create_formatted_exception(
+            NameError('abc'), NameError, formatter
+        )
+
+        formatted = str(exc)
+        assert formatted.startswith(type(inner).__name__)
+
     def test_error_handler_makes_safe_copy(self):
         calls = []
 

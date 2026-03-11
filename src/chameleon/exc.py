@@ -315,7 +315,7 @@ class ExceptionFormatter:
             expression, line, column, filename, exc = error
 
             if isinstance(exc, UnicodeDecodeError):
-                string = safe_native(exc.object)
+                string = safe_native(exc.args[1])
                 s, marker = compute_source_marker(
                     string, exc.start, string[exc.start:exc.end], LENGTH
                 )
