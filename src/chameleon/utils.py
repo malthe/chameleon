@@ -225,7 +225,7 @@ def create_formatted_exception(
             inst = cls.__new__(new)
 
         BaseException.__init__(inst, *exc.args)
-        inst.__dict__ = exc.__dict__  # type: ignore[attr-defined]
+        inst.__dict__ = exc.__dict__  # type: ignore[assignment]
 
         return inst
     except ValueError:
