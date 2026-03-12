@@ -314,8 +314,8 @@ class ExceptionFormatter:
         for error in self._errors:
             expression, line, column, filename, exc = error
 
-            if isinstance(exc, UnicodeDecodeError):
-                string = safe_native(exc.args[1])
+            if isinstance(exc, UnicodeDecodeError) and exc.object is not None:
+                string = safe_native(exc.object)
                 s, marker = compute_source_marker(
                     string, exc.start, string[exc.start:exc.end], LENGTH
                 )
