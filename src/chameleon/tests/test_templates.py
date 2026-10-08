@@ -689,6 +689,51 @@ class TestZopePageTemplates:
             load=loader.bind(PageTemplateFile),
         )
 
+    def test_fill_slot_error(self):
+
+        def value():
+            return 7/0
+
+        template = self.from_string(
+            '''
+            <div metal:use-macro="macro">
+                <div metal:fill-slot="content"
+                     tal:condition="value()">
+                </div>
+            </div>
+            ''', filename='templatefile_test1.pt')
+
+        macro = self.from_string(
+            '''
+            <div metal:define-macro="macro">
+                <div metal:define-slot="content"></div>
+            </div>''', filename='macrofile_test1.pt')
+
+        template(macro=macro, value=value)
+
+    def test_fill_slot_error2(self):
+
+        value = lambda: 7/0
+        value2 = 'Hi'
+
+        template = self.from_string(
+            '''
+            <div metal:use-macro="macro">
+                <div metal:fill-slot="content"
+                    tal:condition="value()">
+                </div>
+            </div>
+            ''', filename='templatefile_test2.pt')
+
+        macro = self.from_string(
+            '''
+            <div metal:define-macro="macro">
+                <p tal:content="value2"></p>
+                <div metal:define-slot="content"></div>
+            </div>''', filename='macrofilename_test2.pt')
+
+        template(macro=macro, value=value, value2=value2)
+
     @find_files(".txt")
     def test_txt_files(self, input_path, output_path, language):
         from chameleon.zpt.template import PageTextTemplateFile
