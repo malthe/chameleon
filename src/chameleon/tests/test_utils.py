@@ -19,3 +19,15 @@ class ScopeTestCase(unittest.TestCase):
 
     def test_values(self):
         assert list(self.child.values()) == [1, 2]
+
+
+class ResolveDottedTestCase(unittest.TestCase):
+    def test_relative_name(self):
+        import os.path
+        from chameleon.utils import _resolve_dotted
+        assert _resolve_dotted('.path', 'os') is os.path
+
+    def test_relative_name_up_one_level(self):
+        import os.path
+        from chameleon.utils import _resolve_dotted
+        assert _resolve_dotted('..path', 'os.sep') is os.path
