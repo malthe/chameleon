@@ -45,7 +45,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Chameleon'
-copyright = u'2008-2017 by Malthe Borch and the Repoze Community'
+copyright = u'2008-2016 by Malthe Borch'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
