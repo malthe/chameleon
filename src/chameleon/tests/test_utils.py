@@ -22,12 +22,12 @@ class ScopeTestCase(unittest.TestCase):
 
 
 class ResolveDottedTestCase(unittest.TestCase):
+    import os.path as _path
+
     def test_relative_name(self):
-        import os.path
         from chameleon.utils import _resolve_dotted
-        assert _resolve_dotted('.path', 'os') is os.path
+        assert _resolve_dotted('.path', 'os') is self._path
 
     def test_relative_name_up_one_level(self):
-        import os.path
         from chameleon.utils import _resolve_dotted
-        assert _resolve_dotted('..path', 'os.sep') is os.path
+        assert _resolve_dotted('..path', 'os.sep') is self._path
