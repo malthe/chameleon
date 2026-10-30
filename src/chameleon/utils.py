@@ -90,8 +90,8 @@ _xml_prefixes = tuple(
 _xml_decl = encode_string("<?xml")
 
 RE_META = re.compile(
-    r'\s*<meta\s+http-equiv=["\']?Content-Type["\']?'
-    r'\s+content=["\']?([^;]+);\s*charset=([^"\']+)["\']?\s*/?\s*>\s*',
+    r'<meta\s+http-equiv=["\']?Content-Type["\']?\s+'
+    r'content=["\']?([^;]+);\s*charset=([^"\'\s]+)\s*(?:["\']\s*)?(?:/\s*)?>',
     re.IGNORECASE
 )
 
