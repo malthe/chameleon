@@ -1757,6 +1757,31 @@ class Compiler:
 
             assert self._current_slot.pop() == slot.name
 
+            exc = template(
+                "exc_info()[1]", exc_info=Symbol(sys.exc_info), mode="eval"
+            )
+
+            exc_handler = template(
+                "if __token is not None: rcontext.setdefault('__error__', [])."
+                "append(token + (__filename, exc, ))",
+                exc=exc,
+                token=template("__tokens[__token]", mode="eval"),
+                __token="__token"
+            ) + template("raise")
+
+            if not body:
+                body = [ast.Pass()]
+            else:
+                # Wrap visited nodes in try-except error handler.
+                body = [
+                    ast.Try(
+                        body=body,
+                        handlers=[ast.ExceptHandler(body=exc_handler)],
+                        finalbody=[],
+                        orelse=[],
+                    )
+                ]
+
             callbacks.append(
                 ast.FunctionDef(
                     name=fun,
@@ -1777,7 +1802,7 @@ class Compiler:
                         kwonlyargs=[],
                         posonlyargs=[],
                     ),
-                    body=body or [ast.Pass()],
+                    body=body,
                     decorator_list=[],
                     lineno=None,
                 ))
