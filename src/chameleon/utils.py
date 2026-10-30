@@ -58,7 +58,7 @@ def encode_string(s: str) -> bytes:
 
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
-module_cache = {}
+module_cache: dict[str, Any] = {}
 
 xml_prefixes = (
     (codecs.BOM_UTF8, 'utf-8-sig'),
