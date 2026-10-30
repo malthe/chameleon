@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Added Python 3.15 compatibility.
+
 - Fix converting a render error to a string when the template file is
   not valid in the locale's encoding (for example a latin-1 file on a
   UTF-8 system): the source lines are now read as UTF-8, replacing
