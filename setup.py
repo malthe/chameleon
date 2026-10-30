@@ -72,7 +72,7 @@ setup(
             'py.typed',
         ],
     },
-    python_requires='>=3.9',
+    python_requires='>=3.11',
     install_requires=install_requires,
     extras_require={
         'docs': {
