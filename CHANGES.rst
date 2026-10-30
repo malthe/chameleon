@@ -3,7 +3,9 @@ Changes
 
 In next release ...
 
-- ...
+- Fix ``ExpressionEvaluator`` raising ``ValueError`` when given no
+  builtins.
+  (`#452 <https://github.com/malthe/chameleon/issues/452>`_)
 
 4.6.0 (2024-12-31)
 ------------------
