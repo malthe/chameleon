@@ -658,6 +658,7 @@ class ExpressionEvaluator:
 
     We'll use the following convenience function to test the expression
     evaluator.
+
     >>> from chameleon.utils import Scope
     >>> def evaluate(d, *args):
     ...     return evaluator(Scope(d), *args)
