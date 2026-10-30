@@ -7,6 +7,10 @@ In next release ...
   goes up one module level (``..x`` resolved as ``.x``).
   (`#451 <https://github.com/malthe/chameleon/issues/451>`_)
 
+- Fix ``ExpressionEvaluator`` raising ``ValueError`` when given no
+  builtins.
+  (`#452 <https://github.com/malthe/chameleon/issues/452>`_)
+
 4.6.0 (2024-12-31)
 ------------------
 

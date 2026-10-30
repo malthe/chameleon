@@ -33,19 +33,18 @@ jobs:
         - "windows-latest"
         config:
         # [Python version, tox env]
-        - ["3.9",   "lint"]
-        - ["3.9",   "py39"]
-        - ["3.10",  "py310"]
-        - ["3.11",  "py311"]
-        - ["3.12",  "py312"]
-        - ["3.13",  "py313"]
-        - ["3.14.0-alpha - 3.14.99",  "py314"]
-        - ["pypy-3.9", "pypy3"]
-        - ["3.9",   "docs"]
-        - ["3.9",   "coverage"]
-        - ["3.12",  "mypy"]
-        - ["3.11",  "z3c.macro"]
-        - ["3.11",  "z3c.pt"]
+        - ["3.11", "lint"]
+        - ["3.11", "py311"]
+        - ["3.12", "py312"]
+        - ["3.13", "py313"]
+        - ["3.14", "py314"]
+        - ["3.15", "py315"]
+        - ["pypy-3.11", "pypy3"]
+        - ["3.11", "docs"]
+        - ["3.11", "coverage"]
+        - ["3.12", "mypy"]
+        - ["3.11", "z3c.macro"]
+        - ["3.11", "z3c.pt"]
     runs-on: ${{ matrix.os }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     name: ${{ matrix.config[1] }}
@@ -53,7 +52,7 @@ jobs:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.config[0] }}
     - name: Pip cache

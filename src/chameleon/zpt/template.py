@@ -330,8 +330,8 @@ class PageTemplate(BaseTemplate):
         if encoding is not None:
             def translate(
                 msgid: str | bytes,
-                txl: TranslationFunction = translate,  # type: ignore
-                encoding: str = encoding,  # type: ignore[assignment]
+                txl: TranslationFunction = translate,
+                encoding: str = encoding,
                 **kwargs: Any
             ) -> str:
                 if isinstance(msgid, bytes):
@@ -340,7 +340,7 @@ class PageTemplate(BaseTemplate):
 
             def decode(
                 inst: bytes,
-                encoding: str = encoding  # type: ignore[assignment]
+                encoding: str = encoding
             ) -> str:
                 return bytes.decode(inst, encoding, 'ignore')
         else:
