@@ -1,3 +1,5 @@
+import os
+import tempfile
 from unittest import TestCase
 
 from chameleon import exc
@@ -23,3 +25,18 @@ class TestTemplateError(TestCase):
         e = exc.LanguageError('Invalid define syntax', token)
         # its fine if we get no exception from the following line
         str(e)
+
+    def test_render_error_of_non_utf8_file_to_string(self):
+        # the source lines are read back from the file for the error
+        # message; a file that is not valid in the locale's encoding
+        # must not make the conversion to a string fail
+        from chameleon import PageTemplateFile
+        body = '<?xml version="1.0" encoding="latin-1"?>\n<p>caf\xe9${foo}</p>'
+        with tempfile.TemporaryDirectory() as path:
+            filename = os.path.join(path, 'latin.pt')
+            with open(filename, 'wb') as f:
+                f.write(body.encode('latin-1'))
+            template = PageTemplateFile(filename)
+            with self.assertRaises(NameError) as context:
+                template()
+            self.assertIn('foo', str(context.exception))

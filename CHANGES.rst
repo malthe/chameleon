@@ -5,6 +5,12 @@ In next release ...
 
 - Added Python 3.15 compatibility.
 
+- Fix converting a render error to a string when the template file is
+  not valid in the locale's encoding (for example a latin-1 file on a
+  UTF-8 system): the source lines are now read as UTF-8, replacing
+  undecodable bytes, instead of raising ``UnicodeDecodeError``.
+  (`#450 <https://github.com/malthe/chameleon/issues/450>`_)
+
 - Fix ``_resolve_dotted`` so that each leading dot of a relative name
   goes up one module level (``..x`` resolved as ``.x``).
   (`#451 <https://github.com/malthe/chameleon/issues/451>`_)

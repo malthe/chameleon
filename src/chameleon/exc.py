@@ -197,7 +197,7 @@ class TemplateError(Exception):
                 )
             elif self.filename and not self.filename.startswith('<'):
                 try:
-                    f = open(self.filename)
+                    f = open(self.filename, encoding='utf-8', errors='replace')
                 except OSError:
                     pass
                 else:
@@ -331,7 +331,7 @@ class ExceptionFormatter:
 
             if filename and not filename.startswith('<') and line and column:
                 try:
-                    f = open(filename)
+                    f = open(filename, encoding='utf-8', errors='replace')
                 except OSError:
                     pass
                 else:
