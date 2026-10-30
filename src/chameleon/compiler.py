@@ -658,6 +658,7 @@ class ExpressionEvaluator:
 
     We'll use the following convenience function to test the expression
     evaluator.
+
     >>> from chameleon.utils import Scope
     >>> def evaluate(d, *args):
     ...     return evaluator(Scope(d), *args)
@@ -686,7 +687,8 @@ class ExpressionEvaluator:
 
     def __init__(self, engine, builtins):
         self._engine = engine
-        self._names, self._builtins = zip(*builtins.items())
+        self._names = tuple(builtins)
+        self._builtins = tuple(builtins.values())
         self._cache = {}
 
     def __call__(self, econtext, rcontext, expression_type, string=None):

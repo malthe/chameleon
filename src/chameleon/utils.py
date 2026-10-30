@@ -58,7 +58,7 @@ def encode_string(s: str) -> bytes:
 
 entity_re = re.compile(r'&(#?)(x?)(\d{1,5}|\w{1,8});')
 
-module_cache = {}
+module_cache: dict[str, Any] = {}
 
 xml_prefixes = (
     (codecs.BOM_UTF8, 'utf-8-sig'),
@@ -90,8 +90,8 @@ _xml_prefixes = tuple(
 _xml_decl = encode_string("<?xml")
 
 RE_META = re.compile(
-    r'\s*<meta\s+http-equiv=["\']?Content-Type["\']?'
-    r'\s+content=["\']?([^;]+);\s*charset=([^"\']+)["\']?\s*/?\s*>\s*',
+    r'<meta\s+http-equiv=["\']?Content-Type["\']?\s+'
+    r'content=["\']?([^;]+);\s*charset=([^"\'\s]+)\s*(?:["\']\s*)?(?:/\s*)?>',
     re.IGNORECASE
 )
 
@@ -283,7 +283,7 @@ def _resolve_dotted(name: str, module: str | None = None) -> Any:
             raise ValueError("relative name without base module")
         module_parts = module.split('.')
         name_parts.pop(0)
-        while not name[0]:
+        while not name_parts[0]:
             module_parts.pop()
             name_parts.pop(0)
         name_parts = module_parts + name_parts
