@@ -3,6 +3,8 @@ Changes
 
 In next release ...
 
+- Added Python 3.15 compatibility.
+
 - Fix ``_resolve_dotted`` so that each leading dot of a relative name
   goes up one module level (``..x`` resolved as ``.x``).
   (`#451 <https://github.com/malthe/chameleon/issues/451>`_)
