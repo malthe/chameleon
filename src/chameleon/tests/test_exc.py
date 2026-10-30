@@ -31,7 +31,7 @@ class TestTemplateError(TestCase):
         # message; a file that is not valid in the locale's encoding
         # must not make the conversion to a string fail
         from chameleon import PageTemplateFile
-        body = '<?xml version="1.0" encoding="latin-1"?>\n<p>caf\xe9 ${missing}</p>'
+        body = '<?xml version="1.0" encoding="latin-1"?>\n<p>caf\xe9 ${foo}</p>'
         with tempfile.TemporaryDirectory() as path:
             filename = os.path.join(path, 'latin.pt')
             with open(filename, 'wb') as f:
@@ -39,4 +39,4 @@ class TestTemplateError(TestCase):
             template = PageTemplateFile(filename)
             with self.assertRaises(NameError) as context:
                 template()
-            self.assertIn('missing', str(context.exception))
+            self.assertIn('foo', str(context.exception))
