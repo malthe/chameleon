@@ -140,6 +140,17 @@ class TestZopePageTemplates:
                 strict=True
             )
 
+    def test_case_on_same_element_as_switch_raises_language_error(self):
+        from chameleon.exc import LanguageError
+
+        with pytest.raises(LanguageError) as excinfo:
+            self.from_string(
+                '''<span tal:switch="1" tal:case="1">text</span>''',
+                strict=True
+            )
+
+        assert "same element" in str(excinfo.value)
+
     def test_syntax_error_in_non_strict_mode(self):
         from chameleon.exc import ExpressionError
 
