@@ -526,6 +526,7 @@ class ExpressionParser:
         self.default = default
 
     def __call__(self, expression):
+        source = expression
         m = match_prefix(expression)
         if m is not None:
             prefix = m.group(1)
@@ -536,8 +537,12 @@ class ExpressionParser:
         try:
             factory = self.factories[prefix]
         except KeyError as exc:
-            raise LookupError(
-                "Unknown expression type: %s." % str(exc)
+            # An unknown or misspelled expression type (e.g. ``nocall:`` or
+            # ``strng:``) is a template language error, not an internal one:
+            # raise the documented expression error so the message is
+            # reported with the source location instead of a bare LookupError.
+            raise ExpressionError(
+                "Unknown expression type: %s." % str(exc), source
             )
 
         return factory(expression)
