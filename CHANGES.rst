@@ -1,7 +1,8 @@
 Changes
 =======
 
-In next release ...
+4.6.1 (2026-11-13)
+------------------
 
 - Added Python 3.15 compatibility.
 
