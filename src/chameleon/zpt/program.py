@@ -206,6 +206,7 @@ class MacroProgram(ElementProgram):
             switch = value
 
         self._switches.append(switch)
+        has_own_switch = switch is not None
 
         body = []
 
@@ -415,6 +416,18 @@ class MacroProgram(ElementProgram):
             else:
                 raise LanguageError(
                     "Must define switch on a parent element.", clause
+                )
+
+            # ``tal:case`` on the same element as ``tal:switch`` would compile
+            # the case's cancel node outside the switch's cache node (the
+            # switch value is only cached by the wrapping ``Cache`` node, which
+            # this element's own ``Cancel`` node is not nested inside), so the
+            # compiler trips over its own invariant. ZPT requires the case
+            # statement on a child element of the switch statement anyway.
+            if has_own_switch:
+                raise LanguageError(
+                    "The case statement cannot be used on the same element "
+                    "as the switch statement.", clause
                 )
 
             def CASE(node):
