@@ -140,6 +140,17 @@ class TestZopePageTemplates:
                 strict=True
             )
 
+    def test_unknown_expression_type_raises_expression_error(self):
+        from chameleon.exc import ExpressionError
+
+        with pytest.raises(ExpressionError) as excinfo:
+            self.from_string(
+                '''<div tal:content="nocall: some_var">text</div>''',
+                strict=True
+            )
+
+        assert "Unknown expression type: 'nocall'." in str(excinfo.value)
+
     def test_syntax_error_in_non_strict_mode(self):
         from chameleon.exc import ExpressionError
 
