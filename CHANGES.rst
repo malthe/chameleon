@@ -5,6 +5,10 @@ In next release ...
 
 - Added Python 3.15 compatibility.
 
+- Raise `ExpressionError` on unknown TALES expression type, which in turn
+  adds source information to the error output.
+  (`#458 <https://github.com/malthe/chameleon/issues/458>`_)
+
 - Fix converting a render error to a string when the template file is
   not valid in the locale's encoding (for example a latin-1 file on a
   UTF-8 system): the source lines are now read as UTF-8, replacing
