@@ -160,6 +160,67 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         self.scopes[-1].add(node.name)
         return super().generic_visit(node)
 
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
+        self.scopes[-1].add(node.name)
+        return super().generic_visit(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:
+        self.scopes[-1].add(node.name)
+        return super().generic_visit(node)
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> ast.AST:
+        # The name is bound for the handler only: Python unbinds it
+        # when the handler is done.
+        scope = self.scopes[-1]
+        if node.name is None or node.name in scope:
+            return super().generic_visit(node)
+        scope.add(node.name)
+        try:
+            return super().generic_visit(node)
+        finally:
+            scope.discard(node.name)
+
+    def visit_match_case(self, node: ast.match_case) -> ast.AST:
+        # The names a pattern captures can only be plain names. They
+        # are for the guard, and assigned like any other name first
+        # thing in the body.
+        scope = self.scopes[-1]
+        names: list[str] = []
+        for pattern in ast.walk(node.pattern):
+            if isinstance(pattern, (ast.MatchAs, ast.MatchStar)):
+                name = pattern.name
+            elif isinstance(pattern, ast.MatchMapping):
+                name = pattern.rest
+            else:
+                continue
+            if name is not None and name not in scope and name not in names:
+                names.append(name)
+
+        node.pattern = self.visit(node.pattern)
+        if node.guard is not None:
+            scope.update(names)
+            try:
+                node.guard = self.visit(node.guard)
+            finally:
+                scope.difference_update(names)
+
+        body: list[ast.stmt] = []
+        for name in names:
+            target = self.visit(ast.Name(id=name, ctx=ast.Store()))
+            if not isinstance(target, ast.Name):
+                body.append(ast.Assign(
+                    targets=[target],
+                    value=ast.Name(id=name, ctx=ast.Load()),
+                ))
+        for stmt in node.body:
+            visited = self.visit(stmt)
+            if isinstance(visited, list):
+                body.extend(visited)
+            else:
+                body.append(visited)
+        node.body = body
+        return node
+
     def visit_alias(self, node: ast.alias) -> ast.AST:
         name = node.asname if node.asname is not None else node.name
         self.scopes[-1].add(name)

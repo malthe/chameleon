@@ -642,6 +642,53 @@ class TestZopePageTemplates:
         assert template.debug
         assert isinstance(template.loader, ModuleLoader)
 
+    def test_code_block_binds_exception_name(self):
+        template = self.from_string(
+            '<?python\n'
+            'try:\n'
+            '    1 / 0\n'
+            'except ZeroDivisionError as error:\n'
+            '    message = str(error)\n'
+            '?>${message} ${error}'
+        )
+        # The name is unbound again after the handler.
+        assert template(error='data') == 'division by zero data'
+
+    def test_code_block_binds_class_name(self):
+        template = self.from_string(
+            '<?python\n'
+            'class Greeter:\n'
+            '    def greet(self, name):\n'
+            '        return "Hello, " + name\n'
+            '?>${Greeter().greet("world")}'
+        )
+        assert template() == 'Hello, world'
+
+    def test_code_block_binds_async_function_name(self):
+        template = self.from_string(
+            '<?python\n'
+            'async def fetch():\n'
+            '    return 1\n'
+            '?>${fetch.__name__}'
+        )
+        assert template() == 'fetch'
+
+    def test_code_block_binds_match_captures(self):
+        template = self.from_string(
+            '<?python\n'
+            'match value:\n'
+            '    case [first, *rest] if first > 0:\n'
+            '        total = first + len(rest)\n'
+            '    case {"key": item, **others}:\n'
+            '        total = item\n'
+            '    case str() as text:\n'
+            '        total = text\n'
+            '?>${total} ${first | "-"} ${item | "-"} ${text}'
+        )
+        assert template(value=[1, 2, 3], text='data') == '3 1 - data'
+        assert template(value={'key': 5}, text='data') == '5 - 5 data'
+        assert template(value='abc', text='data') == 'abc - - abc'
+
     def test_tag_mismatch(self):
         from chameleon.exc import ParseError
 
