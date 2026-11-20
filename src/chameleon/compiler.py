@@ -1307,6 +1307,12 @@ class Compiler:
         body += [ast.Try(
             body=self.visit(node.node),
             handlers=[ast.ExceptHandler(
+                # Running out of stack is not an error of the element:
+                # where it happens depends on how deep the caller is.
+                type=Builtin("RecursionError"),
+                name=None,
+                body=[ast.Raise(exc=None, cause=None)],
+            ), ast.ExceptHandler(
                 type=ast.Tuple(elts=[Builtin("Exception")], ctx=ast.Load()),
                 name="__exc",
                 body=(error_assignment +
