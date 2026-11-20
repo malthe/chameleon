@@ -3,6 +3,11 @@ Changes
 
 In next release ...
 
+- Fix names bound in a ``<?python ?>`` block by ``class``, ``async def``,
+  ``except ... as`` and the captures of a ``match`` pattern: reading
+  them raised ``NameError``.
+  (`#464 <https://github.com/malthe/chameleon/issues/464>`_)
+
 4.6.1 (2026-11-13)
 ------------------
 
