@@ -3,6 +3,12 @@ Changes
 
 In next release ...
 
+- Fix default arguments in expressions and code blocks, which were
+  rewritten as if they were inside the function: ``lambda a=a: a`` and
+  ``def f(a=a)`` raised ``NameError``, and a lambda's default could not
+  read a parameter of an enclosing lambda.
+  (`#468 <https://github.com/malthe/chameleon/issues/468>`_)
+
 4.6.1 (2026-11-13)
 ------------------
 
