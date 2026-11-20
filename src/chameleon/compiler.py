@@ -1056,6 +1056,15 @@ class Compiler:
                                 return load(identifier)
                 return node
 
+            def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
+                # A function writes to the stream it is called with,
+                # not to that of a translation it is defined in.
+                self.scopes.append(TranslationContext())
+                try:
+                    return self.generic_visit(node)
+                finally:
+                    self.scopes.pop()
+
             def visit_TranslationContext(self, node) -> list[ast.AST]:
                 self.scopes.append(node)
                 stmts = list(map(self.visit, node.body))
@@ -1753,7 +1762,10 @@ class Compiler:
 
             self._current_slot.append(slot.name)
 
-            body = self.visit_Context(slot)
+            # The slot may be rendered into a different stream than the
+            # one in use where the fill is defined.
+            body = template("__append = __stream.append") + \
+                self.visit_Context(slot)
 
             assert self._current_slot.pop() == slot.name
 
