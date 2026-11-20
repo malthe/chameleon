@@ -161,24 +161,59 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         return super().generic_visit(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
+        # Decorators are evaluated before the name is bound.
+        node.decorator_list = [
+            self.visit(decorator) for decorator in node.decorator_list
+        ]
         self.scopes[-1].add(node.name)
-        return super().generic_visit(node)
+        return self._visit_fields(node, skip=("decorator_list", ))
 
     def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:
+        # Decorators, bases and keywords are evaluated before the name
+        # is bound: in ``class Base(Base)`` the base is not the class.
+        header = ("decorator_list", "bases", "keywords")
+        for field in header:
+            setattr(node, field, [
+                self.visit(child) for child in getattr(node, field)
+            ])
         self.scopes[-1].add(node.name)
-        return super().generic_visit(node)
+        return self._visit_fields(node, skip=header)
 
     def visit_ExceptHandler(self, node: ast.ExceptHandler) -> ast.AST:
-        # The name is bound for the handler only: Python unbinds it
-        # when the handler is done.
+        # The type is evaluated before the name is bound. The name is
+        # bound for the handler only: Python unbinds it when the
+        # handler is done.
+        if node.type is not None:
+            node.type = self.visit(node.type)
         scope = self.scopes[-1]
         if node.name is None or node.name in scope:
-            return super().generic_visit(node)
+            return self._visit_fields(node, skip=("type", ))
         scope.add(node.name)
         try:
-            return super().generic_visit(node)
+            return self._visit_fields(node, skip=("type", ))
         finally:
             scope.discard(node.name)
+
+    def _visit_fields(self, node: ast.AST, skip: tuple[str, ...]) -> ast.AST:
+        """Visit the fields of ``node`` that are not in ``skip``."""
+        for field, value in ast.iter_fields(node):
+            if field in skip:
+                continue
+            if isinstance(value, list):
+                children: list[ast.AST] = []
+                for child in value:
+                    if not isinstance(child, ast.AST):
+                        children.append(child)
+                        continue
+                    visited = self.visit(child)
+                    if isinstance(visited, list):
+                        children.extend(visited)
+                    elif visited is not None:
+                        children.append(visited)
+                setattr(node, field, children)
+            elif isinstance(value, ast.AST):
+                setattr(node, field, self.visit(value))
+        return node
 
     def visit_match_case(self, node: ast.match_case) -> ast.AST:
         # The names a pattern captures can only be plain names. They

@@ -664,6 +664,44 @@ class TestZopePageTemplates:
         )
         assert template() == 'Hello, world'
 
+    def test_code_block_name_is_bound_after_its_header(self):
+        # The type of a handler, and the bases and decorators of a
+        # class or a function, are evaluated before the name is bound.
+        template = self.from_string(
+            '<?python\n'
+            'try:\n'
+            '    1 / 0\n'
+            'except error as error:\n'
+            '    caught = type(error).__name__\n'
+            '?>${caught}'
+        )
+        assert template(error=ZeroDivisionError) == 'ZeroDivisionError'
+
+        template = self.from_string(
+            '<?python\n'
+            '@Base\n'
+            'class Base(Base, metaclass=Base.meta):\n'
+            '    pass\n'
+            '?>${Base.__mro__[1].__name__}'
+        )
+
+        class Base:
+            meta = type
+
+            def __new__(cls, decorated=None):
+                return decorated
+
+        assert template(Base=Base) == 'Base'
+
+        template = self.from_string(
+            '<?python\n'
+            '@fetch\n'
+            'async def fetch():\n'
+            '    return 1\n'
+            '?>${fetch.__name__}'
+        )
+        assert template(fetch=lambda function: function) == 'fetch'
+
     def test_code_block_binds_async_function_name(self):
         template = self.from_string(
             '<?python\n'
