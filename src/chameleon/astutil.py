@@ -161,12 +161,19 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         return super().generic_visit(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
-        # Decorators are evaluated before the name is bound.
+        # Decorators, defaults and annotations are evaluated before the
+        # name is bound: in ``async def f(x=f)`` the default is not the
+        # function.
         node.decorator_list = [
             self.visit(decorator) for decorator in node.decorator_list
         ]
+        node.args = self.visit(node.args)
+        if node.returns is not None:
+            node.returns = self.visit(node.returns)
         self.scopes[-1].add(node.name)
-        return self._visit_fields(node, skip=("decorator_list", ))
+        return self._visit_fields(
+            node, skip=("decorator_list", "args", "returns")
+        )
 
     def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:
         # Decorators, bases and keywords are evaluated before the name

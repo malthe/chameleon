@@ -702,6 +702,15 @@ class TestZopePageTemplates:
         )
         assert template(fetch=lambda function: function) == 'fetch'
 
+        template = self.from_string(
+            '<?python\n'
+            '@seen.append\n'
+            'async def fetch(first=fetch, *, second=fetch) -> fetch:\n'
+            '    return first\n'
+            '?>${seen[0].__defaults__[0]} ${seen[0].__kwdefaults__["second"]}'
+        )
+        assert template(fetch=42, seen=[]) == '42 42'
+
     def test_code_block_binds_async_function_name(self):
         template = self.from_string(
             '<?python\n'
