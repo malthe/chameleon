@@ -156,6 +156,31 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
             return self.apply_transform(node)
         return node
 
+    def visit_arguments(self, node: ast.arguments) -> ast.AST:
+        # Defaults are evaluated before the parameters are bound: in
+        # ``def f(a=a)`` the default is not the parameter.
+        self._visit_defaults(node)
+        self._visit_parameters(node)
+        return node
+
+    def _visit_defaults(self, node: ast.arguments) -> None:
+        node.defaults = [self.visit(default) for default in node.defaults]
+        node.kw_defaults = [
+            default if default is None else self.visit(default)
+            for default in node.kw_defaults
+        ]
+
+    def _visit_parameters(self, node: ast.arguments) -> None:
+        for arg in (
+            *node.posonlyargs,
+            *node.args,
+            node.vararg,
+            *node.kwonlyargs,
+            node.kwarg,
+        ):
+            if arg is not None:
+                self.visit(arg)
+
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
         self.scopes[-1].add(node.name)
         return super().generic_visit(node)
@@ -166,9 +191,13 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         return super().generic_visit(node)
 
     def visit_Lambda(self, node: ast.Lambda) -> ast.AST:
+        # Defaults belong to the scope the lambda is written in.
+        self._visit_defaults(node.args)
         self.scopes.append(set())
         try:
-            return super().generic_visit(node)
+            self._visit_parameters(node.args)
+            node.body = self.visit(node.body)
+            return node
         finally:
             self.scopes.pop()
 
