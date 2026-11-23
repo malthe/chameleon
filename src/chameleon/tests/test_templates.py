@@ -523,6 +523,17 @@ class TestZopePageTemplates:
         else:
             pytest.fail("unexpected error")
 
+    def test_on_error_does_not_handle_recursion_error(self):
+        template = self.from_string(
+            '<metal:m define-macro="m">'
+            '<div tal:on-error="string:error">'
+            '<div metal:use-macro="macros[\'m\']" />'
+            '</div>'
+            '</metal:m>'
+        )
+        with pytest.raises(RecursionError):
+            template()
+
     def test_double_underscore_variable(self):
         from chameleon.exc import TranslationError
         with pytest.raises(TranslationError):

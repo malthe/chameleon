@@ -3,6 +3,12 @@ Changes
 
 In next release ...
 
+- ``tal:on-error`` no longer handles ``RecursionError``: a macro that
+  includes itself inside an element with ``on-error`` rendered until the
+  stack ran out and then succeeded, with an amount of output that
+  depended on the depth of the caller.
+  (`#462 <https://github.com/malthe/chameleon/issues/462>`_)
+
 - Fix default arguments in expressions and code blocks, which were
   rewritten as if they were inside the function: ``lambda a=a: a`` and
   ``def f(a=a)`` raised ``NameError``, and a lambda's default could not
