@@ -3,6 +3,12 @@ Changes
 
 In next release ...
 
+- ``tal:on-error`` no longer handles ``RecursionError``: a macro that
+  includes itself inside an element with ``on-error`` rendered until the
+  stack ran out and then succeeded, with an amount of output that
+  depended on the depth of the caller.
+  (`#462 <https://github.com/malthe/chameleon/issues/462>`_)
+
 - Fix names bound in a ``<?python ?>`` block by ``class``, ``async def``,
   ``except ... as`` and the captures of a ``match`` pattern: reading
   them raised ``NameError``.
