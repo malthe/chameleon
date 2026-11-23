@@ -1202,6 +1202,10 @@ class Compiler:
         # Internal set of defined slots
         self._slots = set()
 
+        # A macro is a function of its own: the names bound by the code
+        # blocks of another macro are not its locals.
+        self._visitor.reset()
+
         # Visit macro body
         nodes = list(itertools.chain(*tuple(map(self.visit, node.body))))
 

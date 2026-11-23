@@ -665,6 +665,59 @@ class TestZopePageTemplates:
         # The name is unbound again after the handler.
         assert template(error='data') == 'division by zero data'
 
+    def test_code_block_exception_name_that_is_bound_already(self):
+        # A handler unbinds its name. The name is read from the template
+        # scope after the handler ran, and is the earlier binding if it
+        # did not.
+        source = (
+            '<?python\n'
+            '%s\n'
+            'try:\n'
+            '    %s\n'
+            'except ZeroDivisionError as error:\n'
+            '    seen = type(error).__name__\n'
+            '?>${seen} ${getattr(error, "__name__", error)}'
+        )
+        for statement in (
+            'class error: pass',
+            'def error(): pass',
+            'async def error(): pass',
+            'import os as error',
+        ):
+            name = 'os' if 'import' in statement else 'error'
+            template = self.from_string(source % (statement, '1 / 0'))
+            assert template(seen='-', error='data') == (
+                'ZeroDivisionError data'
+            ), statement
+            with pytest.raises(NameError):
+                template(seen='-')
+            template = self.from_string(source % (statement, 'pass'))
+            assert template(seen='-', error='data') == '- ' + name, statement
+
+    def test_code_block_names_are_not_bound_in_another_macro(self):
+        # A macro is a function of its own.
+        source = (
+            '<div metal:define-macro="first"><?python\n'
+            '%s\n'
+            '?>${thing.__name__}</div>'
+            '<div metal:define-macro="second">${thing}</div>'
+            '<div metal:use-macro="template.macros[\'first\']" />'
+            '<div metal:use-macro="template.macros[\'second\']" />'
+            '${thing}'
+        )
+        for statement, name in (
+            ('class thing: pass', 'thing'),
+            ('def thing(): pass', 'thing'),
+            ('async def thing(): pass', 'thing'),
+            ('import os as thing', 'os'),
+        ):
+            template = self.from_string(source % statement)
+            # Each macro is rendered where it is defined, and once more
+            # where it is used.
+            assert template(thing='data') == (
+                2 * ('<div>%s</div><div>data</div>' % name) + 'data'
+            ), statement
+
     def test_code_block_binds_class_name(self):
         template = self.from_string(
             '<?python\n'

@@ -135,8 +135,15 @@ class NodeTransformerBase(ast.NodeTransformer):
 
 class NameLookupRewriteVisitor(NodeTransformerBase):
     def __init__(self, transform: _NodeTransform):
-        self.scopes: list[set[str]] = [set()]
         super().__init__(transform)
+        self.reset()
+
+    def reset(self) -> None:
+        """Forget the names bound so far."""
+        self.scopes: list[set[str]] = [set()]
+        # The names of the handlers of the ``try`` being visited that
+        # were bound already.
+        self.unbound: list[str] = []
 
     def __call__(self, node: ast.AST) -> ast.AST:
         clone = deepcopy(node)
@@ -193,13 +200,75 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         if node.type is not None:
             node.type = self.visit(node.type)
         scope = self.scopes[-1]
-        if node.name is None or node.name in scope:
+        name = node.name
+        if name is None:
             return self._visit_fields(node, skip=("type", ))
-        scope.add(node.name)
+        if name not in scope:
+            scope.add(name)
+            try:
+                return self._visit_fields(node, skip=("type", ))
+            finally:
+                scope.discard(name)
+
+        # The name is bound already, by a ``def`` for example, and is
+        # read as a local whether the handler runs or not: see
+        # ``visit_Try``.
+        if name not in self.unbound:
+            self.unbound.append(name)
+        return self._visit_fields(node, skip=("type", ))
+
+    def visit_Try(self, node: ast.Try | ast.TryStar) -> ast.AST:
+        # A handler unbinds its name when it is done. For a name that
+        # was bound already, and stays a local, the value in the
+        # template scope is bound in its place if there is one: the
+        # name reads as it does for a handler that binds a name which
+        # was not bound.
+        outer, self.unbound = self.unbound, []
         try:
-            return self._visit_fields(node, skip=("type", ))
+            node.body = self._visit_body(node.body)
+            node.handlers = [
+                self.visit(handler) for handler in node.handlers
+            ]
+            names = self.unbound
         finally:
-            scope.discard(node.name)
+            self.unbound = outer
+        node.orelse = self._visit_body(node.orelse)
+        finalbody = self._visit_body(node.finalbody)
+
+        rebind: list[ast.stmt] = []
+        for name in names:
+            stmt = ast.parse(
+                "try:\n"
+                "    NAME\n"
+                "except NameError:\n"
+                "    try:\n"
+                "        NAME = None\n"
+                "    except NameError:\n"
+                "        pass\n".replace("NAME", name)
+            ).body[0]
+            assert isinstance(stmt, ast.Try)
+            fallback = stmt.handlers[0].body[0]
+            assert isinstance(fallback, ast.Try)
+            assign = fallback.body[0]
+            assert isinstance(assign, ast.Assign)
+            value = self.apply_transform(load(name))
+            assert isinstance(value, ast.expr)
+            assign.value = value
+            rebind.append(stmt)
+        node.finalbody = rebind + finalbody
+        return node
+
+    visit_TryStar = visit_Try
+
+    def _visit_body(self, body: list[ast.stmt]) -> list[ast.stmt]:
+        stmts: list[ast.stmt] = []
+        for stmt in body:
+            visited = self.visit(stmt)
+            if isinstance(visited, list):
+                stmts.extend(visited)
+            elif visited is not None:
+                stmts.append(visited)
+        return stmts
 
     def _visit_fields(self, node: ast.AST, skip: tuple[str, ...]) -> ast.AST:
         """Visit the fields of ``node`` that are not in ``skip``."""
