@@ -15,6 +15,12 @@ In next release ...
   read a parameter of an enclosing lambda.
   (`#468 <https://github.com/malthe/chameleon/issues/468>`_)
 
+- Fix a ``metal:fill-slot`` writing to the output of the place it was
+  defined in instead of the slot it fills: the fill came out before the
+  translated text for a slot inside ``i18n:translate`` or ``i18n:name``,
+  and was lost when defined inside ``i18n:name`` and used after it.
+  (`#466 <https://github.com/malthe/chameleon/issues/466>`_)
+
 4.6.1 (2026-11-13)
 ------------------
 
