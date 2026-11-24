@@ -674,6 +674,27 @@ class TestZopePageTemplates:
         rendered = template(sin=sin, a=pi)
         assert 'sin(3.141592653589793) is 1.22e-16' == rendered
 
+    def test_default_argument_named_like_its_parameter(self):
+        template = self.from_string('${(lambda a=a: a)()}')
+        assert template(a=1) == '1'
+
+        template = self.from_string('${(lambda *, a=a: a)()}')
+        assert template(a=1) == '1'
+
+        template = self.from_string(
+            '<?python\n'
+            'def f(a=a, *, b=b):\n'
+            '    return a + b\n'
+            '?>${f()}'
+        )
+        assert template(a=1, b=2) == '3'
+
+    def test_default_argument_reads_enclosing_parameter(self):
+        template = self.from_string(
+            '${(lambda a: (lambda b=a: b)())(1)}'
+        )
+        assert template() == '1'
+
     def test_windows_line_endings(self):
         template = self.from_string('<span id="span_id"\r\n'
                                     '      class="foo"\r\n'

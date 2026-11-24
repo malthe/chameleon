@@ -9,6 +9,12 @@ In next release ...
   depended on the depth of the caller.
   (`#462 <https://github.com/malthe/chameleon/issues/462>`_)
 
+- Fix default arguments in expressions and code blocks, which were
+  rewritten as if they were inside the function: ``lambda a=a: a`` and
+  ``def f(a=a)`` raised ``NameError``, and a lambda's default could not
+  read a parameter of an enclosing lambda.
+  (`#468 <https://github.com/malthe/chameleon/issues/468>`_)
+
 - Fix a ``metal:fill-slot`` writing to the output of the place it was
   defined in instead of the slot it fills: the fill came out before the
   translated text for a slot inside ``i18n:translate`` or ``i18n:name``,
