@@ -680,6 +680,37 @@ class TestZopePageTemplates:
                                     '      tal:content="string:bar"/>')
         assert template() == '<span id="span_id"\n      class="foo">bar</span>'
 
+    def test_fill_slot_renders_where_the_slot_is(self):
+        # The slot is inside a translation name in the macro: the fill
+        # belongs there, not where the macro is used.
+        template = self.from_string(
+            '<metal:m define-macro="m">'
+            '<span i18n:translate="">A '
+            '<i i18n:name="name"><metal:s define-slot="s">default</metal:s>'
+            '</i> B</span>'
+            '</metal:m>'
+            '<div metal:use-macro="macros[\'m\']">'
+            '<b metal:fill-slot="s">fill</b>'
+            '</div>'
+        )
+        assert template().endswith('<span>A <i><b>fill</b></i> B</span>')
+
+    def test_fill_slot_defined_in_translation_name(self):
+        # A fill defined inside a translation name writes to the
+        # stream of the slot it ends up in, also once the translation
+        # it was defined in is done.
+        template = self.from_string(
+            '<metal:m define-macro="m1">M1</metal:m>'
+            '<metal:m define-macro="m2">'
+            '[<metal:s define-slot="s">default</metal:s>]'
+            '</metal:m>'
+            '<p i18n:translate="">text <b i18n:name="name">'
+            '<u metal:use-macro="macros[\'m1\']">'
+            '<i metal:fill-slot="s">fill</i></u></b></p>'
+            '<u metal:use-macro="macros[\'m2\']" />'
+        )
+        assert template().endswith('<p>text <b>M1</b></p>[<i>fill</i>]')
+
     def test_digest(self):
         # Make sure ``digest`` doesn't error out when ``filename`` is something
         # other than a simple string
