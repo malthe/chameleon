@@ -1,0 +1,6 @@
+<html metal:use-macro="load('332-master-i18n-target.pt').macros['main']">
+    <metal:slot fill-slot="content">
+        <h1 i18n:translate="">Hello world!</h1>
+        <p>Ciao!</p>
+    </metal:slot>
+</html>

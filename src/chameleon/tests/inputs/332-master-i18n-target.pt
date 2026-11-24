@@ -1,0 +1,10 @@
+<html metal:define-macro="main" i18n:target="string:fr">
+    <head>
+        <title i18n:translate="">Hello world!</title>
+    </head>
+    <body>
+        <metal:content define-slot="content">
+            <h1 i18n:translate="">Hello world!</h1>
+        </metal:content>
+    </body>
+</html>
