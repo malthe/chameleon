@@ -1774,8 +1774,11 @@ class Compiler:
 
             # The slot may be rendered into a different stream than the
             # one in use where the fill is defined.
-            body = template("__append = __stream.append") + \
-                self.visit_Context(slot)
+            # A fill is a function of its own: the names bound by its
+            # code blocks are not locals of what comes after it.
+            with self._visitor.isolated():
+                body = template("__append = __stream.append") + \
+                    self.visit_Context(slot)
 
             assert self._current_slot.pop() == slot.name
 

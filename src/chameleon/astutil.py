@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+from contextlib import contextmanager
 from copy import deepcopy
 from typing import TYPE_CHECKING
 from typing import Any
@@ -12,6 +13,7 @@ from typing import ClassVar
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Hashable
+    from collections.abc import Iterator
     from typing import Optional
 
     from chameleon.tokenize import Token
@@ -145,6 +147,16 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         # were bound already.
         self.unbound: list[str] = []
 
+    @contextmanager
+    def isolated(self) -> Iterator[None]:
+        """Forget the names bound inside, which is a function of its
+        own that sees the names bound so far."""
+        scopes = [set(scope) for scope in self.scopes]
+        try:
+            yield
+        finally:
+            self.scopes = scopes
+
     def __call__(self, node: ast.AST) -> ast.AST:
         clone = deepcopy(node)
         return self.visit(clone)  # type: ignore[no-any-return]
@@ -190,7 +202,10 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
         self.scopes[-1].add(node.name)
-        return super().generic_visit(node)
+        node.decorator_list = [
+            self.visit(decorator) for decorator in node.decorator_list
+        ]
+        return self._visit_function(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
         # Decorators, defaults and annotations are evaluated before the
@@ -199,13 +214,28 @@ class NameLookupRewriteVisitor(NodeTransformerBase):
         node.decorator_list = [
             self.visit(decorator) for decorator in node.decorator_list
         ]
-        node.args = self.visit(node.args)
-        if node.returns is not None:
-            node.returns = self.visit(node.returns)
-        self.scopes[-1].add(node.name)
-        return self._visit_fields(
-            node, skip=("decorator_list", "args", "returns")
-        )
+        return self._visit_function(node)
+
+    def _visit_function(
+        self, node: ast.FunctionDef | ast.AsyncFunctionDef
+    ) -> ast.AST:
+        # The parameters of a function, and the names its body binds
+        # with a ``def``, a ``class`` or an import, are its own: after
+        # it they are read from the template scope again.
+        scope = self.scopes[-1]
+        outer = set(scope)
+        try:
+            node.args = self.visit(node.args)
+            if node.returns is not None:
+                node.returns = self.visit(node.returns)
+            scope.add(node.name)
+            return self._visit_fields(
+                node, skip=("decorator_list", "args", "returns")
+            )
+        finally:
+            scope.clear()
+            scope.update(outer)
+            scope.add(node.name)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:
         # Decorators, bases and keywords are evaluated before the name

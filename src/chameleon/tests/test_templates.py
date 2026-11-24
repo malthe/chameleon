@@ -718,6 +718,64 @@ class TestZopePageTemplates:
                 2 * ('<div>%s</div><div>data</div>' % name) + 'data'
             ), statement
 
+    def test_code_block_names_are_not_bound_after_a_fill(self):
+        # A fill is a function of its own, which sees the names bound
+        # before it.
+        source = (
+            '<div metal:define-macro="main">'
+            '<span metal:define-slot="content" /></div>'
+            '<?python\ndef before(): return "before"\n?>'
+            '<div metal:use-macro="template.macros[\'main\']">'
+            '<b metal:fill-slot="content"><?python\n'
+            '%s\n'
+            '?>${thing.__name__} ${before()}</b></div>'
+            '${thing} ${before()}'
+        )
+        for statement, name in (
+            ('class thing: pass', 'thing'),
+            ('def thing(): pass', 'thing'),
+            ('async def thing(): pass', 'thing'),
+            ('import os as thing', 'os'),
+        ):
+            template = self.from_string(source % statement)
+            assert template(thing='data') == (
+                '<div><span /></div>'
+                '<div><b>%s before</b></div>'
+                'data before' % name
+            ), statement
+
+    def test_code_block_function_names_are_its_own(self):
+        # The parameters of a function and the names its body binds
+        # are read from the template scope again after it.
+        source = (
+            '<?python\n'
+            '%s outer(a, *args, k=1, **kwargs):\n'
+            '    %s inner(b): pass\n'
+            '    class cls: pass\n'
+            '    import os as mod\n'
+            '    return (a, inner, cls, mod)\n'
+            '?>${a} ${args} ${k} ${kwargs} ${b} ${inner} ${cls} ${mod} '
+            '${outer.__name__}'
+        )
+        data = {
+            name: name.upper() for name in
+            ('a', 'args', 'k', 'kwargs', 'b', 'inner', 'cls', 'mod')
+        }
+        for keyword in ('def', 'async def'):
+            template = self.from_string(source % (keyword, keyword))
+            assert template(**data) == (
+                'A ARGS K KWARGS B INNER CLS MOD outer'
+            ), keyword
+
+        # A name bound before the function stays bound after it.
+        template = self.from_string(
+            '<?python\n'
+            'def a(): return 1\n'
+            'def f(a): return a\n'
+            '?>${a()} ${f(2)}'
+        )
+        assert template(a='data') == '1 2'
+
     def test_code_block_binds_class_name(self):
         template = self.from_string(
             '<?python\n'
