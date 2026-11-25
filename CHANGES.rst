@@ -9,6 +9,13 @@ In next release ...
   depended on the depth of the caller.
   (`#462 <https://github.com/malthe/chameleon/issues/462>`_)
 
+- Fix names bound in a ``<?python ?>`` block by ``class``, ``async def``,
+  ``except ... as`` and the captures of a ``match`` pattern: reading
+  them raised ``NameError``. The names a code block binds inside a
+  function or a ``metal:fill-slot``, and a function's parameters, are
+  no longer taken for local names after it.
+  (`#464 <https://github.com/malthe/chameleon/issues/464>`_)
+
 - Fix default arguments in expressions and code blocks, which were
   rewritten as if they were inside the function: ``lambda a=a: a`` and
   ``def f(a=a)`` raised ``NameError``, and a lambda's default could not

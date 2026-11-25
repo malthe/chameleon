@@ -653,6 +653,211 @@ class TestZopePageTemplates:
         assert template.debug
         assert isinstance(template.loader, ModuleLoader)
 
+    def test_code_block_binds_exception_name(self):
+        template = self.from_string(
+            '<?python\n'
+            'try:\n'
+            '    1 / 0\n'
+            'except ZeroDivisionError as error:\n'
+            '    message = str(error)\n'
+            '?>${message} ${error}'
+        )
+        # The name is unbound again after the handler.
+        assert template(error='data') == 'division by zero data'
+
+    def test_code_block_exception_name_that_is_bound_already(self):
+        # A handler unbinds its name. The name is read from the template
+        # scope after the handler ran, and is the earlier binding if it
+        # did not.
+        source = (
+            '<?python\n'
+            '%s\n'
+            'try:\n'
+            '    %s\n'
+            'except ZeroDivisionError as error:\n'
+            '    seen = type(error).__name__\n'
+            '?>${seen} ${getattr(error, "__name__", error)}'
+        )
+        for statement in (
+            'class error: pass',
+            'def error(): pass',
+            'async def error(): pass',
+            'import os as error',
+        ):
+            name = 'os' if 'import' in statement else 'error'
+            template = self.from_string(source % (statement, '1 / 0'))
+            assert template(seen='-', error='data') == (
+                'ZeroDivisionError data'
+            ), statement
+            with pytest.raises(NameError):
+                template(seen='-')
+            template = self.from_string(source % (statement, 'pass'))
+            assert template(seen='-', error='data') == '- ' + name, statement
+
+    def test_code_block_names_are_not_bound_in_another_macro(self):
+        # A macro is a function of its own.
+        source = (
+            '<div metal:define-macro="first"><?python\n'
+            '%s\n'
+            '?>${thing.__name__}</div>'
+            '<div metal:define-macro="second">${thing}</div>'
+            '<div metal:use-macro="template.macros[\'first\']" />'
+            '<div metal:use-macro="template.macros[\'second\']" />'
+            '${thing}'
+        )
+        for statement, name in (
+            ('class thing: pass', 'thing'),
+            ('def thing(): pass', 'thing'),
+            ('async def thing(): pass', 'thing'),
+            ('import os as thing', 'os'),
+        ):
+            template = self.from_string(source % statement)
+            # Each macro is rendered where it is defined, and once more
+            # where it is used.
+            assert template(thing='data') == (
+                2 * ('<div>%s</div><div>data</div>' % name) + 'data'
+            ), statement
+
+    def test_code_block_names_are_not_bound_after_a_fill(self):
+        # A fill is a function of its own, which sees the names bound
+        # before it.
+        source = (
+            '<div metal:define-macro="main">'
+            '<span metal:define-slot="content" /></div>'
+            '<?python\ndef before(): return "before"\n?>'
+            '<div metal:use-macro="template.macros[\'main\']">'
+            '<b metal:fill-slot="content"><?python\n'
+            '%s\n'
+            '?>${thing.__name__} ${before()}</b></div>'
+            '${thing} ${before()}'
+        )
+        for statement, name in (
+            ('class thing: pass', 'thing'),
+            ('def thing(): pass', 'thing'),
+            ('async def thing(): pass', 'thing'),
+            ('import os as thing', 'os'),
+        ):
+            template = self.from_string(source % statement)
+            assert template(thing='data') == (
+                '<div><span /></div>'
+                '<div><b>%s before</b></div>'
+                'data before' % name
+            ), statement
+
+    def test_code_block_function_names_are_its_own(self):
+        # The parameters of a function and the names its body binds
+        # are read from the template scope again after it.
+        source = (
+            '<?python\n'
+            '%s outer(a, *args, k=1, **kwargs):\n'
+            '    %s inner(b): pass\n'
+            '    class cls: pass\n'
+            '    import os as mod\n'
+            '    return (a, inner, cls, mod)\n'
+            '?>${a} ${args} ${k} ${kwargs} ${b} ${inner} ${cls} ${mod} '
+            '${outer.__name__}'
+        )
+        data = {
+            name: name.upper() for name in
+            ('a', 'args', 'k', 'kwargs', 'b', 'inner', 'cls', 'mod')
+        }
+        for keyword in ('def', 'async def'):
+            template = self.from_string(source % (keyword, keyword))
+            assert template(**data) == (
+                'A ARGS K KWARGS B INNER CLS MOD outer'
+            ), keyword
+
+        # A name bound before the function stays bound after it.
+        template = self.from_string(
+            '<?python\n'
+            'def a(): return 1\n'
+            'def f(a): return a\n'
+            '?>${a()} ${f(2)}'
+        )
+        assert template(a='data') == '1 2'
+
+    def test_code_block_binds_class_name(self):
+        template = self.from_string(
+            '<?python\n'
+            'class Greeter:\n'
+            '    def greet(self, name):\n'
+            '        return "Hello, " + name\n'
+            '?>${Greeter().greet("world")}'
+        )
+        assert template() == 'Hello, world'
+
+    def test_code_block_name_is_bound_after_its_header(self):
+        # The type of a handler, and the bases and decorators of a
+        # class or a function, are evaluated before the name is bound.
+        template = self.from_string(
+            '<?python\n'
+            'try:\n'
+            '    1 / 0\n'
+            'except error as error:\n'
+            '    caught = type(error).__name__\n'
+            '?>${caught}'
+        )
+        assert template(error=ZeroDivisionError) == 'ZeroDivisionError'
+
+        template = self.from_string(
+            '<?python\n'
+            '@Base\n'
+            'class Base(Base, metaclass=Base.meta):\n'
+            '    pass\n'
+            '?>${Base.__mro__[1].__name__}'
+        )
+
+        class Base:
+            meta = type
+
+            def __new__(cls, decorated=None):
+                return decorated
+
+        assert template(Base=Base) == 'Base'
+
+        template = self.from_string(
+            '<?python\n'
+            '@fetch\n'
+            'async def fetch():\n'
+            '    return 1\n'
+            '?>${fetch.__name__}'
+        )
+        assert template(fetch=lambda function: function) == 'fetch'
+
+        template = self.from_string(
+            '<?python\n'
+            '@seen.append\n'
+            'async def fetch(first=fetch, *, second=fetch) -> fetch:\n'
+            '    return first\n'
+            '?>${seen[0].__defaults__[0]} ${seen[0].__kwdefaults__["second"]}'
+        )
+        assert template(fetch=42, seen=[]) == '42 42'
+
+    def test_code_block_binds_async_function_name(self):
+        template = self.from_string(
+            '<?python\n'
+            'async def fetch():\n'
+            '    return 1\n'
+            '?>${fetch.__name__}'
+        )
+        assert template() == 'fetch'
+
+    def test_code_block_binds_match_captures(self):
+        template = self.from_string(
+            '<?python\n'
+            'match value:\n'
+            '    case [first, *rest] if first > 0:\n'
+            '        total = first + len(rest)\n'
+            '    case {"key": item, **others}:\n'
+            '        total = item\n'
+            '    case str() as text:\n'
+            '        total = text\n'
+            '?>${total} ${first | "-"} ${item | "-"} ${text}'
+        )
+        assert template(value=[1, 2, 3], text='data') == '3 1 - data'
+        assert template(value={'key': 5}, text='data') == '5 - 5 data'
+        assert template(value='abc', text='data') == 'abc - - abc'
+
     def test_tag_mismatch(self):
         from chameleon.exc import ParseError
 
